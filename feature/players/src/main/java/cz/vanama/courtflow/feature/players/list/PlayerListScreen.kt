@@ -48,6 +48,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PlayerListScreen(
     onNavigateToPlayerDetail: (Int) -> Unit,
+    onNavigateToTeams: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerListViewModel = koinViewModel(),
 ) {
@@ -68,7 +69,14 @@ fun PlayerListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("NBA Players") })
+            TopAppBar(
+                title = { Text("NBA Players") },
+                actions = {
+                    TextButton(onClick = onNavigateToTeams) {
+                        Text("Teams")
+                    }
+                },
+            )
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->

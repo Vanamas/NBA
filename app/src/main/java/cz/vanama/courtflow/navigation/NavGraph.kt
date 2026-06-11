@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import cz.vanama.courtflow.feature.players.detail.PlayerDetailScreen
 import cz.vanama.courtflow.feature.players.list.PlayerListScreen
 import cz.vanama.courtflow.feature.teams.detail.TeamDetailScreen
+import cz.vanama.courtflow.feature.teams.list.TeamListScreen
 
 /**
  * Root navigation of the app: a simple manual back stack of [Destination]
@@ -22,6 +23,16 @@ fun CourtFlowNavGraph() {
             PlayerListScreen(
                 onNavigateToPlayerDetail = { playerId ->
                     backStack.add(Destination.PlayerDetail(playerId))
+                },
+                onNavigateToTeams = {
+                    backStack.add(Destination.TeamList)
+                },
+            )
+        }
+        is Destination.TeamList -> {
+            TeamListScreen(
+                onNavigateToTeamDetail = { teamId ->
+                    backStack.add(Destination.TeamDetail(teamId))
                 },
             )
         }
