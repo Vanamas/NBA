@@ -1,0 +1,75 @@
+package cz.vanama.courtflow.feature.teams.list
+
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
+import cz.vanama.courtflow.domain.model.Team
+import io.kotest.matchers.shouldBe
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
+class TeamListContentTest {
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
+    private val team =
+        Team(
+            id = 10,
+            abbreviation = "GSW",
+            city = "Golden State",
+            conference = "West",
+            division = "Pacific",
+            fullName = "Golden State Warriors",
+            name = "Warriors",
+        )
+
+    @Test
+    fun `shows loading indicator while loading`() {
+        composeTestRule.setContent {
+            CourtFlowTheme(dynamicColor = false) {
+                TeamListContent(state = TeamListState(isLoading = true), onTeamClick = {})
+            }
+        }
+
+        composeTestRule.onNodeWithTag("loading_indicator").assertIsDisplayed()
+    }
+
+    @Test
+    fun `shows teams and propagates clicks`() {
+        var clickedId: Int? = null
+
+        composeTestRule.setContent {
+            CourtFlowTheme(dynamicColor = false) {
+                TeamListContent(
+                    state = TeamListState(teams = listOf(team)),
+                    onTeamClick = { clickedId = it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Golden State Warriors").assertIsDisplayed()
+        composeTestRule.onNodeWithText("West · Pacific").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Golden State Warriors").performClick()
+
+        clickedId shouldBe 10
+    }
+
+    @Test
+    fun `shows error text on error`() {
+        composeTestRule.setContent {
+            CourtFlowTheme(dynamicColor = false) {
+                TeamListContent(state = TeamListState(error = "Boom"), onTeamClick = {})
+            }
+        }
+
+        composeTestRule.onNodeWithText("Boom").assertIsDisplayed()
+    }
+}
