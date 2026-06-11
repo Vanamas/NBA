@@ -29,11 +29,11 @@ Architektura a hygiena kódu jsou nadprůměrné (čistá multi-modulová Clean 
 - Jediná lokalizace (`values/`), strings jen v `:app` — pro rozsah úlohy OK.
 
 ## Metrics (pro mezicyklové srovnání)
-- test count: **neměřitelné** (build rozbitý); 18 testovacích souborů
+- test count: **40** (0 selhání, 0 skipped; 17 tříd, testDebugUnitTest) — změřeno po opravě buildu v cyklu 1
 - lint/detekt issues: 0 (ale nástroje moduly nepokrývají — falešná nula)
-- outdated deps: 0 známých (verze na hraně, právě proto build spadl)
+- outdated deps: 0 známých
 - locale parity: 1/1
-- compileSdk duplikace: 8 souborů
+- compileSdk duplikace: 8 souborů (nyní všechny 37)
 
 ## Risks & tech debt
 1. Rozbitý build blokuje veškerou další práci (P0).
