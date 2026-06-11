@@ -5,7 +5,7 @@
 - [done] git init + initial commit — navíc připojen remote github.com/Vanamas/NBA, pushnuto, zapnuto delete-branch-on-merge (cycle 1)
 
 ## P1
-- [backlog] Rozšířit detekt + ktlint na všechny moduly (dnes analyzují jen root → falešná nula) a vyřešit nalezené issues
+- [done] Rozšířit detekt + ktlint na všechny moduly a vyřešit nalezené issues — 83+431 nálezů opraveno, 0 zbývá; bonus: DataException error model, CancellationException bug fix (cycle 2)
 - [done] Změřit a zapsat baseline metriky po opravě buildu — 40 testů / 0 failures (cycle 1)
 
 ## P2

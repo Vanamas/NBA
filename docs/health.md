@@ -29,8 +29,8 @@ Architektura a hygiena kódu jsou nadprůměrné (čistá multi-modulová Clean 
 - Jediná lokalizace (`values/`), strings jen v `:app` — pro rozsah úlohy OK.
 
 ## Metrics (pro mezicyklové srovnání)
-- test count: **40** (0 selhání, 0 skipped; 17 tříd, testDebugUnitTest) — změřeno po opravě buildu v cyklu 1
-- lint/detekt issues: 0 (ale nástroje moduly nepokrývají — falešná nula)
+- test count: **39** (0 selhání, 0 skipped; testDebugUnitTest) — cyklus 2: −1 za smazaný template test
+- lint/detekt issues: **0 reálná nula** — od cyklu 2 nástroje pokrývají všech 8 modulů (před zapnutím: 83 detekt + ~431 ktlint)
 - outdated deps: 0 známých
 - locale parity: 1/1
 - compileSdk duplikace: 8 souborů (nyní všechny 37)
