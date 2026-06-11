@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -132,6 +136,21 @@ private fun PlayerListItems(
                         .align(Alignment.Center)
                         .testTag("loading_indicator"),
             )
+        } else if (players.loadState.refresh is LoadState.Error) {
+            val refreshError = players.loadState.refresh as LoadState.Error
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier
+                        .align(Alignment.Center)
+                        .testTag("refresh_error"),
+            ) {
+                Text(text = "Failed to load players: ${refreshError.error.message}")
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = { players.retry() }) {
+                    Text("Retry")
+                }
+            }
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),
@@ -166,10 +185,18 @@ private fun PlayerListItems(
                     }
                     is LoadState.Error -> {
                         item {
-                            Text(
-                                text = "Error loading more players: ${loadState.error.message}",
-                                modifier = Modifier.padding(16.dp),
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(
+                                    text = "Error loading more players: ${loadState.error.message}",
+                                    modifier = Modifier.padding(16.dp),
+                                )
+                                TextButton(onClick = { players.retry() }) {
+                                    Text("Retry")
+                                }
+                            }
                         }
                     }
                     else -> {}

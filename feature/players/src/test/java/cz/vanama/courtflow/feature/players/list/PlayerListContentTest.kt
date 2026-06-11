@@ -6,6 +6,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.paging.LoadState
+import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.domain.model.Player
@@ -108,5 +110,29 @@ class PlayerListContentTest {
         composeTestRule.onNodeWithTag("player_search_field").performTextInput("curry")
 
         lastQuery shouldBe "curry"
+    }
+
+    @Test
+    fun `refresh error shows message and retry button`() {
+        val errorStates =
+            LoadStates(
+                refresh = LoadState.Error(RuntimeException("boom")),
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.NotLoading(endOfPaginationReached = false),
+            )
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.empty<Player>(sourceLoadStates = errorStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithTag("refresh_error").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 }
