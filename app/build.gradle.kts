@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.material)
     testImplementation(libs.konsist)
+    testImplementation(libs.koin.test)
     testImplementation(libs.androidx.core)
     testImplementation(libs.androidx.junit)
     testImplementation(libs.junit)
