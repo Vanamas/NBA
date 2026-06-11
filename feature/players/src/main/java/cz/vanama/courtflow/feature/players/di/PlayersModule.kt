@@ -1,15 +1,13 @@
-package cz.vanama.courtflow.di
+package cz.vanama.courtflow.feature.players.di
 
 import cz.vanama.courtflow.feature.players.detail.PlayerDetailViewModel
 import cz.vanama.courtflow.feature.players.list.PlayerListViewModel
-import cz.vanama.courtflow.feature.teams.detail.TeamDetailViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-/** Koin module providing all screen ViewModels. */
-val viewModelModule =
+/** Koin module providing the ViewModels of the players feature. */
+val playersFeatureModule =
     module {
         viewModel { PlayerListViewModel(get()) }
         viewModel { PlayerDetailViewModel(get()) }
-        viewModel { TeamDetailViewModel(get()) }
     }

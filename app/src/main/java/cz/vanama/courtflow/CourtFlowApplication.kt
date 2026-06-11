@@ -3,8 +3,9 @@ package cz.vanama.courtflow
 import android.app.Application
 import cz.vanama.courtflow.core.network.di.coreNetworkModule
 import cz.vanama.courtflow.data.di.dataModule
-import cz.vanama.courtflow.di.viewModelModule
 import cz.vanama.courtflow.domain.di.domainModule
+import cz.vanama.courtflow.feature.players.di.playersFeatureModule
+import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -23,7 +24,8 @@ class CourtFlowApplication : Application() {
                 coreNetworkModule,
                 dataModule,
                 domainModule,
-                viewModelModule,
+                playersFeatureModule,
+                teamsFeatureModule,
             )
         }
     }
