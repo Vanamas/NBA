@@ -32,6 +32,7 @@
 - Ověřeno, že build projde bez local.properties (CI simulace s ANDROID_HOME): :core:network má fallback getProperty(key, "") — žádná úprava buildu nebyla potřeba.
 - Gradle deprecations (--warning-mode all + deprecation.trace): jediný nález — ReportingExtension.file(String) z pluginu detekt 1.23.8 (DetektPlugin.apply), odstranění v Gradle 10. Náš kód čistý; oprava = upgrade detektu (gatováno, do backlogu).
 - Roborazzi verify v CI záměrně neběží (riziko cross-OS rozdílů goldens macOS vs. Linux) — do backlogu.
-- Verifikace: ./gradlew detekt ktlintCheck test assembleDebug → BUILD SUCCESSFUL.
+- Verifikace: ./gradlew detekt ktlintCheck test assembleDebug → BUILD SUCCESSFUL; první CI běh zelený (run 27374131290).
+- Follow-up v rámci cyklu: GitHub anotace o Node 20 deprecation (vynucený přechod na Node 24 už 16. 6. 2026) → bump actions: checkout v6, setup-java v5, setup-gradle v6, upload-artifact v7 (verze ověřeny přes gh api releases/latest).
 - Metrics: test count = 39 (0 failures); detekt+ktlint issues = 0; outdated deps = 0; locale parity = 1/1; Gradle deprecations = 1 (třetí strana).
 - Next: P2 — convention plugins (s CI už bezpečnější), případně detekt 2.x upgrade.
