@@ -26,3 +26,12 @@
 - Verifikace: ./gradlew detekt ktlintCheck test assembleDebug → BUILD SUCCESSFUL.
 - Metrics: test count = 39 (0 failures; −1 za smazaný template test); detekt+ktlint issues = 0 (reálná nula, pokrývá všech 8 modulů); outdated deps = 0; locale parity = 1/1.
 - Next: P2 — convention plugins (duplikace build konfigurace), CI na GitHub Actions.
+
+## [2026-06-11 22:05] cycle | Cycle 3 — CI na GitHub Actions, prošetření Gradle deprecations
+- Vytvořen .github/workflows/ci.yml: detekt + ktlintCheck → test → assembleDebug na push/PR do main; ubuntu-latest, Temurin 21, gradle/actions/setup-gradle (cache), concurrency cancel-in-progress, upload test reportů při failu.
+- Ověřeno, že build projde bez local.properties (CI simulace s ANDROID_HOME): :core:network má fallback getProperty(key, "") — žádná úprava buildu nebyla potřeba.
+- Gradle deprecations (--warning-mode all + deprecation.trace): jediný nález — ReportingExtension.file(String) z pluginu detekt 1.23.8 (DetektPlugin.apply), odstranění v Gradle 10. Náš kód čistý; oprava = upgrade detektu (gatováno, do backlogu).
+- Roborazzi verify v CI záměrně neběží (riziko cross-OS rozdílů goldens macOS vs. Linux) — do backlogu.
+- Verifikace: ./gradlew detekt ktlintCheck test assembleDebug → BUILD SUCCESSFUL.
+- Metrics: test count = 39 (0 failures); detekt+ktlint issues = 0; outdated deps = 0; locale parity = 1/1; Gradle deprecations = 1 (třetí strana).
+- Next: P2 — convention plugins (s CI už bezpečnější), případně detekt 2.x upgrade.

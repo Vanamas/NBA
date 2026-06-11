@@ -10,5 +10,7 @@
 
 ## P2
 - [backlog] Zavést convention plugins — compileSdk/minSdk/targetSdk je zduplikované v 8 build souborech
-- [backlog] Prošetřit Gradle deprecation warnings („incompatible with Gradle 10")
-- [backlog] Zvážit CI (GitHub Actions: build + test + detekt) — repo už je na GitHubu (Vanamas/NBA)
+- [done] Prošetřit Gradle deprecation warnings — jediný nález: ReportingExtension.file z detekt pluginu 1.23.8; náš kód čistý (cycle 3)
+- [done] Zvážit CI (GitHub Actions: build + test + detekt) — ci.yml: lint + testy + build na push/PR do main (cycle 3)
+- [backlog] Upgrade detekt na verzi bez ReportingExtension.file deprecation (detekt 2.x) — blokuje budoucí Gradle 10; změna závislosti = gatováno
+- [backlog] Zvážit Roborazzi verify v CI — nutno ověřit determinismus goldens mezi macOS (lokál) a Linux (CI)
