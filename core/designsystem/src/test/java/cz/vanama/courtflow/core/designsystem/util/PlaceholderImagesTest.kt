@@ -6,7 +6,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlaceholderImagesTest {
-
     @Test
     fun `playerPortrait builds pollinations url seeded by player id`() {
         val url = PlaceholderImages.playerPortrait(playerId = 19)
@@ -23,7 +22,7 @@ class PlaceholderImagesTest {
     fun `playerPortrait is deterministic for the same player`() {
         assertEquals(
             PlaceholderImages.playerPortrait(playerId = 19),
-            PlaceholderImages.playerPortrait(playerId = 19)
+            PlaceholderImages.playerPortrait(playerId = 19),
         )
     }
 
@@ -40,7 +39,7 @@ class PlaceholderImagesTest {
     @Test
     fun `player and team urls differ for the same id`() {
         assertFalse(
-            PlaceholderImages.playerPortrait(playerId = 5) == PlaceholderImages.teamEmblem(teamId = 5)
+            PlaceholderImages.playerPortrait(playerId = 5) == PlaceholderImages.teamEmblem(teamId = 5),
         )
     }
 }

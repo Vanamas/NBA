@@ -10,7 +10,6 @@ import org.junit.Before
 import org.junit.Test
 
 class GetTeamDetailUseCaseTest {
-
     private lateinit var teamRepository: TeamRepository
     private lateinit var useCase: GetTeamDetailUseCase
 
@@ -21,12 +20,13 @@ class GetTeamDetailUseCaseTest {
     }
 
     @Test
-    fun `invoke returns team from repository`() = runTest {
-        val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
-        coEvery { teamRepository.getTeamById(1) } returns team
+    fun `invoke returns team from repository`() =
+        runTest {
+            val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+            coEvery { teamRepository.getTeamById(1) } returns team
 
-        val result = useCase(1)
+            val result = useCase(1)
 
-        assertEquals(team, result)
-    }
+            assertEquals(team, result)
+        }
 }

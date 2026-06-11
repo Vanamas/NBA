@@ -20,34 +20,35 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class PlayerListContentTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private val team = Team(
-        id = 10,
-        abbreviation = "GSW",
-        city = "Golden State",
-        conference = "West",
-        division = "Pacific",
-        fullName = "Golden State Warriors",
-        name = "Warriors"
-    )
+    private val team =
+        Team(
+            id = 10,
+            abbreviation = "GSW",
+            city = "Golden State",
+            conference = "West",
+            division = "Pacific",
+            fullName = "Golden State Warriors",
+            name = "Warriors",
+        )
 
-    private val player = Player(
-        id = 19,
-        firstName = "Stephen",
-        lastName = "Curry",
-        position = "G",
-        team = team
-    )
+    private val player =
+        Player(
+            id = 19,
+            firstName = "Stephen",
+            lastName = "Curry",
+            position = "G",
+            team = team,
+        )
 
     @Test
     fun `null players shows loading indicator`() {
         composeTestRule.setContent {
             PlayerListContent(
                 players = null,
-                onPlayerClick = {}
+                onPlayerClick = {},
             )
         }
 
@@ -59,7 +60,7 @@ class PlayerListContentTest {
         composeTestRule.setContent {
             PlayerListContent(
                 players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
-                onPlayerClick = {}
+                onPlayerClick = {},
             )
         }
 
@@ -75,7 +76,7 @@ class PlayerListContentTest {
         composeTestRule.setContent {
             PlayerListContent(
                 players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
-                onPlayerClick = { clickedPlayerId = it }
+                onPlayerClick = { clickedPlayerId = it },
             )
         }
 

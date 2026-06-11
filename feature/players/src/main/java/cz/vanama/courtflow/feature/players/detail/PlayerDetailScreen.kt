@@ -47,7 +47,7 @@ fun PlayerDetailScreen(
     playerId: Int,
     onNavigateToTeamDetail: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PlayerDetailViewModel = koinViewModel()
+    viewModel: PlayerDetailViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -67,12 +67,12 @@ fun PlayerDetailScreen(
         topBar = {
             TopAppBar(title = { Text("Player Details") })
         },
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) { padding ->
         PlayerDetailContent(
             state = uiState,
             onTeamClick = { teamId -> viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(teamId)) },
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
         )
     }
 }
@@ -86,11 +86,11 @@ fun PlayerDetailScreen(
 fun PlayerDetailContent(
     state: PlayerDetailState,
     onTeamClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
@@ -100,24 +100,25 @@ fun PlayerDetailContent(
             state.player?.let { player ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState())
+                    modifier =
+                        Modifier
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()),
                 ) {
                     GlideImage(
                         model = PlaceholderImages.playerPortrait(player.id),
                         contentDescription = "${player.firstName} ${player.lastName}",
-                        modifier = Modifier.size(200.dp)
+                        modifier = Modifier.size(200.dp),
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "${player.firstName} ${player.lastName}",
                         style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = "Position: ${player.position}",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     PlayerAttribute(label = "Height", value = player.height)
@@ -127,13 +128,14 @@ fun PlayerDetailContent(
                     PlayerAttribute(label = "Country", value = player.country)
                     PlayerAttribute(
                         label = "Draft",
-                        value = player.draftYear?.let { year ->
-                            listOfNotNull(
-                                "$year",
-                                player.draftRound?.let { "round $it" },
-                                player.draftNumber?.let { "pick $it" }
-                            ).joinToString(", ")
-                        }
+                        value =
+                            player.draftYear?.let { year ->
+                                listOfNotNull(
+                                    "$year",
+                                    player.draftRound?.let { "round $it" },
+                                    player.draftNumber?.let { "pick $it" },
+                                ).joinToString(", ")
+                            },
                     )
                     Spacer(modifier = Modifier.height(32.dp))
                     Button(onClick = { onTeamClick(player.team.id) }) {
@@ -150,24 +152,35 @@ fun PlayerDetailContent(
 private fun PlayerDetailContentPreview() {
     CourtFlowTheme(dynamicColor = false) {
         PlayerDetailContent(
-            state = PlayerDetailState(
-                player = Player(
-                    id = 19,
-                    firstName = "Stephen",
-                    lastName = "Curry",
-                    position = "G",
-                    height = "6-2",
-                    weight = "185",
-                    jerseyNumber = "30",
-                    college = "Davidson",
-                    country = "USA",
-                    draftYear = 2009,
-                    draftRound = 1,
-                    draftNumber = 7,
-                    team = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
-                )
-            ),
-            onTeamClick = {}
+            state =
+                PlayerDetailState(
+                    player =
+                        Player(
+                            id = 19,
+                            firstName = "Stephen",
+                            lastName = "Curry",
+                            position = "G",
+                            height = "6-2",
+                            weight = "185",
+                            jerseyNumber = "30",
+                            college = "Davidson",
+                            country = "USA",
+                            draftYear = 2009,
+                            draftRound = 1,
+                            draftNumber = 7,
+                            team =
+                                Team(
+                                    10,
+                                    "GSW",
+                                    "Golden State",
+                                    "West",
+                                    "Pacific",
+                                    "Golden State Warriors",
+                                    "Warriors",
+                                ),
+                        ),
+                ),
+            onTeamClick = {},
         )
     }
 }
@@ -178,7 +191,7 @@ private fun PlayerDetailContentLoadingPreview() {
     CourtFlowTheme(dynamicColor = false) {
         PlayerDetailContent(
             state = PlayerDetailState(isLoading = true),
-            onTeamClick = {}
+            onTeamClick = {},
         )
     }
 }
@@ -189,25 +202,29 @@ private fun PlayerDetailContentErrorPreview() {
     CourtFlowTheme(dynamicColor = false) {
         PlayerDetailContent(
             state = PlayerDetailState(error = "Player could not be loaded."),
-            onTeamClick = {}
+            onTeamClick = {},
         )
     }
 }
 
 /** Single "label - value" row of the detail; renders nothing when [value] is `null`. */
 @Composable
-private fun PlayerAttribute(label: String, value: String?, modifier: Modifier = Modifier) {
+private fun PlayerAttribute(
+    label: String,
+    value: String?,
+    modifier: Modifier = Modifier,
+) {
     if (value == null) return
     Row(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.width(140.dp)
+            modifier = Modifier.width(140.dp),
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }

@@ -23,6 +23,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.common)
+    // Needed to translate retrofit2.HttpException into the domain DataException.
+    implementation(libs.retrofit)
     ksp(libs.androidx.room.compiler)
     implementation(libs.koin.android)
 

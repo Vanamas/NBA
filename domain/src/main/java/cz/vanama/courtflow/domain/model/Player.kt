@@ -19,5 +19,5 @@ data class Player(
     val draftYear: Int? = null,
     val draftRound: Int? = null,
     val draftNumber: Int? = null,
-    val team: Team
+    val team: Team,
 )

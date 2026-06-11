@@ -14,20 +14,17 @@ import kotlinx.coroutines.flow.Flow
  * [PlayerRepository] backed by the balldontlie REST API.
  */
 class PlayerRepositoryImpl(
-    private val api: BallDontLieApi
+    private val api: BallDontLieApi,
 ) : PlayerRepository {
-
-    override fun getPlayers(): Flow<PagingData<Player>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 35,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = { PlayerPagingSource(api) }
+    override fun getPlayers(): Flow<PagingData<Player>> =
+        Pager(
+            config =
+                PagingConfig(
+                    pageSize = 35,
+                    enablePlaceholders = false,
+                ),
+            pagingSourceFactory = { PlayerPagingSource(api) },
         ).flow
-    }
 
-    override suspend fun getPlayerById(id: Int): Player {
-        return api.getPlayer(id).data.toDomain()
-    }
+    override suspend fun getPlayerById(id: Int): Player = safeApiCall { api.getPlayer(id).data.toDomain() }
 }

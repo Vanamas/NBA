@@ -13,7 +13,6 @@ import org.junit.Before
 import org.junit.Test
 
 class GetPlayersUseCaseTest {
-
     private lateinit var playerRepository: PlayerRepository
     private lateinit var useCase: GetPlayersUseCase
 
@@ -24,20 +23,22 @@ class GetPlayersUseCaseTest {
     }
 
     @Test
-    fun `invoke returns paging data flow from repository`() = runTest {
-        val player = Player(
-            id = 1,
-            firstName = "First",
-            lastName = "Last",
-            position = "G",
-            team = Team(1, "ABB", "City", "Conf", "Div", "Full", "Name")
-        )
-        val pagingData = PagingData.from(listOf(player))
-        val flow = flowOf(pagingData)
-        every { playerRepository.getPlayers() } returns flow
+    fun `invoke returns paging data flow from repository`() =
+        runTest {
+            val player =
+                Player(
+                    id = 1,
+                    firstName = "First",
+                    lastName = "Last",
+                    position = "G",
+                    team = Team(1, "ABB", "City", "Conf", "Div", "Full", "Name"),
+                )
+            val pagingData = PagingData.from(listOf(player))
+            val flow = flowOf(pagingData)
+            every { playerRepository.getPlayers() } returns flow
 
-        val result = useCase()
+            val result = useCase()
 
-        assertEquals(flow, result)
-    }
+            assertEquals(flow, result)
+        }
 }

@@ -23,7 +23,6 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35])
 class PlayerCardScreenshotTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -36,7 +35,7 @@ class PlayerCardScreenshotTest {
             teamName = "Golden State Warriors",
             // Deliberately not a real URL - the image slot stays empty, keeping the screenshot deterministic.
             imageUrl = "",
-            onClick = {}
+            onClick = {},
         )
     }
 

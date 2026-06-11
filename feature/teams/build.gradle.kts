@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:common"))
-    
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -39,7 +39,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.glide.compose)
-    
+
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 

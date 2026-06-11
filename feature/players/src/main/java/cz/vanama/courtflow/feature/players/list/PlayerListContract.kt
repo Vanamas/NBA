@@ -6,16 +6,21 @@ import kotlinx.coroutines.flow.Flow
 
 /** UI state of the player list screen; [players] is `null` until loading starts. */
 data class PlayerListState(
-    val players: Flow<PagingData<Player>>? = null
+    val players: Flow<PagingData<Player>>? = null,
 )
 
 /** User actions of the player list screen. */
 sealed class PlayerListIntent {
     data object LoadPlayers : PlayerListIntent()
-    data class OnPlayerClicked(val playerId: Int) : PlayerListIntent()
+
+    data class OnPlayerClicked(
+        val playerId: Int,
+    ) : PlayerListIntent()
 }
 
 /** One-shot events emitted by [PlayerListViewModel]. */
 sealed class PlayerListEffect {
-    data class NavigateToPlayerDetail(val playerId: Int) : PlayerListEffect()
+    data class NavigateToPlayerDetail(
+        val playerId: Int,
+    ) : PlayerListEffect()
 }

@@ -8,7 +8,7 @@ import com.squareup.moshi.JsonClass
  */
 @JsonClass(generateAdapter = true)
 data class SingleResponse<T>(
-    @Json(name = "data") val data: T
+    @Json(name = "data") val data: T,
 )
 
 /**
@@ -17,7 +17,7 @@ data class SingleResponse<T>(
 @JsonClass(generateAdapter = true)
 data class CommonResponse<T>(
     @Json(name = "data") val data: List<T>,
-    @Json(name = "meta") val meta: MetaDto? = null
+    @Json(name = "meta") val meta: MetaDto? = null,
 )
 
 /**
@@ -26,5 +26,5 @@ data class CommonResponse<T>(
 @JsonClass(generateAdapter = true)
 data class MetaDto(
     @Json(name = "next_cursor") val nextCursor: Int?,
-    @Json(name = "per_page") val perPage: Int?
+    @Json(name = "per_page") val perPage: Int?,
 )

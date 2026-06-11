@@ -7,8 +7,9 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 /** Koin module providing all screen ViewModels. */
-val viewModelModule = module {
-    viewModel { PlayerListViewModel(get()) }
-    viewModel { PlayerDetailViewModel(get()) }
-    viewModel { TeamDetailViewModel(get()) }
-}
+val viewModelModule =
+    module {
+        viewModel { PlayerListViewModel(get()) }
+        viewModel { PlayerDetailViewModel(get()) }
+        viewModel { TeamDetailViewModel(get()) }
+    }

@@ -9,7 +9,6 @@ package cz.vanama.courtflow.core.designsystem.util
  * gets the same picture.
  */
 object PlaceholderImages {
-
     private const val BASE_URL = "https://image.pollinations.ai/prompt"
 
     /** URL-encoded prompt: "basketball player portrait, flat vector illustration, orange jersey" */
@@ -21,10 +20,14 @@ object PlaceholderImages {
         "basketball%20team%20emblem%2C%20flat%20minimal%20vector%20illustration"
 
     /** Returns a deterministic portrait illustration URL for the given player. */
-    fun playerPortrait(playerId: Int, size: Int = 512): String =
-        "$BASE_URL/$PLAYER_PROMPT?width=$size&height=$size&seed=$playerId&model=flux&nologo=true"
+    fun playerPortrait(
+        playerId: Int,
+        size: Int = 512,
+    ): String = "$BASE_URL/$PLAYER_PROMPT?width=$size&height=$size&seed=$playerId&model=flux&nologo=true"
 
     /** Returns a deterministic emblem illustration URL for the given team. */
-    fun teamEmblem(teamId: Int, size: Int = 512): String =
-        "$BASE_URL/$TEAM_PROMPT?width=$size&height=$size&seed=$teamId&model=flux&nologo=true"
+    fun teamEmblem(
+        teamId: Int,
+        size: Int = 512,
+    ): String = "$BASE_URL/$TEAM_PROMPT?width=$size&height=$size&seed=$teamId&model=flux&nologo=true"
 }

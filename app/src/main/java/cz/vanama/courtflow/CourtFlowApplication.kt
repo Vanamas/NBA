@@ -23,7 +23,7 @@ class CourtFlowApplication : Application() {
                 coreNetworkModule,
                 dataModule,
                 domainModule,
-                viewModelModule
+                viewModelModule,
             )
         }
     }

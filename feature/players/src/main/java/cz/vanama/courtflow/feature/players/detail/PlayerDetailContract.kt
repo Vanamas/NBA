@@ -6,16 +6,23 @@ import cz.vanama.courtflow.domain.model.Player
 data class PlayerDetailState(
     val isLoading: Boolean = false,
     val player: Player? = null,
-    val error: String? = null
+    val error: String? = null,
 )
 
 /** User actions of the player detail screen. */
 sealed class PlayerDetailIntent {
-    data class LoadPlayer(val playerId: Int) : PlayerDetailIntent()
-    data class OnTeamClicked(val teamId: Int) : PlayerDetailIntent()
+    data class LoadPlayer(
+        val playerId: Int,
+    ) : PlayerDetailIntent()
+
+    data class OnTeamClicked(
+        val teamId: Int,
+    ) : PlayerDetailIntent()
 }
 
 /** One-shot events emitted by [PlayerDetailViewModel]. */
 sealed class PlayerDetailEffect {
-    data class NavigateToTeamDetail(val teamId: Int) : PlayerDetailEffect()
+    data class NavigateToTeamDetail(
+        val teamId: Int,
+    ) : PlayerDetailEffect()
 }

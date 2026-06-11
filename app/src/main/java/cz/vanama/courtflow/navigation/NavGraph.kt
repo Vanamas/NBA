@@ -22,7 +22,7 @@ fun CourtFlowNavGraph() {
             PlayerListScreen(
                 onNavigateToPlayerDetail = { playerId ->
                     backStack.add(Destination.PlayerDetail(playerId))
-                }
+                },
             )
         }
         is Destination.PlayerDetail -> {
@@ -30,12 +30,12 @@ fun CourtFlowNavGraph() {
                 playerId = currentDestination.playerId,
                 onNavigateToTeamDetail = { teamId ->
                     backStack.add(Destination.TeamDetail(teamId))
-                }
+                },
             )
         }
         is Destination.TeamDetail -> {
             TeamDetailScreen(
-                teamId = currentDestination.teamId
+                teamId = currentDestination.teamId,
             )
         }
     }

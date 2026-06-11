@@ -7,34 +7,35 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PlayerMapperTest {
-
-    private val teamDto = TeamDto(
-        id = 10,
-        abbreviation = "GSW",
-        city = "Golden State",
-        conference = "West",
-        division = "Pacific",
-        fullName = "Golden State Warriors",
-        name = "Warriors"
-    )
+    private val teamDto =
+        TeamDto(
+            id = 10,
+            abbreviation = "GSW",
+            city = "Golden State",
+            conference = "West",
+            division = "Pacific",
+            fullName = "Golden State Warriors",
+            name = "Warriors",
+        )
 
     @Test
     fun `toDomain maps all player attributes`() {
-        val dto = PlayerDto(
-            id = 19,
-            firstName = "Stephen",
-            lastName = "Curry",
-            position = "G",
-            height = "6-2",
-            weight = "185",
-            jerseyNumber = "30",
-            college = "Davidson",
-            country = "USA",
-            draftYear = 2009,
-            draftRound = 1,
-            draftNumber = 7,
-            team = teamDto
-        )
+        val dto =
+            PlayerDto(
+                id = 19,
+                firstName = "Stephen",
+                lastName = "Curry",
+                position = "G",
+                height = "6-2",
+                weight = "185",
+                jerseyNumber = "30",
+                college = "Davidson",
+                country = "USA",
+                draftYear = 2009,
+                draftRound = 1,
+                draftNumber = 7,
+                team = teamDto,
+            )
 
         val player = dto.toDomain()
 
@@ -55,21 +56,22 @@ class PlayerMapperTest {
 
     @Test
     fun `toDomain handles missing optional attributes`() {
-        val dto = PlayerDto(
-            id = 19,
-            firstName = "Stephen",
-            lastName = "Curry",
-            position = "G",
-            height = null,
-            weight = null,
-            jerseyNumber = null,
-            college = null,
-            country = null,
-            draftYear = null,
-            draftRound = null,
-            draftNumber = null,
-            team = teamDto
-        )
+        val dto =
+            PlayerDto(
+                id = 19,
+                firstName = "Stephen",
+                lastName = "Curry",
+                position = "G",
+                height = null,
+                weight = null,
+                jerseyNumber = null,
+                college = null,
+                country = null,
+                draftYear = null,
+                draftRound = null,
+                draftNumber = null,
+                team = teamDto,
+            )
 
         val player = dto.toDomain()
 

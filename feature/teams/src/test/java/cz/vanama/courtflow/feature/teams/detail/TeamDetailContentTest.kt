@@ -14,19 +14,19 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class TeamDetailContentTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private val team = Team(
-        id = 10,
-        abbreviation = "GSW",
-        city = "Golden State",
-        conference = "West",
-        division = "Pacific",
-        fullName = "Golden State Warriors",
-        name = "Warriors"
-    )
+    private val team =
+        Team(
+            id = 10,
+            abbreviation = "GSW",
+            city = "Golden State",
+            conference = "West",
+            division = "Pacific",
+            fullName = "Golden State Warriors",
+            name = "Warriors",
+        )
 
     @Test
     fun `loading state shows progress indicator`() {

@@ -11,10 +11,8 @@ import kotlinx.coroutines.flow.Flow
  * Pages of 35 records are loaded lazily as the user scrolls.
  */
 class GetPlayersUseCase(
-    private val playerRepository: PlayerRepository
+    private val playerRepository: PlayerRepository,
 ) {
     /** Returns a cold [Flow] of player pages backed by the remote API. */
-    operator fun invoke(): Flow<PagingData<Player>> {
-        return playerRepository.getPlayers()
-    }
+    operator fun invoke(): Flow<PagingData<Player>> = playerRepository.getPlayers()
 }

@@ -2,6 +2,7 @@ package cz.vanama.courtflow.feature.players.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.vanama.courtflow.domain.error.DataException
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,9 +20,8 @@ import kotlinx.coroutines.launch
  * effect when the user taps the team button.
  */
 class PlayerDetailViewModel(
-    private val getPlayerDetailUseCase: GetPlayerDetailUseCase
+    private val getPlayerDetailUseCase: GetPlayerDetailUseCase,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(PlayerDetailState())
     val uiState: StateFlow<PlayerDetailState> = _uiState.asStateFlow()
 
@@ -41,7 +41,7 @@ class PlayerDetailViewModel(
             try {
                 val player = getPlayerDetailUseCase(playerId)
                 _uiState.update { it.copy(isLoading = false, player = player) }
-            } catch (e: Exception) {
+            } catch (e: DataException) {
                 _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") }
             }
         }

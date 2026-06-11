@@ -12,6 +12,8 @@ complexity:
   LongParameterList:
     active: true
     threshold: 6
+    # Compose components legitimately take many parameters (state + callbacks + modifier).
+    ignoreAnnotated: ['Composable']
   LongMethod:
     active: true
     threshold: 60
@@ -19,8 +21,23 @@ complexity:
     active: true
     threshold: 4
 
+naming:
+  active: true
+  FunctionNaming:
+    active: true
+    # Composable functions use PascalCase by official Compose convention.
+    ignoreAnnotated: ['Composable']
+
 style:
   active: true
   MagicNumber:
     active: true
     ignoreNumbers: ['-1', '0', '1', '2']
+    # Named vals (color palettes, dimension constants) are already self-documenting.
+    ignorePropertyDeclaration: true
+    # Preview sample data (ids, jersey numbers, draft years) needs no named constants.
+    ignoreAnnotated: ['Preview', 'PreviewLightDark', 'PreviewScreenSizes', 'PreviewFontScale', 'PreviewDynamicColors']
+  UnusedPrivateMember:
+    active: true
+    # @Preview composables are entry points for the IDE, not dead code.
+    ignoreAnnotated: ['Preview', 'PreviewLightDark', 'PreviewScreenSizes', 'PreviewFontScale', 'PreviewDynamicColors']

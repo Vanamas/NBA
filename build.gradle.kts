@@ -9,3 +9,13 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.roborazzi) apply false
 }
+
+subprojects {
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+    extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension>("detekt") {
+        config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+        buildUponDefaultConfig = true
+    }
+}

@@ -11,7 +11,6 @@ import org.junit.Before
 import org.junit.Test
 
 class GetPlayerDetailUseCaseTest {
-
     private lateinit var playerRepository: PlayerRepository
     private lateinit var useCase: GetPlayerDetailUseCase
 
@@ -22,13 +21,14 @@ class GetPlayerDetailUseCaseTest {
     }
 
     @Test
-    fun `invoke returns player from repository`() = runTest {
-        val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
-        val player = Player(id = 1, firstName = "LeBron", lastName = "James", position = "F", team = team)
-        coEvery { playerRepository.getPlayerById(1) } returns player
+    fun `invoke returns player from repository`() =
+        runTest {
+            val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+            val player = Player(id = 1, firstName = "LeBron", lastName = "James", position = "F", team = team)
+            coEvery { playerRepository.getPlayerById(1) } returns player
 
-        val result = useCase(1)
+            val result = useCase(1)
 
-        assertEquals(player, result)
-    }
+            assertEquals(player, result)
+        }
 }

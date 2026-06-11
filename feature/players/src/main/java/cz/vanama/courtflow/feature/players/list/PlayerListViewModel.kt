@@ -19,9 +19,8 @@ import kotlinx.coroutines.launch
  * navigation events through [uiEffect]; all input goes through [onIntent].
  */
 class PlayerListViewModel(
-    private val getPlayersUseCase: GetPlayersUseCase
+    private val getPlayersUseCase: GetPlayersUseCase,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(PlayerListState())
     val uiState: StateFlow<PlayerListState> = _uiState.asStateFlow()
 

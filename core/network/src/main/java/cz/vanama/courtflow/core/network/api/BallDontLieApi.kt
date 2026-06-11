@@ -24,12 +24,14 @@ interface BallDontLieApi {
     @GET("players")
     suspend fun getPlayers(
         @Query("cursor") cursor: Int? = null,
-        @Query("per_page") perPage: Int = 35
+        @Query("per_page") perPage: Int = 35,
     ): CommonResponse<PlayerDto>
 
     /** Returns a single player by [id]. */
     @GET("players/{id}")
-    suspend fun getPlayer(@Path("id") id: Int): SingleResponse<PlayerDto>
+    suspend fun getPlayer(
+        @Path("id") id: Int,
+    ): SingleResponse<PlayerDto>
 
     /** Returns all NBA teams. */
     @GET("teams")
@@ -37,5 +39,7 @@ interface BallDontLieApi {
 
     /** Returns a single team by [id]. */
     @GET("teams/{id}")
-    suspend fun getTeam(@Path("id") id: Int): SingleResponse<TeamDto>
+    suspend fun getTeam(
+        @Path("id") id: Int,
+    ): SingleResponse<TeamDto>
 }

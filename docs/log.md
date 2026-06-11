@@ -15,3 +15,14 @@
 - git init (main), initial commit 3c9b377 (129 souborů), remote origin = github.com/Vanamas/NBA (dodal uživatel), pushnuto; zapnuto delete-branch-on-merge dle globálních instrukcí.
 - Metrics: test count = 40 (0 failures, 0 skipped, 17 tříd); lint issues = 0 (falešná nula — nepokrývá moduly); outdated deps = 0; locale parity = 1/1.
 - Next: P1 — rozšířit detekt/ktlint na všechny moduly a srovnat reálný počet issues.
+
+## [2026-06-11 21:58] cycle | Cycle 2 — detekt/ktlint na všech modulech, vše opraveno
+- Root build.gradle.kts: subprojects { detekt + ktlint }, detekt config ukotven na rootProject config/detekt/detekt.yml.
+- Naměřeno před opravou: 83 detekt issues + ~431 ktlint prohřešků (do té doby neviditelné — falešná nula).
+- ktlintFormat opravil ~95 % mechanicky; .editorconfig přidán (ktlint_function_naming_ignore_when_annotated_with=Composable).
+- detekt.yml (schváleno uživatelem): Compose-aware ignoreAnnotated (Composable/Preview*) u FunctionNaming, UnusedPrivateMember, LongParameterList, MagicNumber + ignorePropertyDeclaration (hex barvy).
+- Error handling (schváleno, reálná oprava): nová domain.error.DataException; data vrstva mapuje IOException/HttpException přes safeApiCall; PlayerPagingSource chytá konkrétní typy; ViewModely catch(DataException) — generic catch už nepolyká CancellationException. Do :data přidán implementation(libs.retrofit) (zviditelnění už používané knihovny kvůli HttpException).
+- Smazány template ExampleUnitTest.kt + ExampleInstrumentedTest.kt (schváleno).
+- Verifikace: ./gradlew detekt ktlintCheck test assembleDebug → BUILD SUCCESSFUL.
+- Metrics: test count = 39 (0 failures; −1 za smazaný template test); detekt+ktlint issues = 0 (reálná nula, pokrývá všech 8 modulů); outdated deps = 0; locale parity = 1/1.
+- Next: P2 — convention plugins (duplikace build konfigurace), CI na GitHub Actions.

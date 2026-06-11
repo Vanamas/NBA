@@ -11,15 +11,13 @@ import kotlinx.coroutines.flow.flow
  * [TeamRepository] backed by the balldontlie REST API.
  */
 class TeamRepositoryImpl(
-    private val api: BallDontLieApi
+    private val api: BallDontLieApi,
 ) : TeamRepository {
+    override fun getTeams(): Flow<List<Team>> =
+        flow {
+            val response = safeApiCall { api.getTeams() }
+            emit(response.data.map { it.toDomain() })
+        }
 
-    override fun getTeams(): Flow<List<Team>> = flow {
-        val response = api.getTeams()
-        emit(response.data.map { it.toDomain() })
-    }
-
-    override suspend fun getTeamById(id: Int): Team {
-        return api.getTeam(id).data.toDomain()
-    }
+    override suspend fun getTeamById(id: Int): Team = safeApiCall { api.getTeam(id).data.toDomain() }
 }

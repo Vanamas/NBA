@@ -43,7 +43,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PlayerListScreen(
     onNavigateToPlayerDetail: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PlayerListViewModel = koinViewModel()
+    viewModel: PlayerListViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val players = uiState.players?.collectAsLazyPagingItems()
@@ -64,12 +64,12 @@ fun PlayerListScreen(
         topBar = {
             TopAppBar(title = { Text("NBA Players") })
         },
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) { padding ->
         PlayerListContent(
             players = players,
             onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
         )
     }
 }
@@ -84,19 +84,20 @@ fun PlayerListScreen(
 fun PlayerListContent(
     players: LazyPagingItems<Player>?,
     onPlayerClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         if (players == null) {
             CircularProgressIndicator(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .testTag("loading_indicator")
+                modifier =
+                    Modifier
+                        .align(Alignment.Center)
+                        .testTag("loading_indicator"),
             )
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 items(count = players.itemCount) { index ->
                     val player = players[index]
@@ -108,7 +109,7 @@ fun PlayerListContent(
                             teamName = player.team.fullName,
                             imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
                             onClick = { onPlayerClick(player.id) },
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = 8.dp),
                         )
                     }
                 }
@@ -117,10 +118,11 @@ fun PlayerListContent(
                     is LoadState.Loading -> {
                         item {
                             CircularProgressIndicator(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                        .wrapContentWidth(Alignment.CenterHorizontally),
                             )
                         }
                     }
@@ -128,7 +130,7 @@ fun PlayerListContent(
                         item {
                             Text(
                                 text = "Error loading more players: ${loadState.error.message}",
-                                modifier = Modifier.padding(16.dp)
+                                modifier = Modifier.padding(16.dp),
                             )
                         }
                     }
@@ -148,16 +150,17 @@ fun PlayerListContent(
 @Composable
 private fun PlayerListContentPreview() {
     val team = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
-    val players = listOf(
-        Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
-        Player(id = 20, firstName = "Klay", lastName = "Thompson", position = "G", team = team),
-        Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team)
-    )
+    val players =
+        listOf(
+            Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
+            Player(id = 20, firstName = "Klay", lastName = "Thompson", position = "G", team = team),
+            Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team),
+        )
 
     CourtFlowTheme(dynamicColor = false) {
         PlayerListContent(
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
-            onPlayerClick = {}
+            onPlayerClick = {},
         )
     }
 }

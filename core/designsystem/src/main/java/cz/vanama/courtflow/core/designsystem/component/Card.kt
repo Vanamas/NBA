@@ -37,39 +37,41 @@ fun PlayerCard(
     teamName: String,
     imageUrl: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             GlideImage(
                 model = imageUrl,
                 contentDescription = "$firstName $lastName",
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(64.dp),
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
                     text = "$firstName $lastName",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = position,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
                     text = teamName,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -86,7 +88,7 @@ private fun PlayerCardPreview() {
             position = "G",
             teamName = "Golden State Warriors",
             imageUrl = "",
-            onClick = {}
+            onClick = {},
         )
     }
 }

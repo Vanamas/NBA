@@ -6,7 +6,6 @@ import com.lemonappdev.konsist.api.verify.assertTrue
 import org.junit.Test
 
 class ArchitectureTest {
-
     @Test
     fun `view models should reside in a viewmodel package`() {
         Konsist

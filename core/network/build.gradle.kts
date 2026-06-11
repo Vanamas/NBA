@@ -5,12 +5,13 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
 }
 
-val localProperties = Properties().apply {
-    val propertiesFile = rootProject.file("local.properties")
-    if (propertiesFile.exists()) {
-        propertiesFile.inputStream().use { load(it) }
+val localProperties =
+    Properties().apply {
+        val propertiesFile = rootProject.file("local.properties")
+        if (propertiesFile.exists()) {
+            propertiesFile.inputStream().use { load(it) }
+        }
     }
-}
 
 android {
     namespace = "cz.vanama.courtflow.core.network"
@@ -24,7 +25,7 @@ android {
         buildConfigField(
             "String",
             "BALLDONTLIE_API_KEY",
-            "\"${localProperties.getProperty("balldontlie.apiKey", "")}\""
+            "\"${localProperties.getProperty("balldontlie.apiKey", "")}\"",
         )
     }
 

@@ -21,5 +21,5 @@ data class PlayerDto(
     @Json(name = "draft_year") val draftYear: Int? = null,
     @Json(name = "draft_round") val draftRound: Int? = null,
     @Json(name = "draft_number") val draftNumber: Int? = null,
-    @Json(name = "team") val team: TeamDto
+    @Json(name = "team") val team: TeamDto,
 )

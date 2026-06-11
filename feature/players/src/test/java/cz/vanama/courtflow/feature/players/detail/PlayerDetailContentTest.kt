@@ -18,42 +18,43 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class PlayerDetailContentTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private val team = Team(
-        id = 10,
-        abbreviation = "GSW",
-        city = "Golden State",
-        conference = "West",
-        division = "Pacific",
-        fullName = "Golden State Warriors",
-        name = "Warriors"
-    )
+    private val team =
+        Team(
+            id = 10,
+            abbreviation = "GSW",
+            city = "Golden State",
+            conference = "West",
+            division = "Pacific",
+            fullName = "Golden State Warriors",
+            name = "Warriors",
+        )
 
-    private val player = Player(
-        id = 19,
-        firstName = "Stephen",
-        lastName = "Curry",
-        position = "G",
-        height = "6-2",
-        weight = "185",
-        jerseyNumber = "30",
-        college = "Davidson",
-        country = "USA",
-        draftYear = 2009,
-        draftRound = 1,
-        draftNumber = 7,
-        team = team
-    )
+    private val player =
+        Player(
+            id = 19,
+            firstName = "Stephen",
+            lastName = "Curry",
+            position = "G",
+            height = "6-2",
+            weight = "185",
+            jerseyNumber = "30",
+            college = "Davidson",
+            country = "USA",
+            draftYear = 2009,
+            draftRound = 1,
+            draftNumber = 7,
+            team = team,
+        )
 
     @Test
     fun `loading state shows progress indicator`() {
         composeTestRule.setContent {
             PlayerDetailContent(
                 state = PlayerDetailState(isLoading = true),
-                onTeamClick = {}
+                onTeamClick = {},
             )
         }
 
@@ -65,7 +66,7 @@ class PlayerDetailContentTest {
         composeTestRule.setContent {
             PlayerDetailContent(
                 state = PlayerDetailState(error = "Network error"),
-                onTeamClick = {}
+                onTeamClick = {},
             )
         }
 
@@ -77,7 +78,7 @@ class PlayerDetailContentTest {
         composeTestRule.setContent {
             PlayerDetailContent(
                 state = PlayerDetailState(player = player),
-                onTeamClick = {}
+                onTeamClick = {},
             )
         }
 
@@ -92,21 +93,22 @@ class PlayerDetailContentTest {
 
     @Test
     fun `missing optional attributes are not shown`() {
-        val rookie = player.copy(
-            height = null,
-            weight = null,
-            jerseyNumber = null,
-            college = null,
-            country = null,
-            draftYear = null,
-            draftRound = null,
-            draftNumber = null
-        )
+        val rookie =
+            player.copy(
+                height = null,
+                weight = null,
+                jerseyNumber = null,
+                college = null,
+                country = null,
+                draftYear = null,
+                draftRound = null,
+                draftNumber = null,
+            )
 
         composeTestRule.setContent {
             PlayerDetailContent(
                 state = PlayerDetailState(player = rookie),
-                onTeamClick = {}
+                onTeamClick = {},
             )
         }
 
@@ -122,11 +124,12 @@ class PlayerDetailContentTest {
         composeTestRule.setContent {
             PlayerDetailContent(
                 state = PlayerDetailState(player = player),
-                onTeamClick = { clickedTeamId = it }
+                onTeamClick = { clickedTeamId = it },
             )
         }
 
-        composeTestRule.onNodeWithText("View Team: Golden State Warriors")
+        composeTestRule
+            .onNodeWithText("View Team: Golden State Warriors")
             .performScrollTo()
             .performClick()
 

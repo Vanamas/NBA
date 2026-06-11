@@ -38,7 +38,7 @@ import org.koin.androidx.compose.koinViewModel
 fun TeamDetailScreen(
     teamId: Int,
     modifier: Modifier = Modifier,
-    viewModel: TeamDetailViewModel = koinViewModel()
+    viewModel: TeamDetailViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -50,11 +50,11 @@ fun TeamDetailScreen(
         topBar = {
             TopAppBar(title = { Text("Team Details") })
         },
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) { padding ->
         TeamDetailContent(
             state = uiState,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
         )
     }
 }
@@ -66,11 +66,11 @@ fun TeamDetailScreen(
 @Composable
 fun TeamDetailContent(
     state: TeamDetailState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
@@ -80,34 +80,34 @@ fun TeamDetailContent(
             state.team?.let { team ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
                 ) {
                     GlideImage(
                         model = PlaceholderImages.teamEmblem(team.id),
                         contentDescription = team.fullName,
-                        modifier = Modifier.size(200.dp)
+                        modifier = Modifier.size(200.dp),
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = team.fullName,
                         style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         text = "Abbreviation: ${team.abbreviation}",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
                         text = "City: ${team.city}",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(
                         text = "Conference: ${team.conference}",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(
                         text = "Division: ${team.division}",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                 }
             }
@@ -120,9 +120,10 @@ fun TeamDetailContent(
 private fun TeamDetailContentPreview() {
     CourtFlowTheme(dynamicColor = false) {
         TeamDetailContent(
-            state = TeamDetailState(
-                team = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
-            )
+            state =
+                TeamDetailState(
+                    team = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors"),
+                ),
         )
     }
 }

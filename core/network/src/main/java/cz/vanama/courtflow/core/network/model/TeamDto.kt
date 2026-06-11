@@ -14,5 +14,5 @@ data class TeamDto(
     @Json(name = "conference") val conference: String,
     @Json(name = "division") val division: String,
     @Json(name = "full_name") val fullName: String,
-    @Json(name = "name") val name: String
+    @Json(name = "name") val name: String,
 )

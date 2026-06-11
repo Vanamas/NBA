@@ -7,7 +7,8 @@ import cz.vanama.courtflow.domain.repository.TeamRepository
 import org.koin.dsl.module
 
 /** Koin module binding repository implementations to their domain interfaces. */
-val dataModule = module {
-    single<PlayerRepository> { PlayerRepositoryImpl(get()) }
-    single<TeamRepository> { TeamRepositoryImpl(get()) }
-}
+val dataModule =
+    module {
+        single<PlayerRepository> { PlayerRepositoryImpl(get()) }
+        single<TeamRepository> { TeamRepositoryImpl(get()) }
+    }

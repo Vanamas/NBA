@@ -14,7 +14,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class PlayerCardTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -27,7 +26,7 @@ class PlayerCardTest {
                 position = "G",
                 teamName = "Golden State Warriors",
                 imageUrl = "https://example.com/portrait.jpg",
-                onClick = {}
+                onClick = {},
             )
         }
 
@@ -47,7 +46,7 @@ class PlayerCardTest {
                 position = "G",
                 teamName = "Golden State Warriors",
                 imageUrl = "https://example.com/portrait.jpg",
-                onClick = { clicks++ }
+                onClick = { clicks++ },
             )
         }
 

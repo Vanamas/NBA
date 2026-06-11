@@ -4,8 +4,8 @@ import cz.vanama.courtflow.core.network.model.PlayerDto
 import cz.vanama.courtflow.domain.model.Player
 
 /** Maps the network [PlayerDto] to the domain [Player] model. */
-fun PlayerDto.toDomain(): Player {
-    return Player(
+fun PlayerDto.toDomain(): Player =
+    Player(
         id = id,
         firstName = firstName,
         lastName = lastName,
@@ -18,6 +18,5 @@ fun PlayerDto.toDomain(): Player {
         draftYear = draftYear,
         draftRound = draftRound,
         draftNumber = draftNumber,
-        team = team.toDomain()
+        team = team.toDomain(),
     )
-}
