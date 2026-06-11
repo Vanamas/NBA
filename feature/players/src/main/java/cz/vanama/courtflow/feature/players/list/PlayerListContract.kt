@@ -7,11 +7,16 @@ import kotlinx.coroutines.flow.Flow
 /** UI state of the player list screen; [players] is `null` until loading starts. */
 data class PlayerListState(
     val players: Flow<PagingData<Player>>? = null,
+    val searchQuery: String = "",
 )
 
 /** User actions of the player list screen. */
 sealed class PlayerListIntent {
     data object LoadPlayers : PlayerListIntent()
+
+    data class OnSearchQueryChanged(
+        val query: String,
+    ) : PlayerListIntent()
 
     data class OnPlayerClicked(
         val playerId: Int,

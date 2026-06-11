@@ -6,15 +6,20 @@ import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 
@@ -37,14 +42,34 @@ class PlayerListViewModelTest {
     }
 
     @Test
-    fun `LoadPlayers intent updates state with players flow`() =
+    fun `LoadPlayers intent starts the paging stream`() =
         runTest {
-            val playersFlow = flowOf(PagingData.empty<Player>())
-            every { getPlayersUseCase() } returns playersFlow
+            every { getPlayersUseCase(null) } returns flowOf(PagingData.empty<Player>())
 
             viewModel.onIntent(PlayerListIntent.LoadPlayers)
 
-            assertEquals(playersFlow, viewModel.uiState.value.players)
+            assertNotNull(viewModel.uiState.value.players)
+            val job = launch { viewModel.uiState.value.players?.collect {} }
+            advanceTimeBy(301)
+            runCurrent()
+            verify { getPlayersUseCase(null) }
+            job.cancel()
+        }
+
+    @Test
+    fun `search query change reloads players with the query after debounce`() =
+        runTest {
+            every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
+            viewModel.onIntent(PlayerListIntent.LoadPlayers)
+            val job = launch { viewModel.uiState.value.players?.collect {} }
+
+            viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged("curry"))
+            advanceTimeBy(301)
+            runCurrent()
+
+            assertEquals("curry", viewModel.uiState.value.searchQuery)
+            verify { getPlayersUseCase("curry") }
+            job.cancel()
         }
 
     @Test
