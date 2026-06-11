@@ -49,7 +49,11 @@ class PlayerListViewModelTest {
             viewModel.onIntent(PlayerListIntent.LoadPlayers)
 
             assertNotNull(viewModel.uiState.value.players)
-            val job = launch { viewModel.uiState.value.players?.collect {} }
+            val job =
+                launch {
+                    viewModel.uiState.value.players
+                        ?.collect {}
+                }
             advanceTimeBy(301)
             runCurrent()
             verify { getPlayersUseCase(null) }
@@ -61,7 +65,11 @@ class PlayerListViewModelTest {
         runTest {
             every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
             viewModel.onIntent(PlayerListIntent.LoadPlayers)
-            val job = launch { viewModel.uiState.value.players?.collect {} }
+            val job =
+                launch {
+                    viewModel.uiState.value.players
+                        ?.collect {}
+                }
 
             viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged("curry"))
             advanceTimeBy(301)

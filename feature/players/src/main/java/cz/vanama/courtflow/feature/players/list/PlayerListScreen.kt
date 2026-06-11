@@ -3,12 +3,12 @@ package cz.vanama.courtflow.feature.players.list
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -145,20 +145,11 @@ private fun PlayerListItems(
                         .testTag("loading_indicator"),
             )
         } else if (players.loadState.refresh is LoadState.Error) {
-            val refreshError = players.loadState.refresh as LoadState.Error
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .testTag("refresh_error"),
-            ) {
-                Text(text = "Failed to load players: ${refreshError.error.message}")
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { players.retry() }) {
-                    Text("Retry")
-                }
-            }
+            RefreshError(
+                error = players.loadState.refresh as LoadState.Error,
+                onRetry = { players.retry() },
+                modifier = Modifier.align(Alignment.Center),
+            )
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),
@@ -181,30 +172,14 @@ private fun PlayerListItems(
 
                 when (val loadState = players.loadState.append) {
                     is LoadState.Loading -> {
-                        item {
-                            CircularProgressIndicator(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                        .wrapContentWidth(Alignment.CenterHorizontally),
-                            )
-                        }
+                        item { AppendLoading() }
                     }
                     is LoadState.Error -> {
                         item {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(
-                                    text = "Error loading more players: ${loadState.error.message}",
-                                    modifier = Modifier.padding(16.dp),
-                                )
-                                TextButton(onClick = { players.retry() }) {
-                                    Text("Retry")
-                                }
-                            }
+                            AppendError(
+                                error = loadState,
+                                onRetry = { players.retry() },
+                            )
                         }
                     }
                     else -> {}
@@ -214,6 +189,58 @@ private fun PlayerListItems(
             if (players.loadState.refresh is LoadState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
+        }
+    }
+}
+
+/** Inline next-page loading row. */
+@Composable
+private fun AppendLoading(modifier: Modifier = Modifier) {
+    CircularProgressIndicator(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .wrapContentWidth(Alignment.CenterHorizontally),
+    )
+}
+
+/** Centered first-load failure state with a retry button. */
+@Composable
+private fun RefreshError(
+    error: LoadState.Error,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.testTag("refresh_error"),
+    ) {
+        Text(text = "Failed to load players: ${error.error.message}")
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
+    }
+}
+
+/** Inline next-page failure row with a retry button. */
+@Composable
+private fun AppendError(
+    error: LoadState.Error,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = "Error loading more players: ${error.error.message}",
+            modifier = Modifier.padding(16.dp),
+        )
+        TextButton(onClick = onRetry) {
+            Text("Retry")
         }
     }
 }
