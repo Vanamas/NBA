@@ -16,6 +16,7 @@ import java.io.IOException
  */
 class PlayerPagingSource(
     private val api: BallDontLieApi,
+    private val search: String? = null,
 ) : PagingSource<Int, Player>() {
     override fun getRefreshKey(state: PagingState<Int, Player>): Int? =
         state.anchorPosition?.let { anchorPosition ->
@@ -26,7 +27,7 @@ class PlayerPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Player> =
         try {
             val cursor = params.key
-            val response = api.getPlayers(cursor = cursor, perPage = params.loadSize)
+            val response = api.getPlayers(cursor = cursor, perPage = params.loadSize, search = search)
 
             LoadResult.Page(
                 data = response.data.map { it.toDomain() },

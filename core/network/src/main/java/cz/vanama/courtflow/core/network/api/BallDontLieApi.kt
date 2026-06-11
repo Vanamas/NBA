@@ -20,11 +20,13 @@ interface BallDontLieApi {
      *
      * @param cursor cursor of the next page from the previous response, `null` for the first page.
      * @param perPage page size, the API caps it at 100.
+     * @param search optional name filter applied by the API (matches first/last name).
      */
     @GET("players")
     suspend fun getPlayers(
         @Query("cursor") cursor: Int? = null,
         @Query("per_page") perPage: Int = 35,
+        @Query("search") search: String? = null,
     ): CommonResponse<PlayerDto>
 
     /** Returns a single player by [id]. */
