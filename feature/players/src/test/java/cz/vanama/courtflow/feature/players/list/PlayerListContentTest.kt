@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.domain.model.Player
@@ -48,6 +49,8 @@ class PlayerListContentTest {
         composeTestRule.setContent {
             PlayerListContent(
                 players = null,
+                searchQuery = "",
+                onSearchQueryChanged = {},
                 onPlayerClick = {},
             )
         }
@@ -60,6 +63,8 @@ class PlayerListContentTest {
         composeTestRule.setContent {
             PlayerListContent(
                 players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
                 onPlayerClick = {},
             )
         }
@@ -76,6 +81,8 @@ class PlayerListContentTest {
         composeTestRule.setContent {
             PlayerListContent(
                 players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
                 onPlayerClick = { clickedPlayerId = it },
             )
         }
@@ -83,5 +90,23 @@ class PlayerListContentTest {
         composeTestRule.onNodeWithText("Stephen Curry").performClick()
 
         clickedPlayerId shouldBe 19
+    }
+
+    @Test
+    fun `typing into search field invokes callback`() {
+        var lastQuery = ""
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = null,
+                searchQuery = "",
+                onSearchQueryChanged = { lastQuery = it },
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithTag("player_search_field").performTextInput("curry")
+
+        lastQuery shouldBe "curry"
     }
 }

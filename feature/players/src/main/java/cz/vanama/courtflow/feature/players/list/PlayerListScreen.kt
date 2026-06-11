@@ -1,6 +1,7 @@
 package cz.vanama.courtflow.feature.players.list
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -68,6 +70,8 @@ fun PlayerListScreen(
     ) { padding ->
         PlayerListContent(
             players = players,
+            searchQuery = uiState.searchQuery,
+            onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
             onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
             modifier = Modifier.padding(padding),
         )
@@ -78,10 +82,44 @@ fun PlayerListScreen(
  * Stateless content of the player list screen.
  *
  * @param players paginated players, `null` while the stream is not started yet.
+ * @param searchQuery current search text shown in the search field.
+ * @param onSearchQueryChanged invoked on every change of the search text.
  * @param onPlayerClick invoked with the player id when a row is tapped.
  */
 @Composable
 fun PlayerListContent(
+    players: LazyPagingItems<Player>?,
+    searchQuery: String,
+    onSearchQueryChanged: (String) -> Unit,
+    onPlayerClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxSize()) {
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChanged,
+            placeholder = { Text("Search players") },
+            singleLine = true,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .testTag("player_search_field"),
+        )
+
+        PlayerListItems(
+            players = players,
+            onPlayerClick = onPlayerClick,
+        )
+    }
+}
+
+/**
+ * The list body below the search field: loading indicator, the lazy list
+ * with append states, or the initial-load spinner.
+ */
+@Composable
+private fun PlayerListItems(
     players: LazyPagingItems<Player>?,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -160,6 +198,8 @@ private fun PlayerListContentPreview() {
     CourtFlowTheme(dynamicColor = false) {
         PlayerListContent(
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
+            searchQuery = "",
+            onSearchQueryChanged = {},
             onPlayerClick = {},
         )
     }
