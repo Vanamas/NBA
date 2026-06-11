@@ -1,0 +1,26 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+  weights:
+    # complexity: 2
+    # LongParameterList: 1
+    # style: 1
+    # comments: 1
+
+complexity:
+  active: true
+  LongParameterList:
+    active: true
+    threshold: 6
+  LongMethod:
+    active: true
+    threshold: 60
+  ComplexCondition:
+    active: true
+    threshold: 4
+
+style:
+  active: true
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2']

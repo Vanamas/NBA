@@ -1,0 +1,85 @@
+package cz.vanama.courtflow.data.mapper
+
+import cz.vanama.courtflow.core.network.model.PlayerDto
+import cz.vanama.courtflow.core.network.model.TeamDto
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+
+class PlayerMapperTest {
+
+    private val teamDto = TeamDto(
+        id = 10,
+        abbreviation = "GSW",
+        city = "Golden State",
+        conference = "West",
+        division = "Pacific",
+        fullName = "Golden State Warriors",
+        name = "Warriors"
+    )
+
+    @Test
+    fun `toDomain maps all player attributes`() {
+        val dto = PlayerDto(
+            id = 19,
+            firstName = "Stephen",
+            lastName = "Curry",
+            position = "G",
+            height = "6-2",
+            weight = "185",
+            jerseyNumber = "30",
+            college = "Davidson",
+            country = "USA",
+            draftYear = 2009,
+            draftRound = 1,
+            draftNumber = 7,
+            team = teamDto
+        )
+
+        val player = dto.toDomain()
+
+        assertEquals(19, player.id)
+        assertEquals("Stephen", player.firstName)
+        assertEquals("Curry", player.lastName)
+        assertEquals("G", player.position)
+        assertEquals("6-2", player.height)
+        assertEquals("185", player.weight)
+        assertEquals("30", player.jerseyNumber)
+        assertEquals("Davidson", player.college)
+        assertEquals("USA", player.country)
+        assertEquals(2009, player.draftYear)
+        assertEquals(1, player.draftRound)
+        assertEquals(7, player.draftNumber)
+        assertEquals("Golden State Warriors", player.team.fullName)
+    }
+
+    @Test
+    fun `toDomain handles missing optional attributes`() {
+        val dto = PlayerDto(
+            id = 19,
+            firstName = "Stephen",
+            lastName = "Curry",
+            position = "G",
+            height = null,
+            weight = null,
+            jerseyNumber = null,
+            college = null,
+            country = null,
+            draftYear = null,
+            draftRound = null,
+            draftNumber = null,
+            team = teamDto
+        )
+
+        val player = dto.toDomain()
+
+        assertNull(player.height)
+        assertNull(player.weight)
+        assertNull(player.jerseyNumber)
+        assertNull(player.college)
+        assertNull(player.country)
+        assertNull(player.draftYear)
+        assertNull(player.draftRound)
+        assertNull(player.draftNumber)
+    }
+}

@@ -1,0 +1,45 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Basketball Shadow (Subtle) -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.1"
+        android:pathData="M 56, 26 a 30,30 0 1,0 0,60 a 30,30 0 1,0 0,-60" />
+
+    <!-- Basketball Body -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M 54, 24 a 30,30 0 1,0 0,60 a 30,30 0 1,0 0,-60" />
+
+    <!-- Seams -->
+    <path
+        android:strokeColor="#0D47A1"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M 54, 24 L 54, 84" />
+    <path
+        android:strokeColor="#0D47A1"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M 24, 54 L 84, 54" />
+    <path
+        android:strokeColor="#0D47A1"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M 32.8,32.8 A 40,40 0 0 1 32.8,75.2" />
+    <path
+        android:strokeColor="#0D47A1"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M 75.2,32.8 A 40,40 0 0 0 75.2,75.2" />
+
+    <!-- Highlight -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.2"
+        android:pathData="M 40, 35 a 10,10 0 1,1 0,20 a 10,10 0 1,1 0,-20" />
+</vector>
