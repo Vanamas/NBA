@@ -13,6 +13,6 @@ import kotlinx.coroutines.flow.Flow
 class GetPlayersUseCase(
     private val playerRepository: PlayerRepository,
 ) {
-    /** Returns a cold [Flow] of player pages backed by the remote API. */
-    operator fun invoke(): Flow<PagingData<Player>> = playerRepository.getPlayers()
+    /** Returns a cold [Flow] of player pages, optionally filtered by [query]. */
+    operator fun invoke(query: String? = null): Flow<PagingData<Player>> = playerRepository.getPlayers(query)
 }
