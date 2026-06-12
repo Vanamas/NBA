@@ -57,6 +57,7 @@ fun CourtFlowNavGraph(modifier: Modifier = Modifier) {
                     TeamDetailScreen(
                         teamId = destination.teamId,
                         onNavigateBack = navigateBack,
+                        onNavigateToPlayerDetail = { playerId -> backStack.add(Destination.PlayerDetail(playerId)) },
                     )
                 }
             },

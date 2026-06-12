@@ -6,4 +6,5 @@
     <string name="team_attribute_city">City</string>
     <string name="team_attribute_conference">Conference</string>
     <string name="team_attribute_division">Division</string>
+    <string name="team_detail_roster">Roster</string>
 </resources>
