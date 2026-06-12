@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
 import org.junit.Rule
@@ -42,10 +43,10 @@ class TeamDetailContentTest {
     @Test
     fun `error state shows error message and retry button`() {
         composeTestRule.setContent {
-            TeamDetailContent(state = TeamDetailState(error = "Network error"), onRetry = {})
+            TeamDetailContent(state = TeamDetailState(error = DataErrorKind.NETWORK), onRetry = {})
         }
 
-        composeTestRule.onNodeWithText("Network error").assertIsDisplayed()
+        composeTestRule.onNodeWithText("No internet connection. Check your network and try again.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 
@@ -54,7 +55,7 @@ class TeamDetailContentTest {
         var retries = 0
 
         composeTestRule.setContent {
-            TeamDetailContent(state = TeamDetailState(error = "Network error"), onRetry = { retries++ })
+            TeamDetailContent(state = TeamDetailState(error = DataErrorKind.NETWORK), onRetry = { retries++ })
         }
 
         composeTestRule.onNodeWithText("Retry").performClick()

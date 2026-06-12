@@ -32,8 +32,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.TeamCard
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
+import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
+import cz.vanama.courtflow.feature.teams.errorMessage
 import org.koin.androidx.compose.koinViewModel
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
@@ -131,7 +133,7 @@ internal fun TeamListContent(
             }
             state.error != null -> {
                 ErrorState(
-                    message = state.error.ifBlank { stringResource(DesignR.string.error_unknown) },
+                    message = errorMessage(state.error),
                     onRetry = onRetry,
                     modifier = Modifier.align(Alignment.Center),
                 )
@@ -182,7 +184,7 @@ private fun TeamListScreenPreview() {
 private fun TeamListScreenErrorPreview() {
     CourtFlowTheme(dynamicColor = false) {
         TeamListScreen(
-            state = TeamListState(error = "Teams could not be loaded."),
+            state = TeamListState(error = DataErrorKind.SERVER),
             onTeamClick = {},
             onRetry = {},
             onNavigateBack = {},

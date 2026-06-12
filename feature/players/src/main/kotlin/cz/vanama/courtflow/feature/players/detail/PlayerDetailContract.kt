@@ -1,12 +1,13 @@
 package cz.vanama.courtflow.feature.players.detail
 
+import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Player
 
 /** UI state of the player detail screen. */
 data class PlayerDetailState(
     val isLoading: Boolean = false,
     val player: Player? = null,
-    val error: String? = null,
+    val error: DataErrorKind? = null,
 )
 
 /** User actions of the player detail screen; the initial load happens in the ViewModel's `init`. */

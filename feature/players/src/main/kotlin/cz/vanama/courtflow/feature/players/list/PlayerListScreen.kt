@@ -40,6 +40,7 @@ import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.players.R
+import cz.vanama.courtflow.feature.players.errorMessage
 import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
 import cz.vanama.courtflow.core.designsystem.R as DesignR
@@ -166,11 +167,7 @@ private fun PlayerListItems(
         val refreshState = players.loadState.refresh
         if (refreshState is LoadState.Error) {
             ErrorState(
-                message =
-                    stringResource(
-                        R.string.player_list_refresh_error,
-                        refreshState.error.message ?: stringResource(DesignR.string.error_unknown),
-                    ),
+                message = stringResource(R.string.player_list_refresh_error, errorMessage(refreshState.error)),
                 onRetry = { players.retry() },
                 modifier =
                     Modifier
@@ -262,11 +259,7 @@ private fun AppendError(
         modifier = modifier.fillMaxWidth(),
     ) {
         Text(
-            text =
-                stringResource(
-                    R.string.player_list_append_error,
-                    error.error.message ?: stringResource(DesignR.string.error_unknown),
-                ),
+            text = stringResource(R.string.player_list_append_error, errorMessage(error.error)),
             modifier = Modifier.padding(16.dp),
         )
         TextButton(onClick = onRetry) {

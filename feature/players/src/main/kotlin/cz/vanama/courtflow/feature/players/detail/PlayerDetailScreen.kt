@@ -50,9 +50,11 @@ import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.core.designsystem.util.positionLabel
+import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.players.R
+import cz.vanama.courtflow.feature.players.errorMessage
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
@@ -149,7 +151,7 @@ internal fun PlayerDetailContent(
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
         } else if (state.error != null) {
             ErrorState(
-                message = state.error.ifBlank { stringResource(DesignR.string.error_unknown) },
+                message = errorMessage(state.error),
                 onRetry = onRetry,
             )
         } else {
@@ -343,7 +345,7 @@ private fun PlayerDetailScreenLoadingPreview() {
 private fun PlayerDetailScreenErrorPreview() {
     CourtFlowTheme(dynamicColor = false) {
         PlayerDetailScreen(
-            state = PlayerDetailState(error = "Player could not be loaded."),
+            state = PlayerDetailState(error = DataErrorKind.SERVER),
             onTeamClick = {},
             onRetry = {},
             onNavigateBack = {},
