@@ -28,8 +28,9 @@ class KoinModulesTest {
                 teamsFeatureModule,
             )
         }.verify(
-            // Detail ViewModels take the player/team id as a runtime Koin parameter.
-            extraTypes = listOf(Int::class),
+            // Detail ViewModels take the player/team id as a runtime Koin parameter;
+            // GameRepositoryImpl takes a defaulted clock lambda.
+            extraTypes = listOf(Int::class, Function0::class),
         )
     }
 }

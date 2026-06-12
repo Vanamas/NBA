@@ -3,6 +3,7 @@ package cz.vanama.courtflow.feature.teams.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,7 +46,7 @@ class TeamListViewModel(
                     if (e !is DataException) throw e
                     uiState.update { it.copy(isLoading = false, error = e.kind) }
                 }.collect { teams ->
-                    uiState.update { it.copy(isLoading = false, teams = teams) }
+                    uiState.update { it.copy(isLoading = false, sections = teams.groupIntoSections()) }
                 }
         }
     }
@@ -55,4 +56,21 @@ class TeamListViewModel(
             uiEffect.emit(TeamListEffect.NavigateToTeamDetail(teamId))
         }
     }
+}
+
+/**
+ * Groups the teams by conference, then division (sections sorted
+ * alphabetically, teams inside each section sorted by full name). Teams with
+ * a blank conference land in a single trailing fallback section whose
+ * [TeamSection.conference] and [TeamSection.division] are blank.
+ */
+internal fun List<Team>.groupIntoSections(): List<TeamSection> {
+    val (known, unknown) = partition { it.conference.isNotBlank() }
+    val sections =
+        known
+            .groupBy { it.conference.trim() to it.division.trim() }
+            .map { (key, group) -> TeamSection(key.first, key.second, group.sortedBy(Team::fullName)) }
+            .sortedWith(compareBy(TeamSection::conference, TeamSection::division))
+    if (unknown.isEmpty()) return sections
+    return sections + TeamSection(conference = "", division = "", teams = unknown.sortedBy(Team::fullName))
 }

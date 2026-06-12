@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.data.repository
 
+import com.squareup.moshi.JsonDataException
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.error.DataException
 import retrofit2.HttpException
@@ -7,19 +8,29 @@ import java.io.IOException
 import java.net.HttpURLConnection
 
 /**
- * Executes [block] and translates transport-specific failures (network I/O,
- * HTTP error responses) into a domain [DataException] so layers above `data`
- * never see Retrofit/OkHttp types. Anything else (including
- * [kotlinx.coroutines.CancellationException]) propagates untouched.
+ * Executes [block] and translates data-layer failures — network I/O, HTTP
+ * error responses, Moshi deserialization ([JsonDataException]) and mapper
+ * invariant violations ([IllegalArgumentException] from `requireNotNull`) —
+ * into a domain [DataException] so layers above `data` never see transport
+ * or parsing types. [kotlinx.coroutines.CancellationException] propagates
+ * untouched: it extends [IllegalStateException], so no caught type can
+ * match it.
  */
 internal suspend fun <T> safeApiCall(block: suspend () -> T): T =
     try {
         block()
     } catch (e: IOException) {
-        throw e.toDataException()
+        e.failAsDataException()
     } catch (e: HttpException) {
-        throw e.toDataException()
+        e.failAsDataException()
+    } catch (e: JsonDataException) {
+        e.failAsDataException()
+    } catch (e: IllegalArgumentException) {
+        e.failAsDataException()
     }
+
+/** Throws the receiver translated into a classified [DataException]. */
+private fun Exception.failAsDataException(): Nothing = throw toDataException()
 
 /** Classifies a transport failure into a domain [DataException]. */
 internal fun Exception.toDataException(): DataException =

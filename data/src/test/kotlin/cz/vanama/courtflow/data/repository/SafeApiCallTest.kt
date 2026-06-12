@@ -1,7 +1,9 @@
 package cz.vanama.courtflow.data.repository
 
+import com.squareup.moshi.JsonDataException
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.error.DataException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -26,6 +28,21 @@ class SafeApiCallTest {
 
     @Test
     fun `HTTP 400 maps to UNKNOWN`() = expectKind(httpException(400), DataErrorKind.UNKNOWN)
+
+    @Test
+    fun `IllegalArgumentException maps to UNKNOWN`() =
+        expectKind(IllegalArgumentException("Player is missing an id"), DataErrorKind.UNKNOWN)
+
+    @Test
+    fun `JsonDataException maps to UNKNOWN`() =
+        expectKind(JsonDataException("Expected one of [East, West] but was Intl"), DataErrorKind.UNKNOWN)
+
+    @Test
+    fun `CancellationException propagates untouched`() {
+        assertThrows(CancellationException::class.java) {
+            runBlocking { safeApiCall<Unit> { throw CancellationException("cancelled") } }
+        }
+    }
 
     private fun expectKind(
         thrown: Exception,

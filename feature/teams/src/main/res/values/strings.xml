@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="team_list_title">NBA Teams</string>
+    <string name="team_list_section_header">%1$s — %2$s</string>
+    <string name="team_list_section_other">Other teams</string>
 
     <string name="team_detail_title">Team Details</string>
     <string name="share_team">Share team</string>
@@ -9,4 +11,9 @@
     <string name="team_attribute_conference">Conference</string>
     <string name="team_attribute_division">Division</string>
     <string name="team_detail_roster">Roster</string>
+    <string name="team_detail_recent_games">Recent games</string>
+    <string name="game_score">%1$d – %2$d</string>
+    <string name="team_roster_refresh_error">Failed to load roster: %1$s</string>
+    <string name="team_roster_offline_banner">Couldn’t refresh roster — showing cached data</string>
+    <string name="team_roster_append_error">Error loading more players: %1$s</string>
 </resources>

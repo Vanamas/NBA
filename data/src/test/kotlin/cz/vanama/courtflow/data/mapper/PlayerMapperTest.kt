@@ -4,6 +4,7 @@ import cz.vanama.courtflow.core.network.generated.model.NBAPlayer
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class PlayerMapperTest {
@@ -83,5 +84,23 @@ class PlayerMapperTest {
         assertNull(player.draftYear)
         assertNull(player.draftRound)
         assertNull(player.draftNumber)
+    }
+
+    @Test
+    fun `toDomain fails when id is missing`() {
+        val dto = NBAPlayer(id = null, team = teamDto)
+
+        val e = assertThrows(IllegalArgumentException::class.java) { dto.toDomain() }
+
+        assertEquals("Player is missing an id", e.message)
+    }
+
+    @Test
+    fun `toDomain fails when team is missing`() {
+        val dto = NBAPlayer(id = 19, team = null)
+
+        val e = assertThrows(IllegalArgumentException::class.java) { dto.toDomain() }
+
+        assertEquals("Player 19 is missing a team", e.message)
     }
 }

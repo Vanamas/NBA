@@ -1,10 +1,14 @@
 package cz.vanama.courtflow.feature.teams.list
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,6 +16,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -22,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -115,6 +121,7 @@ internal fun TeamListScreen(
  * Stateless content of the team list screen rendered purely from [state];
  * [onRetry] is invoked when the user retries after a load failure.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun TeamListContent(
     state: TeamListState,
@@ -144,20 +151,63 @@ internal fun TeamListContent(
                     contentPadding = PaddingValues(16.dp),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(state.teams, key = { it.id }) { team ->
-                        TeamCard(
-                            fullName = team.fullName,
-                            conference = team.conference,
-                            division = team.division,
-                            onClick = { onTeamClick(team.id) },
-                            modifier = Modifier.padding(bottom = 8.dp),
-                        )
-                    }
+                    state.sections.forEach { section -> teamSection(section, onTeamClick) }
                 }
             }
         }
     }
 }
+
+/** One sticky header plus the team rows of a single [TeamSection]. */
+@OptIn(ExperimentalFoundationApi::class)
+private fun LazyListScope.teamSection(
+    section: TeamSection,
+    onTeamClick: (Int) -> Unit,
+) {
+    stickyHeader(key = "header:${section.conference}:${section.division}") {
+        TeamSectionHeader(section)
+    }
+    items(section.teams, key = { it.id }) { team ->
+        TeamCard(
+            fullName = team.fullName,
+            conference = team.conference,
+            division = team.division,
+            onClick = { onTeamClick(team.id) },
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+    }
+}
+
+/** Section title styled like RosterHeader; opaque so rows scroll underneath. */
+@Composable
+private fun TeamSectionHeader(
+    section: TeamSection,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = sectionTitle(section),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(vertical = 8.dp),
+    )
+}
+
+/** Maps raw API section keys to localized display text. */
+@Composable
+private fun sectionTitle(section: TeamSection): String =
+    when {
+        section.conference.isBlank() -> stringResource(R.string.team_list_section_other)
+        section.division.isBlank() -> section.conference
+        else -> stringResource(R.string.team_list_section_header, section.conference, section.division)
+    }
+
+private val previewCeltics = Team(2, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")
+private val previewWarriors = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
+private val previewLakers = Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
 
 @PreviewLightDark
 @PreviewScreenSizes
@@ -167,10 +217,18 @@ private fun TeamListScreenPreview() {
         TeamListScreen(
             state =
                 TeamListState(
-                    teams =
+                    sections =
                         listOf(
-                            Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors"),
-                            Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"),
+                            TeamSection(
+                                conference = "East",
+                                division = "Atlantic",
+                                teams = listOf(previewCeltics),
+                            ),
+                            TeamSection(
+                                conference = "West",
+                                division = "Pacific",
+                                teams = listOf(previewWarriors, previewLakers),
+                            ),
                         ),
                 ),
             onTeamClick = {},

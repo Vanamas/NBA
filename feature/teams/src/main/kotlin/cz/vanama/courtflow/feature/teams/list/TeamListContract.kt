@@ -6,7 +6,7 @@ import cz.vanama.courtflow.domain.model.Team
 /** UI state of the team list screen. */
 data class TeamListState(
     val isLoading: Boolean = false,
-    val teams: List<Team> = emptyList(),
+    val sections: List<TeamSection> = emptyList(),
     val error: DataErrorKind? = null,
 )
 
@@ -25,3 +25,14 @@ sealed class TeamListEffect {
         val teamId: Int,
     ) : TeamListEffect()
 }
+
+/**
+ * One group of teams sharing a conference and division. [conference] and
+ * [division] hold the raw API strings (both blank for the fallback section
+ * of historical teams) — mapping to display text happens in the UI layer.
+ */
+data class TeamSection(
+    val conference: String,
+    val division: String,
+    val teams: List<Team>,
+)

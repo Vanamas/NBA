@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="teams"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_teams"
+        android:shortcutShortLabel="@string/shortcut_teams_short"
+        android:shortcutLongLabel="@string/shortcut_teams_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="courtflow://teams"
+            android:targetPackage="cz.vanama.courtflow"
+            android:targetClass="cz.vanama.courtflow.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="players"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_players"
+        android:shortcutShortLabel="@string/shortcut_players_short"
+        android:shortcutLongLabel="@string/shortcut_players_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="courtflow://players"
+            android:targetPackage="cz.vanama.courtflow"
+            android:targetClass="cz.vanama.courtflow.MainActivity" />
+    </shortcut>
+</shortcuts>

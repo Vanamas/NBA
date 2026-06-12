@@ -9,4 +9,5 @@ object TestTags {
     const val LOADING_INDICATOR = "loading_indicator"
     const val AVATAR_LOADING = "avatar_loading"
     const val AVATAR_FAILURE = "avatar_failure"
+    const val PLAYER_CARD_SKELETON = "player_card_skeleton"
 }

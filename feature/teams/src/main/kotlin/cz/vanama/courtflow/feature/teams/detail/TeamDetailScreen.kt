@@ -2,8 +2,10 @@ package cz.vanama.courtflow.feature.teams.detail
 
 import android.content.ClipDescription
 import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,8 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,11 +55,12 @@ import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
-import cz.vanama.courtflow.core.designsystem.component.PlayerCard
+import cz.vanama.courtflow.core.designsystem.component.OfflineBanner
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
@@ -66,6 +71,8 @@ import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val TEAM_DETAIL_LIST_TEST_TAG = "team_detail_list"
+internal const val TEAM_ROSTER_PULL_TO_REFRESH_TEST_TAG = "team_roster_pull_to_refresh"
+internal const val TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG = "team_roster_offline_banner"
 
 /**
  * Detail of a single team with all information available from the API and
@@ -194,6 +201,7 @@ internal fun TeamDetailContent(
             state.team?.let { team ->
                 TeamDetailBody(
                     team = team,
+                    recentGames = state.recentGames,
                     players = players,
                     onPlayerClick = onPlayerClick,
                 )
@@ -202,57 +210,114 @@ internal fun TeamDetailContent(
     }
 }
 
-/** Scrollable body: the team header followed by the player roster. */
+/**
+ * Scrollable body: the team header followed by the player roster, wrapped in
+ * pull-to-refresh. The pull indicator only shows while refreshing an already
+ * populated roster; the very first roster load keeps the inline spinner. A
+ * refresh failure with cached roster rows keeps them visible behind an
+ * [OfflineBanner] instead of replacing them with the full-width error.
+ */
 @Composable
 private fun TeamDetailBody(
     team: Team,
+    recentGames: List<Game>,
     players: LazyPagingItems<Player>,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val refreshState = players.loadState.refresh
+    PullToRefreshBox(
+        isRefreshing = refreshState is LoadState.Loading && players.itemCount > 0,
+        onRefresh = { players.refresh() },
         modifier =
             modifier
                 .fillMaxSize()
-                .testTag(TEAM_DETAIL_LIST_TEST_TAG),
+                .testTag(TEAM_ROSTER_PULL_TO_REFRESH_TEST_TAG),
     ) {
-        item { TeamHeader(team = team) }
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .testTag(TEAM_DETAIL_LIST_TEST_TAG),
+        ) {
+            item { TeamHeader(team = team) }
 
-        if (players.itemCount > 0) {
-            item { RosterHeader() }
-        }
+            recentGamesSection(recentGames)
 
-        items(count = players.itemCount) { index ->
-            val player = players[index]
-            if (player != null) {
-                PlayerCard(
-                    firstName = player.firstName,
-                    lastName = player.lastName,
-                    position = player.position,
-                    teamName = team.fullName,
-                    imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
-                    onClick = { onPlayerClick(player.id) },
-                    modifier =
-                        Modifier
-                            .widthIn(max = 360.dp)
-                            .padding(horizontal = 24.dp)
-                            .padding(bottom = 8.dp),
-                )
+            when {
+                refreshState is LoadState.Error && players.itemCount == 0 ->
+                    item {
+                        RosterRefreshError(
+                            error = refreshState,
+                            onRetry = { players.retry() },
+                        )
+                    }
+                else -> {
+                    if (refreshState is LoadState.Error) {
+                        // Refresh failed but cached roster rows are available: keep
+                        // them on screen and surface the failure as an inline banner.
+                        item {
+                            OfflineBanner(
+                                message = stringResource(R.string.team_roster_offline_banner),
+                                onRetry = { players.retry() },
+                                modifier = Modifier.testTag(TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG),
+                            )
+                        }
+                    }
+                    rosterItems(team = team, players = players, onPlayerClick = onPlayerClick)
+                    if (refreshState is LoadState.Loading && players.itemCount == 0) {
+                        item { RosterLoading() }
+                    }
+                }
             }
         }
+    }
+}
 
-        if (players.loadState.append is LoadState.Loading) {
-            item {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .wrapContentWidth(Alignment.CenterHorizontally),
-                )
-            }
-        }
+/** The "Recent games" block; renders nothing when [games] is empty (off-season or failed load). */
+private fun LazyListScope.recentGamesSection(games: List<Game>) {
+    if (games.isEmpty()) return
+    item { SectionHeader(text = stringResource(R.string.team_detail_recent_games)) }
+    items(games, key = { it.id }) { game ->
+        RecentGameRow(game = game)
+    }
+}
+
+/** One compact score line: game date, home abbreviation, score, visitor abbreviation. */
+@Composable
+private fun RecentGameRow(
+    game: Game,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            modifier
+                .widthIn(max = 360.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 6.dp),
+    ) {
+        Text(
+            text = game.date,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = game.homeTeam.abbreviation,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = stringResource(R.string.game_score, game.homeTeamScore, game.visitorTeamScore),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            text = game.visitorTeam.abbreviation,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
@@ -311,22 +376,6 @@ private fun TeamHeader(
     }
 }
 
-/** Section title above the roster list. */
-@Composable
-private fun RosterHeader(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(R.string.team_detail_roster),
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        modifier =
-            modifier
-                .widthIn(max = 360.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(top = 8.dp, bottom = 8.dp),
-    )
-}
-
 @PreviewLightDark
 @PreviewScreenSizes
 @Composable
@@ -337,10 +386,22 @@ private fun TeamDetailScreenPreview() {
             Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
             Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team),
         )
+    val lakers = Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+    val games =
+        listOf(
+            Game(
+                id = 1,
+                date = "2026-06-10",
+                homeTeam = team,
+                homeTeamScore = 112,
+                visitorTeam = lakers,
+                visitorTeamScore = 99,
+            ),
+        )
 
     CourtFlowTheme {
         TeamDetailScreen(
-            state = TeamDetailState(team = team),
+            state = TeamDetailState(team = team, recentGames = games),
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             onRetry = {},
             onPlayerClick = {},

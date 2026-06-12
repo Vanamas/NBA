@@ -4,9 +4,11 @@ import androidx.paging.PagingData
 import app.cash.turbine.test
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import io.mockk.coEvery
 import io.mockk.every
@@ -27,6 +29,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class TeamDetailViewModelTest {
     private lateinit var getTeamDetailUseCase: GetTeamDetailUseCase
+    private lateinit var getTeamGamesUseCase: GetTeamGamesUseCase
     private lateinit var getTeamPlayersUseCase: GetTeamPlayersUseCase
     private val testDispatcher = StandardTestDispatcher()
 
@@ -35,10 +38,23 @@ class TeamDetailViewModelTest {
     private val player =
         Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team)
 
+    private val visitorTeam =
+        Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
+    private val game =
+        Game(
+            id = 1,
+            date = "2026-06-10",
+            homeTeam = team,
+            homeTeamScore = 112,
+            visitorTeam = visitorTeam,
+            visitorTeamScore = 99,
+        )
+
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getTeamDetailUseCase = mockk()
+        getTeamGamesUseCase = mockk { coEvery { this@mockk.invoke(any()) } returns emptyList() }
         getTeamPlayersUseCase =
             mockk {
                 every { this@mockk.invoke(any()) } returns flowOf(PagingData.from(listOf(player)))
@@ -50,7 +66,7 @@ class TeamDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = TeamDetailViewModel(1, getTeamDetailUseCase, getTeamPlayersUseCase)
+    private fun viewModel() = TeamDetailViewModel(1, getTeamDetailUseCase, getTeamGamesUseCase, getTeamPlayersUseCase)
 
     @Test
     fun `team is loaded in init on success`() =
@@ -114,6 +130,39 @@ class TeamDetailViewModelTest {
                 viewModel.onIntent(TeamDetailIntent.OnPlayerClicked(19))
                 testDispatcher.scheduler.advanceUntilIdle()
                 assertEquals(TeamDetailEffect.NavigateToPlayerDetail(19), awaitItem())
+            }
+        }
+
+    @Test
+    fun `recent games populate state on success`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } returns team
+            coEvery { getTeamGamesUseCase(1) } returns listOf(game)
+
+            val viewModel = viewModel()
+
+            viewModel.uiState.test {
+                testDispatcher.scheduler.advanceUntilIdle()
+                val state = expectMostRecentItem()
+                assertEquals(listOf(game), state.recentGames)
+                assertEquals(team, state.team)
+            }
+        }
+
+    @Test
+    fun `games failure hides the section while the team loads fine`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } returns team
+            coEvery { getTeamGamesUseCase(1) } throws DataException(DataErrorKind.SERVER)
+
+            val viewModel = viewModel()
+
+            viewModel.uiState.test {
+                testDispatcher.scheduler.advanceUntilIdle()
+                val state = expectMostRecentItem()
+                assertEquals(emptyList<Game>(), state.recentGames)
+                assertEquals(team, state.team)
+                assertEquals(null, state.error)
             }
         }
 

@@ -31,11 +31,56 @@ class DeepLinkTest {
     }
 
     @Test
+    fun `players uri maps to PlayerList`() {
+        assertEquals(Destination.PlayerList, DeepLink.parse(Uri.parse("courtflow://players")))
+    }
+
+    @Test
+    fun `teams uri maps to TeamList`() {
+        assertEquals(Destination.TeamList, DeepLink.parse(Uri.parse("courtflow://teams")))
+    }
+
+    @Test
+    fun `list uris with extra path segments are rejected`() {
+        assertNull(DeepLink.parse(Uri.parse("courtflow://players/19")))
+        assertNull(DeepLink.parse(Uri.parse("courtflow://teams/extra")))
+    }
+
+    @Test
     fun `null, foreign scheme and malformed ids are rejected`() {
         assertNull(DeepLink.parse(null))
         assertNull(DeepLink.parse(Uri.parse("https://player/19")))
         assertNull(DeepLink.parse(Uri.parse("courtflow://player/abc")))
         assertNull(DeepLink.parse(Uri.parse("courtflow://player")))
         assertNull(DeepLink.parse(Uri.parse("courtflow://unknown/1")))
+    }
+
+    @Test
+    fun `initial back stack for a detail uri keeps the player list beneath`() {
+        assertEquals(
+            listOf(Destination.PlayerList, Destination.TeamDetail(10)),
+            DeepLink.initialBackStack(Uri.parse("courtflow://team/10")),
+        )
+    }
+
+    @Test
+    fun `initial back stack for the teams uri keeps the player list beneath`() {
+        assertEquals(
+            listOf(Destination.PlayerList, Destination.TeamList),
+            DeepLink.initialBackStack(Uri.parse("courtflow://teams")),
+        )
+    }
+
+    @Test
+    fun `initial back stack for the players uri does not duplicate the root`() {
+        assertEquals(
+            listOf(Destination.PlayerList),
+            DeepLink.initialBackStack(Uri.parse("courtflow://players")),
+        )
+    }
+
+    @Test
+    fun `initial back stack without a deep link is just the player list`() {
+        assertEquals(listOf(Destination.PlayerList), DeepLink.initialBackStack(null))
     }
 }

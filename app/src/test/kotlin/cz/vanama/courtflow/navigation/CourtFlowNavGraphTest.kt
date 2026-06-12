@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.navigation
 
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -158,6 +159,30 @@ class CourtFlowNavGraphTest {
 
         composeRule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
         composeRule.waitForIdle()
+        composeRule.onNodeWithText("NBA Players").assertExists()
+    }
+
+    @Test
+    fun `teams deep link opens the team list with the player list beneath`() {
+        composeRule.setContent {
+            CourtFlowNavGraph(initialBackStack = DeepLink.initialBackStack(Uri.parse("courtflow://teams")))
+        }
+
+        composeRule.onNodeWithText("NBA Teams").assertExists()
+
+        composeRule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        composeRule.waitForIdle()
+        awaitPlayerRow()
+        composeRule.onNodeWithText("NBA Players").assertExists()
+    }
+
+    @Test
+    fun `players deep link lands on the player list start destination`() {
+        composeRule.setContent {
+            CourtFlowNavGraph(initialBackStack = DeepLink.initialBackStack(Uri.parse("courtflow://players")))
+        }
+
+        awaitPlayerRow()
         composeRule.onNodeWithText("NBA Players").assertExists()
     }
 }
