@@ -119,7 +119,6 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
