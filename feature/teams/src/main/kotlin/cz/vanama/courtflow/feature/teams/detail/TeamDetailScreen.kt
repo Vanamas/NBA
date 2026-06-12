@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -25,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,6 +68,8 @@ import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val TEAM_DETAIL_LIST_TEST_TAG = "team_detail_list"
+internal const val ROSTER_REFRESH_ERROR_TEST_TAG = "roster_refresh_error"
+internal const val ROSTER_LOADING_TEST_TAG = "roster_loading"
 
 /**
  * Detail of a single team with all information available from the API and
@@ -219,41 +223,77 @@ private fun TeamDetailBody(
     ) {
         item { TeamHeader(team = team) }
 
-        if (players.itemCount > 0) {
-            item { RosterHeader() }
-        }
-
-        items(count = players.itemCount) { index ->
-            val player = players[index]
-            if (player != null) {
-                PlayerCard(
-                    firstName = player.firstName,
-                    lastName = player.lastName,
-                    position = player.position,
-                    teamName = team.fullName,
-                    imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
-                    onClick = { onPlayerClick(player.id) },
-                    modifier =
-                        Modifier
-                            .widthIn(max = 360.dp)
-                            .padding(horizontal = 24.dp)
-                            .padding(bottom = 8.dp),
-                )
-            }
-        }
-
-        if (players.loadState.append is LoadState.Loading) {
-            item {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .wrapContentWidth(Alignment.CenterHorizontally),
-                )
-            }
+        when (val refreshState = players.loadState.refresh) {
+            is LoadState.Error ->
+                item {
+                    RosterRefreshError(
+                        error = refreshState,
+                        onRetry = { players.retry() },
+                    )
+                }
+            else -> rosterItems(team = team, players = players, onPlayerClick = onPlayerClick)
         }
     }
+}
+
+/** Roster rows: section header, player cards and the trailing append state. */
+private fun LazyListScope.rosterItems(
+    team: Team,
+    players: LazyPagingItems<Player>,
+    onPlayerClick: (Int) -> Unit,
+) {
+    if (players.itemCount > 0) {
+        item { RosterHeader() }
+    }
+
+    items(count = players.itemCount) { index ->
+        val player = players[index]
+        if (player != null) {
+            PlayerCard(
+                firstName = player.firstName,
+                lastName = player.lastName,
+                position = player.position,
+                teamName = team.fullName,
+                imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
+                onClick = { onPlayerClick(player.id) },
+                modifier =
+                    Modifier
+                        .widthIn(max = 360.dp)
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 8.dp),
+            )
+        }
+    }
+
+    if (players.loadState.append is LoadState.Loading) {
+        item { RosterAppendLoading() }
+    }
+}
+
+/** Full-width roster failure state for the first roster page. */
+@Composable
+private fun RosterRefreshError(
+    error: LoadState.Error,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ErrorState(
+        message = stringResource(R.string.team_roster_refresh_error, errorMessage(error.error)),
+        onRetry = onRetry,
+        modifier = modifier.testTag(ROSTER_REFRESH_ERROR_TEST_TAG),
+    )
+}
+
+/** Inline next-page loading row. */
+@Composable
+private fun RosterAppendLoading(modifier: Modifier = Modifier) {
+    CircularProgressIndicator(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .wrapContentWidth(Alignment.CenterHorizontally),
+    )
 }
 
 /** The team emblem, name, abbreviation badge and attribute rows. */

@@ -2,17 +2,21 @@ package cz.vanama.courtflow.feature.teams.detail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.paging.LoadState
+import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.domain.error.DataException
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
@@ -46,8 +50,28 @@ class TeamDetailContentTest {
         )
 
     @Composable
-    private fun pagingItems(players: List<Player> = emptyList()): LazyPagingItems<Player> =
-        flowOf(PagingData.from(players)).collectAsLazyPagingItems()
+    private fun pagingItems(
+        players: List<Player> = emptyList(),
+        loadStates: LoadStates? = null,
+    ): LazyPagingItems<Player> {
+        val pagingData =
+            if (loadStates == null) {
+                PagingData.from(players)
+            } else {
+                PagingData.from(players, sourceLoadStates = loadStates)
+            }
+        return flowOf(pagingData).collectAsLazyPagingItems()
+    }
+
+    private fun loadStates(
+        refresh: LoadState = LoadState.NotLoading(endOfPaginationReached = false),
+        append: LoadState = LoadState.NotLoading(endOfPaginationReached = false),
+    ): LoadStates =
+        LoadStates(
+            refresh = refresh,
+            prepend = LoadState.NotLoading(endOfPaginationReached = false),
+            append = append,
+        )
 
     @Test
     fun `loading state shows progress indicator`() {
@@ -154,5 +178,29 @@ class TeamDetailContentTest {
         composeTestRule.onNodeWithText("Stephen Curry").performClick()
 
         clickedId shouldBe 19
+    }
+
+    @Test
+    fun `roster refresh error shows error state with retry`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team),
+                players =
+                    pagingItems(
+                        loadStates = loadStates(refresh = LoadState.Error(DataException(DataErrorKind.NETWORK))),
+                    ),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasTestTag(ROSTER_REFRESH_ERROR_TEST_TAG))
+        composeTestRule.onNodeWithTag(ROSTER_REFRESH_ERROR_TEST_TAG).assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText("Failed to load roster: No internet connection. Check your network and try again.")
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 }

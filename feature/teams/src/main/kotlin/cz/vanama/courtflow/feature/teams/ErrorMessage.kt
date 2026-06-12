@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.res.stringResource
 import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.domain.error.DataException
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /** Resolves a classified data-layer failure to a localized message. */
@@ -19,3 +20,8 @@ internal fun errorMessage(kind: DataErrorKind?): String =
             DataErrorKind.UNKNOWN, null -> DesignR.string.error_unknown
         },
     )
+
+/** Convenience overload for paging errors carried as a plain [Throwable]. */
+@Composable
+@ReadOnlyComposable
+internal fun errorMessage(error: Throwable): String = errorMessage((error as? DataException)?.kind)

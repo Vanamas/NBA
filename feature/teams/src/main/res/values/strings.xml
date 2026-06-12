@@ -9,4 +9,6 @@
     <string name="team_attribute_conference">Conference</string>
     <string name="team_attribute_division">Division</string>
     <string name="team_detail_roster">Roster</string>
+    <string name="team_roster_refresh_error">Failed to load roster: %1$s</string>
+    <string name="team_roster_append_error">Error loading more players: %1$s</string>
 </resources>
