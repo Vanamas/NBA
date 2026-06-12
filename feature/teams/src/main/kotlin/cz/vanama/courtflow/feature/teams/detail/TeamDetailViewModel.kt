@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -20,11 +18,11 @@ import kotlinx.coroutines.launch
 class TeamDetailViewModel(
     private val getTeamDetailUseCase: GetTeamDetailUseCase,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(TeamDetailState())
-    val uiState: StateFlow<TeamDetailState> = _uiState.asStateFlow()
+    val uiState: StateFlow<TeamDetailState>
+        field = MutableStateFlow(TeamDetailState())
 
-    private val _uiEffect = MutableSharedFlow<TeamDetailEffect>()
-    val uiEffect: SharedFlow<TeamDetailEffect> = _uiEffect.asSharedFlow()
+    val uiEffect: SharedFlow<TeamDetailEffect>
+        field = MutableSharedFlow<TeamDetailEffect>()
 
     fun onIntent(intent: TeamDetailIntent) {
         when (intent) {
@@ -34,12 +32,12 @@ class TeamDetailViewModel(
 
     private fun loadTeam(teamId: Int) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val team = getTeamDetailUseCase(teamId)
-                _uiState.update { it.copy(isLoading = false, team = team) }
+                uiState.update { it.copy(isLoading = false, team = team) }
             } catch (e: DataException) {
-                _uiState.update { it.copy(isLoading = false, error = e.message.orEmpty()) }
+                uiState.update { it.copy(isLoading = false, error = e.message.orEmpty()) }
             }
         }
     }
