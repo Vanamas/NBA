@@ -3,6 +3,7 @@ package cz.vanama.courtflow.domain.di
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import org.koin.dsl.module
@@ -13,6 +14,7 @@ val domainModule =
         factory { GetPlayersUseCase(get()) }
         factory { GetPlayerDetailUseCase(get()) }
         factory { GetTeamDetailUseCase(get()) }
+        factory { GetTeamGamesUseCase(get()) }
         factory { GetTeamPlayersUseCase(get()) }
         factory { GetTeamsUseCase(get()) }
     }
