@@ -4,11 +4,14 @@ import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBAGame
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1GamesGet200Response
+import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.domain.error.DataException
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GameRepositoryImplTest {
@@ -70,6 +73,27 @@ class GameRepositoryImplTest {
                 listOf("2026-06-11", "2026-06-09", "2026-06-07", "2026-06-05", "2026-06-03"),
                 result.map { it.date },
             )
+        }
+
+    @Test
+    fun `translates a malformed game payload into a DataException`() =
+        runTest {
+            coEvery {
+                api.nbaV1GamesGet(
+                    perPage = 50,
+                    teamIds = listOf(10),
+                    startDate = "2026-04-28",
+                    endDate = "2026-06-12",
+                )
+            } returns
+                NbaV1GamesGet200Response(
+                    data = listOf(finalGame(id = 1, date = "2026-06-01").copy(id = null)),
+                )
+
+            val thrown = runCatching { repository.getRecentGames(10) }.exceptionOrNull()
+
+            assertTrue("expected DataException, was $thrown", thrown is DataException)
+            assertEquals(DataErrorKind.UNKNOWN, (thrown as DataException).kind)
         }
 
     private fun finalGame(

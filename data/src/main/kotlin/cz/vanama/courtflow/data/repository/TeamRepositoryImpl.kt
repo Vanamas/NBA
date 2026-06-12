@@ -28,8 +28,14 @@ class TeamRepositoryImpl(
                 emit(it)
                 return@flow
             }
-            val response = safeApiCall { api.nbaV1TeamsGet() }
-            val teams = response.data.orEmpty().map { it.toDomain() }
+            val teams =
+                safeApiCall {
+                    api
+                        .nbaV1TeamsGet()
+                        .data
+                        .orEmpty()
+                        .map { it.toDomain() }
+                }
             cachedTeams.set(teams)
             emit(teams)
         }

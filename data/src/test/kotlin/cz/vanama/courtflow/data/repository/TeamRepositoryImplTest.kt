@@ -5,11 +5,14 @@ import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1TeamsGet200Response
 import cz.vanama.courtflow.core.network.generated.model.NbaV1TeamsIdGet200Response
+import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.domain.error.DataException
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -99,6 +102,35 @@ class TeamRepositoryImplTest {
 
             assertEquals("Atlanta Hawks", result.fullName)
             coVerify(exactly = 0) { api.nbaV1TeamsIdGet(any()) }
+        }
+
+    @Test
+    fun `getTeams translates a malformed team payload into a DataException`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns
+                NbaV1TeamsGet200Response(data = listOf(atlantaDto.copy(id = null)))
+
+            repository.getTeams().test {
+                val error = awaitError()
+                assertTrue("expected DataException, was $error", error is DataException)
+                assertEquals(DataErrorKind.UNKNOWN, (error as DataException).kind)
+            }
+        }
+
+    @Test
+    fun `getTeams does not cache a failed fetch and recovers on retry`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns
+                NbaV1TeamsGet200Response(data = listOf(atlantaDto.copy(id = null))) andThen
+                NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+
+            repository.getTeams().test { awaitError() }
+            repository.getTeams().test {
+                assertEquals("Atlanta Hawks", awaitItem()[0].fullName)
+                awaitComplete()
+            }
+
+            coVerify(exactly = 2) { api.nbaV1TeamsGet() }
         }
 
     private val atlantaDto =

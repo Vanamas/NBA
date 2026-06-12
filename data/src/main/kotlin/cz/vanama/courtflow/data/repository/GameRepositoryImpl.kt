@@ -25,23 +25,21 @@ class GameRepositoryImpl(
     private val api: NBAApi,
     private val nowMillis: () -> Long = System::currentTimeMillis,
 ) : GameRepository {
-    override suspend fun getRecentGames(teamId: Int): List<Game> {
-        val response =
-            safeApiCall {
-                api.nbaV1GamesGet(
+    override suspend fun getRecentGames(teamId: Int): List<Game> =
+        safeApiCall {
+            api
+                .nbaV1GamesGet(
                     perPage = PAGE_SIZE,
                     teamIds = listOf(teamId),
                     startDate = isoDate(nowMillis() - TimeUnit.DAYS.toMillis(WINDOW_DAYS)),
                     endDate = isoDate(nowMillis()),
-                )
-            }
-        return response.data
-            .orEmpty()
-            .map { it.toDomain() }
-            .filter { it.status == STATUS_FINAL }
-            .sortedByDescending { it.date }
-            .take(RECENT_GAMES_LIMIT)
-    }
+                ).data
+                .orEmpty()
+                .map { it.toDomain() }
+                .filter { it.status == STATUS_FINAL }
+                .sortedByDescending { it.date }
+                .take(RECENT_GAMES_LIMIT)
+        }
 
     /** Formats [epochMillis] as the API's `yyyy-MM-dd`, pinned to UTC for determinism. */
     private fun isoDate(epochMillis: Long): String =
