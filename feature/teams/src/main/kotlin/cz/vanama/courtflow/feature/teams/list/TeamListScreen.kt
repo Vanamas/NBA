@@ -149,6 +149,7 @@ internal fun TeamListContent(
                     ErrorState(
                         message = errorMessage(state.error),
                         onRetry = onRetry,
+                        retryInSeconds = state.retryInSeconds,
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }

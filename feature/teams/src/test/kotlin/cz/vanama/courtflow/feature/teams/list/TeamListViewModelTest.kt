@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -170,6 +171,26 @@ class TeamListViewModelTest {
                 viewModel.onIntent(TeamListIntent.OnTeamClicked(7))
                 assertEquals(TeamListEffect.NavigateToTeamDetail(7), awaitItem())
             }
+        }
+
+    @Test
+    fun `rate limited load counts down and retries automatically`() =
+        runTest {
+            every { getTeamsUseCase() } returns
+                flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
+                flowOf(teams)
+            val viewModel = TeamListViewModel(getTeamsUseCase, FakeConnectivityObserver())
+            runCurrent()
+
+            assertEquals(DataErrorKind.RATE_LIMITED, viewModel.uiState.value.error)
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(15_000)
+            runCurrent()
+
+            verify(exactly = 2) { getTeamsUseCase() }
+            assertEquals(teams, viewModel.uiState.value.teams)
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
         }
 
     @Test
