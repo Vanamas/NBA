@@ -1,7 +1,7 @@
-package cz.vanama.courtflow.domain.error
+package cz.vanama.courtflow.core.common.error
 
 /**
- * Domain-level failure thrown by repository implementations when fetching data fails,
+ * Transport-agnostic failure thrown by repository implementations when fetching data fails,
  * so presentation layers never depend on transport-specific exception types. The
  * [kind] classifies the failure; [message] is debugging detail only and must never
  * be shown to the user.

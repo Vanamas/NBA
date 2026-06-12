@@ -7,6 +7,8 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBAPlayer
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
@@ -17,8 +19,6 @@ import cz.vanama.courtflow.data.local.entity.PlayerEntity
 import cz.vanama.courtflow.data.local.entity.RemoteKeyEntity
 import cz.vanama.courtflow.data.mapper.toDomain
 import cz.vanama.courtflow.data.mapper.toEntity
-import cz.vanama.courtflow.domain.error.DataErrorKind
-import cz.vanama.courtflow.domain.error.DataException
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

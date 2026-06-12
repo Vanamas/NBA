@@ -9,5 +9,5 @@ import org.koin.dsl.module
 val teamsFeatureModule =
     module {
         viewModel { (teamId: Int) -> TeamDetailViewModel(teamId, get(), get(), get()) }
-        viewModel { TeamListViewModel(get()) }
+        viewModel { TeamListViewModel(get(), get()) }
     }

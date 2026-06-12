@@ -1,18 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("courtflow.android.library")
     alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
     namespace = "cz.vanama.courtflow.data"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -30,7 +22,7 @@ dependencies {
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.common)
-    // Needed to translate retrofit2.HttpException into the domain DataException.
+    // Needed to translate retrofit2.HttpException into DataException (core:common).
     implementation(libs.retrofit)
     // Needed to translate Moshi's JsonDataException into the domain DataException.
     implementation(libs.moshi)

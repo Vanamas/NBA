@@ -1,17 +1,20 @@
 package cz.vanama.courtflow.feature.players.detail
 
 import app.cash.turbine.test
-import cz.vanama.courtflow.domain.error.DataErrorKind
-import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -104,6 +107,54 @@ class PlayerDetailViewModelTest {
                 testDispatcher.scheduler.advanceUntilIdle()
                 assertEquals(PlayerDetailEffect.Share(player), awaitItem())
             }
+        }
+
+    @Test
+    fun `rate limited load counts down and retries automatically`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws
+                DataException(DataErrorKind.RATE_LIMITED) andThen player
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            runCurrent()
+
+            assertEquals(DataErrorKind.RATE_LIMITED, viewModel.uiState.value.error)
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(15_000)
+            runCurrent()
+
+            coVerify(exactly = 2) { getPlayerDetailUseCase(1) }
+            assertEquals(player, viewModel.uiState.value.player)
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
+        }
+
+    @Test
+    fun `second consecutive rate limit restarts the countdown`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws
+                DataException(DataErrorKind.RATE_LIMITED) andThenThrows
+                DataException(DataErrorKind.RATE_LIMITED) andThen
+                player
+
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            runCurrent()
+
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(15_000)
+            runCurrent()
+
+            // Second call also rate-limited — countdown restarted
+            assertEquals(DataErrorKind.RATE_LIMITED, viewModel.uiState.value.error)
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(15_000)
+            runCurrent()
+
+            // Third call succeeds
+            coVerify(exactly = 3) { getPlayerDetailUseCase(1) }
+            assertEquals(player, viewModel.uiState.value.player)
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
         }
 
     @Test

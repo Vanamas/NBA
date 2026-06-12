@@ -7,6 +7,7 @@
     <string name="error_not_found">The requested data could not be found.</string>
     <string name="error_server">The server is having trouble. Try again later.</string>
     <string name="navigate_back">Back</string>
+    <string name="connectivity_banner">You\'re offline. Content may be out of date.</string>
     <string name="select_player_placeholder">Select a player to see the details</string>
     <string name="team_card_conference_division">%1$s · %2$s</string>
 
@@ -15,4 +16,6 @@
     <string name="position_center">Center</string>
     <string name="position_guard_forward">Guard / Forward</string>
     <string name="position_forward_center">Forward / Center</string>
+
+    <string name="retrying_in">Retrying in %1$d s</string>
 </resources>

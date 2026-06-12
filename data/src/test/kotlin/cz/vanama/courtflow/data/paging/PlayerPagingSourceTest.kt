@@ -4,13 +4,13 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.squareup.moshi.JsonDataException
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBAPlayer
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersGet200Response
 import cz.vanama.courtflow.core.network.generated.model.Pagination
-import cz.vanama.courtflow.domain.error.DataErrorKind
-import cz.vanama.courtflow.domain.error.DataException
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import io.mockk.coEvery

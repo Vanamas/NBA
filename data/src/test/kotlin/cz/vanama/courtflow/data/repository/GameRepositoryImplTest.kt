@@ -1,11 +1,11 @@
 package cz.vanama.courtflow.data.repository
 
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBAGame
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1GamesGet200Response
-import cz.vanama.courtflow.domain.error.DataErrorKind
-import cz.vanama.courtflow.domain.error.DataException
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

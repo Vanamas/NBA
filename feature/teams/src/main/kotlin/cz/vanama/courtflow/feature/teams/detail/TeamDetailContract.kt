@@ -1,7 +1,7 @@
 package cz.vanama.courtflow.feature.teams.detail
 
 import androidx.paging.PagingData
-import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -19,6 +19,7 @@ data class TeamDetailState(
     val players: Flow<PagingData<Player>> = emptyFlow(),
     val recentGames: List<Game> = emptyList(),
     val error: DataErrorKind? = null,
+    val retryInSeconds: Int? = null,
 )
 
 /** User actions of the team detail screen; the initial load happens in the ViewModel's `init`. */

@@ -3,6 +3,7 @@ package cz.vanama.courtflow.feature.teams.list
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,14 +36,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.TeamCard
 import cz.vanama.courtflow.core.designsystem.component.TestTags
+import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
-import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
-import cz.vanama.courtflow.feature.teams.errorMessage
 import org.koin.androidx.compose.koinViewModel
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
@@ -129,29 +131,35 @@ internal fun TeamListContent(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        when {
-            state.isLoading -> {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier
-                            .align(Alignment.Center)
-                            .testTag(TestTags.LOADING_INDICATOR),
-                )
-            }
-            state.error != null -> {
-                ErrorState(
-                    message = errorMessage(state.error),
-                    onRetry = onRetry,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-            }
-            else -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    state.sections.forEach { section -> teamSection(section, onTeamClick) }
+    Column(modifier = modifier.fillMaxSize()) {
+        if (state.isOffline) {
+            ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
+        }
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator(
+                        modifier =
+                            Modifier
+                                .align(Alignment.Center)
+                                .testTag(TestTags.LOADING_INDICATOR),
+                    )
+                }
+                state.error != null -> {
+                    ErrorState(
+                        message = errorMessage(state.error),
+                        onRetry = onRetry,
+                        retryInSeconds = state.retryInSeconds,
+                        modifier = Modifier.align(Alignment.Center),
+                    )
+                }
+                else -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        state.sections.forEach { section -> teamSection(section, onTeamClick) }
+                    }
                 }
             }
         }

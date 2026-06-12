@@ -22,12 +22,15 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
  *
  * @param message human-readable description of the failure.
  * @param onRetry called when the user taps the retry button.
+ * @param retryInSeconds when non-null, the retry happens automatically in
+ *   this many seconds: the button is disabled and shows the countdown.
  */
 @Composable
 fun ErrorState(
     message: String,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    retryInSeconds: Int? = null,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -38,8 +41,18 @@ fun ErrorState(
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onRetry) {
-            Text(stringResource(R.string.retry))
+        Button(
+            onClick = onRetry,
+            enabled = retryInSeconds == null,
+        ) {
+            Text(
+                text =
+                    if (retryInSeconds == null) {
+                        stringResource(R.string.retry)
+                    } else {
+                        stringResource(R.string.retrying_in, retryInSeconds)
+                    },
+            )
         }
     }
 }

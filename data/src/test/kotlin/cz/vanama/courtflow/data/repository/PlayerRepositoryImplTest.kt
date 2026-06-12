@@ -4,6 +4,8 @@ import androidx.paging.testing.ErrorRecovery
 import androidx.paging.testing.asSnapshot
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBAPlayer
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
@@ -11,8 +13,6 @@ import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersGet200Respon
 import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersIdGet200Response
 import cz.vanama.courtflow.core.network.generated.model.Pagination
 import cz.vanama.courtflow.data.local.CourtFlowDatabase
-import cz.vanama.courtflow.domain.error.DataErrorKind
-import cz.vanama.courtflow.domain.error.DataException
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

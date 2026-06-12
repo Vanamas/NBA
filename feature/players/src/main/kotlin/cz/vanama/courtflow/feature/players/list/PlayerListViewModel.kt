@@ -3,6 +3,7 @@ package cz.vanama.courtflow.feature.players.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -28,6 +29,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 class PlayerListViewModel(
     getPlayersUseCase: GetPlayersUseCase,
+    connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
     private val searchQuery = MutableStateFlow("")
 
@@ -44,6 +46,14 @@ class PlayerListViewModel(
 
     val uiEffect: SharedFlow<PlayerListEffect>
         field = MutableSharedFlow<PlayerListEffect>()
+
+    init {
+        viewModelScope.launch {
+            connectivityObserver.isOnline.collect { online ->
+                uiState.update { it.copy(isOffline = !online) }
+            }
+        }
+    }
 
     fun onIntent(intent: PlayerListIntent) {
         when (intent) {

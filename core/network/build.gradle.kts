@@ -2,7 +2,7 @@ import java.net.URI
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.library)
+    id("courtflow.android.library")
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.openapi.generator)
 }
@@ -17,13 +17,8 @@ val localProperties =
 
 android {
     namespace = "cz.vanama.courtflow.core.network"
-    compileSdk = 37
 
     defaultConfig {
-        minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-
         buildConfigField(
             "String",
             "BALLDONTLIE_API_KEY",
@@ -119,7 +114,6 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)

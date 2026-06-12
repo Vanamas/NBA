@@ -2,9 +2,13 @@ package cz.vanama.courtflow.feature.teams.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
+import cz.vanama.courtflow.core.common.time.countdownSeconds
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -20,6 +24,7 @@ import kotlinx.coroutines.launch
  */
 class TeamListViewModel(
     private val getTeamsUseCase: GetTeamsUseCase,
+    private val connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
     val uiState: StateFlow<TeamListState>
         field = MutableStateFlow(TeamListState())
@@ -27,8 +32,11 @@ class TeamListViewModel(
     val uiEffect: SharedFlow<TeamListEffect>
         field = MutableSharedFlow<TeamListEffect>()
 
+    private var rateLimitRetryJob: Job? = null
+
     init {
         loadTeams()
+        observeConnectivity()
     }
 
     fun onIntent(intent: TeamListIntent) {
@@ -39,15 +47,39 @@ class TeamListViewModel(
     }
 
     private fun loadTeams() {
+        rateLimitRetryJob?.cancel()
         viewModelScope.launch {
-            uiState.update { it.copy(isLoading = true, error = null) }
+            uiState.update { it.copy(isLoading = true, error = null, retryInSeconds = null) }
             getTeamsUseCase()
                 .catch { e ->
                     if (e !is DataException) throw e
                     uiState.update { it.copy(isLoading = false, error = e.kind) }
+                    if (e.kind == DataErrorKind.RATE_LIMITED) scheduleRateLimitRetry()
                 }.collect { teams ->
                     uiState.update { it.copy(isLoading = false, sections = teams.groupIntoSections()) }
                 }
+        }
+    }
+
+    private fun scheduleRateLimitRetry() {
+        rateLimitRetryJob =
+            viewModelScope.launch {
+                countdownSeconds(RATE_LIMIT_RETRY_SECONDS).collect { remaining ->
+                    uiState.update { it.copy(retryInSeconds = remaining.takeIf { s -> s > 0 }) }
+                    if (remaining == 0) loadTeams()
+                }
+            }
+    }
+
+    private fun observeConnectivity() {
+        viewModelScope.launch {
+            connectivityObserver.isOnline.collect { online ->
+                val wasOffline = uiState.value.isOffline
+                uiState.update { it.copy(isOffline = !online) }
+                if (online && wasOffline && uiState.value.error != null) {
+                    loadTeams()
+                }
+            }
         }
     }
 
@@ -55,6 +87,11 @@ class TeamListViewModel(
         viewModelScope.launch {
             uiEffect.emit(TeamListEffect.NavigateToTeamDetail(teamId))
         }
+    }
+
+    private companion object {
+        /** balldontlie's free tier limits requests per minute; 15 s is a safe wait. */
+        const val RATE_LIMIT_RETRY_SECONDS = 15
     }
 }
 

@@ -50,6 +50,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
@@ -57,14 +58,13 @@ import cz.vanama.courtflow.core.designsystem.component.BadgeTone
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.OfflineBanner
 import cz.vanama.courtflow.core.designsystem.component.TestTags
+import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
-import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
-import cz.vanama.courtflow.feature.teams.errorMessage
 import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -196,6 +196,7 @@ internal fun TeamDetailContent(
             ErrorState(
                 message = errorMessage(state.error),
                 onRetry = onRetry,
+                retryInSeconds = state.retryInSeconds,
             )
         } else {
             state.team?.let { team ->

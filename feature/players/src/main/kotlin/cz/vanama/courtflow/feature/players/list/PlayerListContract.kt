@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 data class PlayerListState(
     val players: Flow<PagingData<Player>>,
     val searchQuery: String = "",
+    val isOffline: Boolean = false,
 )
 
 /** User actions of the player list screen. */

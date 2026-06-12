@@ -21,11 +21,11 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
+import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
-import cz.vanama.courtflow.feature.teams.errorMessage
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val ROSTER_REFRESH_ERROR_TEST_TAG = "roster_refresh_error"

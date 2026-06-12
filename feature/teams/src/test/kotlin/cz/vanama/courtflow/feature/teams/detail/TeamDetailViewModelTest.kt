@@ -2,8 +2,8 @@ package cz.vanama.courtflow.feature.teams.detail
 
 import androidx.paging.PagingData
 import app.cash.turbine.test
-import cz.vanama.courtflow.domain.error.DataErrorKind
-import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -11,6 +11,7 @@ import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -18,7 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -164,6 +167,25 @@ class TeamDetailViewModelTest {
                 assertEquals(team, state.team)
                 assertEquals(null, state.error)
             }
+        }
+
+    @Test
+    fun `rate limited load counts down and retries automatically`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } throws
+                DataException(DataErrorKind.RATE_LIMITED) andThen team
+            val viewModel = viewModel()
+            runCurrent()
+
+            assertEquals(DataErrorKind.RATE_LIMITED, viewModel.uiState.value.error)
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(15_000)
+            runCurrent()
+
+            coVerify(exactly = 2) { getTeamDetailUseCase(1) }
+            assertEquals(team, viewModel.uiState.value.team)
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
         }
 
     @Test

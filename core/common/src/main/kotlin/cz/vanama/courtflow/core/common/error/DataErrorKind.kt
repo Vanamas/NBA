@@ -1,4 +1,4 @@
-package cz.vanama.courtflow.domain.error
+package cz.vanama.courtflow.core.common.error
 
 /**
  * Coarse classification of a data-layer failure; the UI maps each kind

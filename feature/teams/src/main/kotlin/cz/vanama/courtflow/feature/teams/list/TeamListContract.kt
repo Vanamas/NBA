@@ -1,6 +1,6 @@
 package cz.vanama.courtflow.feature.teams.list
 
-import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 
 /** UI state of the team list screen. */
@@ -8,6 +8,8 @@ data class TeamListState(
     val isLoading: Boolean = false,
     val sections: List<TeamSection> = emptyList(),
     val error: DataErrorKind? = null,
+    val isOffline: Boolean = false,
+    val retryInSeconds: Int? = null,
 )
 
 /** User actions of the team list screen; the initial load happens in the ViewModel's `init`. */

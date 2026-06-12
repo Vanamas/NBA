@@ -5,9 +5,9 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
-import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
 import org.junit.Rule
@@ -164,5 +164,20 @@ class TeamListContentTest {
         composeTestRule.onNodeWithText("Retry").performClick()
 
         retries shouldBe 1
+    }
+
+    @Test
+    fun `offline banner is shown when offline`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state = TeamListState(isOffline = true),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
     }
 }
