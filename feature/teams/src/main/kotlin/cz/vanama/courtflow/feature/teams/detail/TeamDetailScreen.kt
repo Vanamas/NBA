@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,7 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,7 +50,6 @@ import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
-import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
@@ -68,8 +64,6 @@ import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val TEAM_DETAIL_LIST_TEST_TAG = "team_detail_list"
-internal const val ROSTER_REFRESH_ERROR_TEST_TAG = "roster_refresh_error"
-internal const val ROSTER_LOADING_TEST_TAG = "roster_loading"
 
 /**
  * Detail of a single team with all information available from the API and
@@ -241,108 +235,6 @@ private fun TeamDetailBody(
     }
 }
 
-/** Roster rows: section header, player cards and the trailing append state. */
-private fun LazyListScope.rosterItems(
-    team: Team,
-    players: LazyPagingItems<Player>,
-    onPlayerClick: (Int) -> Unit,
-) {
-    if (players.itemCount > 0) {
-        item { RosterHeader() }
-    }
-
-    items(count = players.itemCount) { index ->
-        val player = players[index]
-        if (player != null) {
-            PlayerCard(
-                firstName = player.firstName,
-                lastName = player.lastName,
-                position = player.position,
-                teamName = team.fullName,
-                imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
-                onClick = { onPlayerClick(player.id) },
-                modifier =
-                    Modifier
-                        .widthIn(max = 360.dp)
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 8.dp),
-            )
-        }
-    }
-
-    when (val appendState = players.loadState.append) {
-        is LoadState.Loading -> item { RosterAppendLoading() }
-        is LoadState.Error ->
-            item {
-                RosterAppendError(
-                    error = appendState,
-                    onRetry = { players.retry() },
-                )
-            }
-        else -> {}
-    }
-}
-
-/** Full-width roster failure state for the first roster page. */
-@Composable
-private fun RosterRefreshError(
-    error: LoadState.Error,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    ErrorState(
-        message = stringResource(R.string.team_roster_refresh_error, errorMessage(error.error)),
-        onRetry = onRetry,
-        modifier = modifier.testTag(ROSTER_REFRESH_ERROR_TEST_TAG),
-    )
-}
-
-/** Spinner shown while the first roster page is loading. */
-@Composable
-private fun RosterLoading(modifier: Modifier = Modifier) {
-    CircularProgressIndicator(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .wrapContentWidth(Alignment.CenterHorizontally)
-                .testTag(ROSTER_LOADING_TEST_TAG),
-    )
-}
-
-/** Inline next-page failure row with a retry button. */
-@Composable
-private fun RosterAppendError(
-    error: LoadState.Error,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Text(
-            text = stringResource(R.string.team_roster_append_error, errorMessage(error.error)),
-            modifier = Modifier.padding(16.dp),
-        )
-        TextButton(onClick = onRetry) {
-            Text(stringResource(DesignR.string.retry))
-        }
-    }
-}
-
-/** Inline next-page loading row. */
-@Composable
-private fun RosterAppendLoading(modifier: Modifier = Modifier) {
-    CircularProgressIndicator(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .wrapContentWidth(Alignment.CenterHorizontally),
-    )
-}
-
 /** The team emblem, name, abbreviation badge and attribute rows. */
 @Composable
 private fun TeamHeader(
@@ -396,22 +288,6 @@ private fun TeamHeader(
             )
         }
     }
-}
-
-/** Section title above the roster list. */
-@Composable
-private fun RosterHeader(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(R.string.team_detail_roster),
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        modifier =
-            modifier
-                .widthIn(max = 360.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(top = 8.dp, bottom = 8.dp),
-    )
 }
 
 @PreviewLightDark
