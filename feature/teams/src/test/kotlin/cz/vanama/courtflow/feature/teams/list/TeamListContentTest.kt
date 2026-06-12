@@ -165,4 +165,19 @@ class TeamListContentTest {
 
         retries shouldBe 1
     }
+
+    @Test
+    fun `offline banner is shown when offline`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state = TeamListState(isOffline = true),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("offline_banner").assertIsDisplayed()
+    }
 }

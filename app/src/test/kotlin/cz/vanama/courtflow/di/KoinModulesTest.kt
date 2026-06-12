@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.di
 
+import cz.vanama.courtflow.core.common.di.coreCommonModule
 import cz.vanama.courtflow.core.network.di.coreNetworkModule
 import cz.vanama.courtflow.data.di.dataModule
 import cz.vanama.courtflow.domain.di.domainModule
@@ -21,6 +22,7 @@ class KoinModulesTest {
     fun `koin module graph resolves`() {
         module {
             includes(
+                coreCommonModule,
                 coreNetworkModule,
                 dataModule,
                 domainModule,

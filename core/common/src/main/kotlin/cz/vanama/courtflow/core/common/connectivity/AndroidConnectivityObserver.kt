@@ -38,8 +38,8 @@ class AndroidConnectivityObserver(
         }.distinctUntilChanged()
 
     private fun currentlyOnline(): Boolean {
-        val network = connectivityManager.activeNetwork ?: return false
-        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        val network = connectivityManager.activeNetwork
+        val capabilities = if (network != null) connectivityManager.getNetworkCapabilities(network) else null
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 }

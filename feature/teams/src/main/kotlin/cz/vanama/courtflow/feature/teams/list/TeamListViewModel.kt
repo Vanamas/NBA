@@ -2,6 +2,7 @@ package cz.vanama.courtflow.feature.teams.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
  */
 class TeamListViewModel(
     private val getTeamsUseCase: GetTeamsUseCase,
+    private val connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
     val uiState: StateFlow<TeamListState>
         field = MutableStateFlow(TeamListState())
@@ -29,6 +31,7 @@ class TeamListViewModel(
 
     init {
         loadTeams()
+        observeConnectivity()
     }
 
     fun onIntent(intent: TeamListIntent) {
@@ -48,6 +51,18 @@ class TeamListViewModel(
                 }.collect { teams ->
                     uiState.update { it.copy(isLoading = false, sections = teams.groupIntoSections()) }
                 }
+        }
+    }
+
+    private fun observeConnectivity() {
+        viewModelScope.launch {
+            connectivityObserver.isOnline.collect { online ->
+                val wasOffline = uiState.value.isOffline
+                uiState.update { it.copy(isOffline = !online) }
+                if (online && wasOffline && uiState.value.error != null) {
+                    loadTeams()
+                }
+            }
         }
     }
 

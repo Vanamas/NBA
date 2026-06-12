@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.paging.PagingData
+import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
@@ -18,6 +19,7 @@ import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.After
 import org.junit.Before
@@ -61,6 +63,7 @@ class CourtFlowNavGraphTest {
                     single<GetPlayerDetailUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns player } }
                     single<GetTeamsUseCase> { mockk { every { this@mockk.invoke() } returns flowOf(listOf(team)) } }
                     single<GetTeamDetailUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns team } }
+                    single<ConnectivityObserver> { mockk { every { isOnline } returns MutableStateFlow(true) } }
                 },
                 playersFeatureModule,
                 teamsFeatureModule,
