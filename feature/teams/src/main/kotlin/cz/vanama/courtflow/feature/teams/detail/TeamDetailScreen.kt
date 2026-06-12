@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,8 +55,8 @@ import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
-import cz.vanama.courtflow.core.designsystem.component.OfflineBanner
-import cz.vanama.courtflow.core.designsystem.component.TestTags
+import cz.vanama.courtflow.core.designsystem.component.LoadingIndicator
+import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
@@ -200,7 +199,7 @@ internal fun TeamDetailContent(
         contentAlignment = Alignment.Center,
     ) {
         if (state.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
+            LoadingIndicator()
         } else if (state.error != null) {
             ErrorState(
                 message = errorMessage(state.error),
@@ -224,8 +223,8 @@ internal fun TeamDetailContent(
  * Scrollable body: the team header followed by the player roster, wrapped in
  * pull-to-refresh. The pull indicator only shows while refreshing an already
  * populated roster; the very first roster load keeps the inline spinner. A
- * refresh failure with cached roster rows keeps them visible behind an
- * [OfflineBanner] instead of replacing them with the full-width error.
+ * refresh failure with cached roster rows keeps them visible behind a
+ * [CachedDataBanner] instead of replacing them with the full-width error.
  */
 @Composable
 private fun TeamDetailBody(
@@ -268,7 +267,7 @@ private fun TeamDetailBody(
                         // Refresh failed but cached roster rows are available: keep
                         // them on screen and surface the failure as an inline banner.
                         item {
-                            OfflineBanner(
+                            CachedDataBanner(
                                 message = stringResource(R.string.team_roster_offline_banner),
                                 onRetry = { players.retry() },
                                 modifier = Modifier.testTag(TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG),

@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,6 +37,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
+import cz.vanama.courtflow.core.designsystem.component.LoadingIndicator
 import cz.vanama.courtflow.core.designsystem.component.TeamCard
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
@@ -138,12 +138,7 @@ internal fun TeamListContent(
         Box(modifier = Modifier.fillMaxSize()) {
             when {
                 state.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier =
-                            Modifier
-                                .align(Alignment.Center)
-                                .testTag(TestTags.LOADING_INDICATOR),
-                    )
+                    LoadingIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 state.error != null -> {
                     ErrorState(
