@@ -96,9 +96,21 @@ class TeamListContentTest {
         composeTestRule.onNodeWithText("West — Pacific").assertIsDisplayed()
         composeTestRule.onNodeWithText("Other teams").assertIsDisplayed()
 
-        val eastTop = composeTestRule.onNodeWithText("East — Atlantic").fetchSemanticsNode().boundsInRoot.top
-        val westTop = composeTestRule.onNodeWithText("West — Pacific").fetchSemanticsNode().boundsInRoot.top
-        val otherTop = composeTestRule.onNodeWithText("Other teams").fetchSemanticsNode().boundsInRoot.top
+        val eastTop =
+            composeTestRule
+                .onNodeWithText("East — Atlantic")
+                .fetchSemanticsNode()
+                .boundsInRoot.top
+        val westTop =
+            composeTestRule
+                .onNodeWithText("West — Pacific")
+                .fetchSemanticsNode()
+                .boundsInRoot.top
+        val otherTop =
+            composeTestRule
+                .onNodeWithText("Other teams")
+                .fetchSemanticsNode()
+                .boundsInRoot.top
 
         (eastTop < westTop) shouldBe true
         (westTop < otherTop) shouldBe true

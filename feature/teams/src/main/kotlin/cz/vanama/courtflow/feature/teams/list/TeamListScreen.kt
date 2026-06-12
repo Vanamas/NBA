@@ -15,8 +15,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -205,6 +205,10 @@ private fun sectionTitle(section: TeamSection): String =
         else -> stringResource(R.string.team_list_section_header, section.conference, section.division)
     }
 
+private val previewCeltics = Team(2, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")
+private val previewWarriors = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
+private val previewLakers = Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+
 @PreviewLightDark
 @PreviewScreenSizes
 @Composable
@@ -218,16 +222,12 @@ private fun TeamListScreenPreview() {
                             TeamSection(
                                 conference = "East",
                                 division = "Atlantic",
-                                teams = listOf(Team(2, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")),
+                                teams = listOf(previewCeltics),
                             ),
                             TeamSection(
                                 conference = "West",
                                 division = "Pacific",
-                                teams =
-                                    listOf(
-                                        Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors"),
-                                        Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"),
-                                    ),
+                                teams = listOf(previewWarriors, previewLakers),
                             ),
                         ),
                 ),
