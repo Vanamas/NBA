@@ -2,7 +2,7 @@ package cz.vanama.courtflow.feature.players.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

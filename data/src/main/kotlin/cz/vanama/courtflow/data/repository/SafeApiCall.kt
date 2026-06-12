@@ -1,8 +1,8 @@
 package cz.vanama.courtflow.data.repository
 
 import com.squareup.moshi.JsonDataException
-import cz.vanama.courtflow.domain.error.DataErrorKind
-import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.HttpURLConnection

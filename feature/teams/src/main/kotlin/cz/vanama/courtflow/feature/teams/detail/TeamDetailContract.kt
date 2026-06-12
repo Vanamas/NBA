@@ -1,7 +1,7 @@
 package cz.vanama.courtflow.feature.teams.detail
 
 import androidx.paging.PagingData
-import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team

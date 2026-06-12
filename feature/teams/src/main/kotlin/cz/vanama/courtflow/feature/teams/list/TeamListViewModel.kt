@@ -2,7 +2,7 @@ package cz.vanama.courtflow.feature.teams.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow

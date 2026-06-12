@@ -1,4 +1,4 @@
-package cz.vanama.courtflow.domain.error
+package cz.vanama.courtflow.core.common.error
 
 /**
  * Domain-level failure thrown by repository implementations when fetching data fails,

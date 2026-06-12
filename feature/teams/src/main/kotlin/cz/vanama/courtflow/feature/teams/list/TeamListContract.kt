@@ -1,6 +1,6 @@
 package cz.vanama.courtflow.feature.teams.list
 
-import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 
 /** UI state of the team list screen. */

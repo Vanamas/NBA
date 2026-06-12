@@ -1,6 +1,6 @@
 package cz.vanama.courtflow.feature.players.detail
 
-import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Player
 
 /** UI state of the player detail screen. */
