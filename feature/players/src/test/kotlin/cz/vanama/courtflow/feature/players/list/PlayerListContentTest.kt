@@ -1,16 +1,20 @@
 package cz.vanama.courtflow.feature.players.list
 
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasImeAction
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.input.ImeAction
 import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
@@ -312,5 +316,52 @@ class PlayerListContentTest {
 
         composeTestRule.onNodeWithText("No players available").assertIsDisplayed()
         composeTestRule.onNodeWithText("Clear search").assertDoesNotExist()
+    }
+
+    @Test
+    fun `clear icon is hidden when query is empty`() {
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithContentDescription("Clear search").assertDoesNotExist()
+    }
+
+    @Test
+    fun `clear icon with non-empty query resets the query`() {
+        var lastQuery: String? = null
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "curry",
+                onSearchQueryChanged = { lastQuery = it },
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithContentDescription("Clear search").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Clear search").performClick()
+
+        lastQuery shouldBe ""
+    }
+
+    @Test
+    fun `search field uses the Search ime action`() {
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithTag(SEARCH_FIELD_TEST_TAG).assert(hasImeAction(ImeAction.Search))
     }
 }

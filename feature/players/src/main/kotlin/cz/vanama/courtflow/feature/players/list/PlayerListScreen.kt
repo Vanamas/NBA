@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,8 +31,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
@@ -147,16 +153,9 @@ internal fun PlayerListContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchQueryChanged,
-            placeholder = { Text(stringResource(R.string.player_list_search_hint)) },
-            singleLine = true,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .testTag(SEARCH_FIELD_TEST_TAG),
+        PlayerSearchField(
+            query = searchQuery,
+            onQueryChanged = onSearchQueryChanged,
         )
 
         PlayerListItems(
@@ -166,6 +165,43 @@ internal fun PlayerListContent(
             onPlayerClick = onPlayerClick,
         )
     }
+}
+
+/**
+ * Single-line player search field with a clear (X) trailing icon — shown
+ * only while [query] is non-empty — and a Search IME action that hides
+ * the keyboard.
+ */
+@Composable
+private fun PlayerSearchField(
+    query: String,
+    onQueryChanged: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChanged,
+        placeholder = { Text(stringResource(R.string.player_list_search_hint)) },
+        singleLine = true,
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChanged("") }) {
+                    Icon(
+                        imageVector = Icons.Filled.Clear,
+                        contentDescription = stringResource(R.string.player_list_clear_search),
+                    )
+                }
+            }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .testTag(SEARCH_FIELD_TEST_TAG),
+    )
 }
 
 /**
