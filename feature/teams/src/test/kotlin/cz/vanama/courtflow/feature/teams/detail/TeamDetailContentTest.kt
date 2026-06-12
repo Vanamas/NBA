@@ -203,4 +203,28 @@ class TeamDetailContentTest {
             .assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
+
+    @Test
+    fun `roster append error shows inline error row with retry`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team),
+                players =
+                    pagingItems(
+                        players = roster,
+                        loadStates = loadStates(append = LoadState.Error(DataException(DataErrorKind.NETWORK))),
+                    ),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasText("Error loading more players", substring = true))
+        composeTestRule
+            .onNodeWithText("Error loading more players: No internet connection. Check your network and try again.")
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
+    }
 }

@@ -265,8 +265,16 @@ private fun LazyListScope.rosterItems(
         }
     }
 
-    if (players.loadState.append is LoadState.Loading) {
-        item { RosterAppendLoading() }
+    when (val appendState = players.loadState.append) {
+        is LoadState.Loading -> item { RosterAppendLoading() }
+        is LoadState.Error ->
+            item {
+                RosterAppendError(
+                    error = appendState,
+                    onRetry = { players.retry() },
+                )
+            }
+        else -> {}
     }
 }
 
@@ -282,6 +290,27 @@ private fun RosterRefreshError(
         onRetry = onRetry,
         modifier = modifier.testTag(ROSTER_REFRESH_ERROR_TEST_TAG),
     )
+}
+
+/** Inline next-page failure row with a retry button. */
+@Composable
+private fun RosterAppendError(
+    error: LoadState.Error,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = stringResource(R.string.team_roster_append_error, errorMessage(error.error)),
+            modifier = Modifier.padding(16.dp),
+        )
+        TextButton(onClick = onRetry) {
+            Text(stringResource(DesignR.string.retry))
+        }
+    }
 }
 
 /** Inline next-page loading row. */
