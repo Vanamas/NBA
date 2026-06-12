@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.koin.android)
+    implementation(libs.timber)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockwebserver)

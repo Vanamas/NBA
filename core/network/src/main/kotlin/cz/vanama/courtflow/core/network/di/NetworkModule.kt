@@ -9,11 +9,15 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import timber.log.Timber
+
+private const val HTTP_LOG_TAG = "OkHttp"
 
 /**
- * Koin module wiring the network stack: Moshi, OkHttp (with logging and
- * the Authorization header taken from `BuildConfig.BALLDONTLIE_API_KEY`),
- * Retrofit and the [BallDontLieApi] service.
+ * Koin module wiring the network stack: Moshi, OkHttp (with logging routed
+ * to Timber and the Authorization header taken from
+ * `BuildConfig.BALLDONTLIE_API_KEY`), Retrofit and the [BallDontLieApi]
+ * service.
  */
 val coreNetworkModule =
     module {
@@ -25,8 +29,16 @@ val coreNetworkModule =
         }
 
         single {
-            HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+            HttpLoggingInterceptor { message ->
+                Timber.tag(HTTP_LOG_TAG).d(message)
+            }.apply {
+                level =
+                    if (BuildConfig.DEBUG) {
+                        HttpLoggingInterceptor.Level.BODY
+                    } else {
+                        HttpLoggingInterceptor.Level.NONE
+                    }
+                redactHeader("Authorization")
             }
         }
 
