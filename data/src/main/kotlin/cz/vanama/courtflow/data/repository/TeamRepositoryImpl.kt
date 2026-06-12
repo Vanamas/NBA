@@ -1,6 +1,6 @@
 package cz.vanama.courtflow.data.repository
 
-import cz.vanama.courtflow.core.network.api.BallDontLieApi
+import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.data.mapper.toDomain
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.repository.TeamRepository
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference
  * shared app-wide.
  */
 class TeamRepositoryImpl(
-    private val api: BallDontLieApi,
+    private val api: NBAApi,
 ) : TeamRepository {
     private val cachedTeams = AtomicReference<List<Team>?>(null)
 
@@ -28,13 +28,15 @@ class TeamRepositoryImpl(
                 emit(it)
                 return@flow
             }
-            val response = safeApiCall { api.getTeams() }
-            val teams = response.data.map { it.toDomain() }
+            val response = safeApiCall { api.nbaV1TeamsGet() }
+            val teams = response.data.orEmpty().map { it.toDomain() }
             cachedTeams.set(teams)
             emit(teams)
         }
 
     override suspend fun getTeamById(id: Int): Team =
         cachedTeams.get()?.firstOrNull { it.id == id }
-            ?: safeApiCall { api.getTeam(id).data.toDomain() }
+            ?: safeApiCall {
+                requireNotNull(api.nbaV1TeamsIdGet(id).data) { "Team $id missing in response" }.toDomain()
+            }
 }

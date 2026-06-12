@@ -3,7 +3,7 @@ package cz.vanama.courtflow.core.network.di
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import cz.vanama.courtflow.core.network.BuildConfig
-import cz.vanama.courtflow.core.network.api.BallDontLieApi
+import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.dsl.module
@@ -16,8 +16,9 @@ private const val HTTP_LOG_TAG = "OkHttp"
 /**
  * Koin module wiring the network stack: Moshi, OkHttp (with logging routed
  * to Timber and the Authorization header taken from
- * `BuildConfig.BALLDONTLIE_API_KEY`), Retrofit and the [BallDontLieApi]
- * service.
+ * `BuildConfig.BALLDONTLIE_API_KEY`), Retrofit and the [NBAApi] service
+ * generated from the official balldontlie OpenAPI definition in
+ * `openapi/nba.yml`.
  */
 val coreNetworkModule =
     module {
@@ -60,13 +61,13 @@ val coreNetworkModule =
         single {
             Retrofit
                 .Builder()
-                .baseUrl("https://api.balldontlie.io/v1/")
+                .baseUrl(BuildConfig.BALLDONTLIE_BASE_URL)
                 .client(get())
                 .addConverterFactory(MoshiConverterFactory.create(get()))
                 .build()
         }
 
         single {
-            get<Retrofit>().create(BallDontLieApi::class.java)
+            get<Retrofit>().create(NBAApi::class.java)
         }
     }
