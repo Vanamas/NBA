@@ -48,6 +48,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
+import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.OfflineBanner
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.PlayerCardSkeleton
@@ -95,9 +96,16 @@ fun PlayerListScreen(
         }
     }
 
+    LaunchedEffect(uiState.isOffline) {
+        if (!uiState.isOffline && players.loadState.refresh is LoadState.Error) {
+            players.retry()
+        }
+    }
+
     PlayerListScreen(
         players = players,
         searchQuery = uiState.searchQuery,
+        isOffline = uiState.isOffline,
         onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
         onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
         onNavigateToTeams = onNavigateToTeams,
@@ -114,6 +122,7 @@ fun PlayerListScreen(
 internal fun PlayerListScreen(
     players: LazyPagingItems<Player>,
     searchQuery: String,
+    isOffline: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
     onNavigateToTeams: () -> Unit,
@@ -135,6 +144,7 @@ internal fun PlayerListScreen(
         PlayerListContent(
             players = players,
             searchQuery = searchQuery,
+            isOffline = isOffline,
             onSearchQueryChanged = onSearchQueryChanged,
             onPlayerClick = onPlayerClick,
             modifier = Modifier.padding(padding),
@@ -154,11 +164,15 @@ internal fun PlayerListScreen(
 internal fun PlayerListContent(
     players: LazyPagingItems<Player>,
     searchQuery: String,
+    isOffline: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
+        if (isOffline) {
+            ConnectivityBanner(modifier = Modifier.testTag("offline_banner"))
+        }
         PlayerSearchField(
             query = searchQuery,
             onQueryChanged = onSearchQueryChanged,
@@ -418,6 +432,7 @@ private fun PlayerListScreenPreview() {
         PlayerListScreen(
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             searchQuery = "",
+            isOffline = false,
             onSearchQueryChanged = {},
             onPlayerClick = {},
             onNavigateToTeams = {},

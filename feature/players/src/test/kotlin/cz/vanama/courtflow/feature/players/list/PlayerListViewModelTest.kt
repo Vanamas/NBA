@@ -2,6 +2,7 @@ package cz.vanama.courtflow.feature.players.list
 
 import androidx.paging.PagingData
 import app.cash.turbine.test
+import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
 import io.mockk.every
@@ -9,6 +10,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -26,13 +29,15 @@ import org.junit.Test
 class PlayerListViewModelTest {
     private lateinit var getPlayersUseCase: GetPlayersUseCase
     private lateinit var viewModel: PlayerListViewModel
+    private lateinit var connectivityObserver: FakeConnectivityObserver
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getPlayersUseCase = mockk()
-        viewModel = PlayerListViewModel(getPlayersUseCase)
+        connectivityObserver = FakeConnectivityObserver()
+        viewModel = PlayerListViewModel(getPlayersUseCase, connectivityObserver)
     }
 
     @After
@@ -84,4 +89,25 @@ class PlayerListViewModelTest {
                 assertEquals(PlayerListEffect.NavigateToPlayerDetail(1), awaitItem())
             }
         }
+
+    @Test
+    fun `losing connectivity sets isOffline and regaining clears it`() =
+        runTest {
+            runCurrent()
+
+            connectivityObserver.online.value = false
+            runCurrent()
+            assertEquals(true, viewModel.uiState.value.isOffline)
+
+            connectivityObserver.online.value = true
+            runCurrent()
+            assertEquals(false, viewModel.uiState.value.isOffline)
+        }
+}
+
+private class FakeConnectivityObserver(
+    initiallyOnline: Boolean = true,
+) : ConnectivityObserver {
+    val online = MutableStateFlow(initiallyOnline)
+    override val isOnline: Flow<Boolean> = online
 }

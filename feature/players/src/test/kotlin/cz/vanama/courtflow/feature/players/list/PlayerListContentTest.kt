@@ -28,6 +28,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.TestTags
+import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
@@ -86,6 +87,7 @@ class PlayerListContentTest {
                     flowOf(PagingData.empty<Player>(sourceLoadStates = loadingStates))
                         .collectAsLazyPagingItems(),
                 searchQuery = "",
+                isOffline = false,
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
             )
@@ -115,6 +117,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -129,6 +132,7 @@ class PlayerListContentTest {
             PlayerListContent(
                 players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
                 searchQuery = "",
+                isOffline = false,
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
             )
@@ -147,6 +151,7 @@ class PlayerListContentTest {
             PlayerListContent(
                 players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
                 searchQuery = "",
+                isOffline = false,
                 onSearchQueryChanged = {},
                 onPlayerClick = { clickedPlayerId = it },
             )
@@ -165,6 +170,7 @@ class PlayerListContentTest {
             PlayerListContent(
                 players = flowOf(PagingData.empty<Player>()).collectAsLazyPagingItems(),
                 searchQuery = "",
+                isOffline = false,
                 onSearchQueryChanged = { lastQuery = it },
                 onPlayerClick = {},
             )
@@ -190,6 +196,7 @@ class PlayerListContentTest {
                     flowOf(PagingData.empty<Player>(sourceLoadStates = errorStates))
                         .collectAsLazyPagingItems(),
                 searchQuery = "",
+                isOffline = false,
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
             )
@@ -216,6 +223,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -242,6 +250,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -273,6 +282,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -304,6 +314,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -338,6 +349,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -367,6 +379,7 @@ class PlayerListContentTest {
                 searchQuery = "xyzzy",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -387,6 +400,7 @@ class PlayerListContentTest {
                 searchQuery = "xyzzy",
                 onSearchQueryChanged = { lastQuery = it },
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -405,6 +419,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -420,6 +435,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -436,6 +452,7 @@ class PlayerListContentTest {
                 searchQuery = "curry",
                 onSearchQueryChanged = { lastQuery = it },
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -460,6 +477,7 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
@@ -480,10 +498,28 @@ class PlayerListContentTest {
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
+                isOffline = false,
             )
         }
 
         composeTestRule.onNodeWithTag(SEARCH_FIELD_TEST_TAG).assert(hasImeAction(ImeAction.Search))
+    }
+
+    @Test
+    fun `connectivity banner is shown when offline`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                PlayerListContent(
+                    players = flowOf(PagingData.from(emptyList<Player>())).collectAsLazyPagingItems(),
+                    searchQuery = "",
+                    onSearchQueryChanged = {},
+                    onPlayerClick = {},
+                    isOffline = true,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("connectivity_banner").assertIsDisplayed()
     }
 }
 
