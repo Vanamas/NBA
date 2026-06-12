@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * MVI ViewModel of the player list screen.
@@ -49,7 +50,7 @@ class PlayerListViewModel(
     private fun loadPlayers() {
         val players =
             searchQuery
-                .debounce(SEARCH_DEBOUNCE_MS)
+                .debounce(SEARCH_DEBOUNCE_MS.milliseconds)
                 .distinctUntilChanged()
                 .flatMapLatest { query -> getPlayersUseCase(query.ifBlank { null }) }
                 .cachedIn(viewModelScope)

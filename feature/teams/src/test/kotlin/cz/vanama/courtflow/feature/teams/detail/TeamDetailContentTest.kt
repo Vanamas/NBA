@@ -53,9 +53,12 @@ class TeamDetailContentTest {
         }
 
         composeTestRule.onNodeWithText("Golden State Warriors").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Abbreviation: GSW").assertIsDisplayed()
-        composeTestRule.onNodeWithText("City: Golden State").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Conference: West").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Division: Pacific").assertIsDisplayed()
+        composeTestRule.onNodeWithText("GSW").assertIsDisplayed()
+        composeTestRule.onNodeWithText("City").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Golden State").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Conference").assertIsDisplayed()
+        composeTestRule.onNodeWithText("West").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Division").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Pacific").assertIsDisplayed()
     }
 }

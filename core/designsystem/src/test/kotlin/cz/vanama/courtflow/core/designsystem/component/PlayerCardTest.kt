@@ -32,6 +32,7 @@ class PlayerCardTest {
 
         composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
         composeTestRule.onNodeWithText("G").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Guard").assertIsDisplayed()
         composeTestRule.onNodeWithText("Golden State Warriors").assertIsDisplayed()
     }
 

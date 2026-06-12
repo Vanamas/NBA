@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
@@ -42,7 +42,7 @@ fun TeamListScreen(
     modifier: Modifier = Modifier,
     viewModel: TeamListViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(TeamListIntent.LoadTeams)
@@ -140,8 +140,24 @@ private fun TeamListContentPreview() {
                 TeamListState(
                     teams =
                         listOf(
-                            Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors"),
-                            Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"),
+                            Team(
+                                10,
+                                "GSW",
+                                "Golden State",
+                                "West",
+                                "Pacific",
+                                "Golden State Warriors",
+                                "Warriors",
+                            ),
+                            Team(
+                                14,
+                                "LAL",
+                                "Los Angeles",
+                                "West",
+                                "Pacific",
+                                "Los Angeles Lakers",
+                                "Lakers",
+                            ),
                         ),
                 ),
             onTeamClick = {},
