@@ -227,4 +227,21 @@ class TeamDetailContentTest {
             .assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
+
+    @Test
+    fun `roster refresh loading shows roster spinner`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team),
+                players = pagingItems(loadStates = loadStates(refresh = LoadState.Loading)),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasTestTag(ROSTER_LOADING_TEST_TAG))
+        composeTestRule.onNodeWithTag(ROSTER_LOADING_TEST_TAG).assertIsDisplayed()
+    }
 }

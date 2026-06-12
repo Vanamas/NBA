@@ -231,7 +231,12 @@ private fun TeamDetailBody(
                         onRetry = { players.retry() },
                     )
                 }
-            else -> rosterItems(team = team, players = players, onPlayerClick = onPlayerClick)
+            else -> {
+                rosterItems(team = team, players = players, onPlayerClick = onPlayerClick)
+                if (refreshState is LoadState.Loading) {
+                    item { RosterLoading() }
+                }
+            }
         }
     }
 }
@@ -289,6 +294,19 @@ private fun RosterRefreshError(
         message = stringResource(R.string.team_roster_refresh_error, errorMessage(error.error)),
         onRetry = onRetry,
         modifier = modifier.testTag(ROSTER_REFRESH_ERROR_TEST_TAG),
+    )
+}
+
+/** Spinner shown while the first roster page is loading. */
+@Composable
+private fun RosterLoading(modifier: Modifier = Modifier) {
+    CircularProgressIndicator(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .testTag(ROSTER_LOADING_TEST_TAG),
     )
 }
 
