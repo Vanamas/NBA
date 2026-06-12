@@ -16,4 +16,6 @@
     <string name="position_center">Center</string>
     <string name="position_guard_forward">Guard / Forward</string>
     <string name="position_forward_center">Forward / Center</string>
+
+    <string name="retrying_in">Retrying in %1$d s</string>
 </resources>

@@ -55,4 +55,19 @@ class ErrorStateScreenshotTest {
 
         composeTestRule.onRoot().captureRoboImage()
     }
+
+    @Test
+    fun errorStateCountdownLight() {
+        composeTestRule.setContent {
+            CourtFlowTheme(darkTheme = false) {
+                ErrorState(
+                    message = "Too many requests. Please wait a moment and try again.",
+                    onRetry = {},
+                    retryInSeconds = 12,
+                )
+            }
+        }
+
+        composeTestRule.onRoot().captureRoboImage()
+    }
 }
