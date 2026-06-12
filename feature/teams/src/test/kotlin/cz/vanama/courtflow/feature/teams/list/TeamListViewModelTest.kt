@@ -194,6 +194,34 @@ class TeamListViewModelTest {
         }
 
     @Test
+    fun `manual retry during countdown cancels the scheduled auto-retry`() =
+        runTest {
+            every { getTeamsUseCase() } returns
+                flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
+                flowOf(teams)
+
+            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            runCurrent()
+
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(5_000)
+            runCurrent()
+            viewModel.onIntent(TeamListIntent.Retry)
+            runCurrent()
+
+            verify(exactly = 2) { getTeamsUseCase() }
+            assertEquals(teams, viewModel.uiState.value.teams)
+
+            advanceTimeBy(20_000)
+            runCurrent()
+
+            // Cancelled countdown never fired a third load
+            verify(exactly = 2) { getTeamsUseCase() }
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
+        }
+
+    @Test
     fun `reconnecting after a failed load retries automatically`() =
         runTest {
             every { getTeamsUseCase() } returns

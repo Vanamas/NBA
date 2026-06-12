@@ -129,6 +129,35 @@ class PlayerDetailViewModelTest {
         }
 
     @Test
+    fun `second consecutive rate limit restarts the countdown`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws
+                DataException(DataErrorKind.RATE_LIMITED) andThenThrows
+                DataException(DataErrorKind.RATE_LIMITED) andThen
+                player
+
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            runCurrent()
+
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(15_000)
+            runCurrent()
+
+            // Second call also rate-limited — countdown restarted
+            assertEquals(DataErrorKind.RATE_LIMITED, viewModel.uiState.value.error)
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            advanceTimeBy(15_000)
+            runCurrent()
+
+            // Third call succeeds
+            coVerify(exactly = 3) { getPlayerDetailUseCase(1) }
+            assertEquals(player, viewModel.uiState.value.player)
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
+        }
+
+    @Test
     fun `OnShareClicked is ignored while no player is loaded`() =
         runTest {
             coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER)
