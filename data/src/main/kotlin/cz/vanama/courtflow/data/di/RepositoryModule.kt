@@ -22,7 +22,8 @@ val dataModule =
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
         }
+        single { get<CourtFlowDatabase>().teamDao() }
         single<GameRepository> { GameRepositoryImpl(get()) }
         single<PlayerRepository> { PlayerRepositoryImpl(get(), get()) }
-        single<TeamRepository> { TeamRepositoryImpl(get()) }
+        single<TeamRepository> { TeamRepositoryImpl(get(), get()) }
     }
