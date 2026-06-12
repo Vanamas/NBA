@@ -39,10 +39,10 @@ import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.TeamCard
 import cz.vanama.courtflow.core.designsystem.component.TestTags
+import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
-import cz.vanama.courtflow.feature.teams.errorMessage
 import org.koin.androidx.compose.koinViewModel
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
