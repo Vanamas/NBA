@@ -35,7 +35,7 @@ class TeamListContentTest {
     @Test
     fun `shows loading indicator while loading`() {
         composeTestRule.setContent {
-            CourtFlowTheme(dynamicColor = false) {
+            CourtFlowTheme {
                 TeamListContent(
                     state = TeamListState(isLoading = true),
                     onTeamClick = {},
@@ -52,7 +52,7 @@ class TeamListContentTest {
         var clickedId: Int? = null
 
         composeTestRule.setContent {
-            CourtFlowTheme(dynamicColor = false) {
+            CourtFlowTheme {
                 TeamListContent(
                     state = TeamListState(teams = listOf(team)),
                     onTeamClick = { clickedId = it },
@@ -71,7 +71,7 @@ class TeamListContentTest {
     @Test
     fun `shows error text and retry button on error`() {
         composeTestRule.setContent {
-            CourtFlowTheme(dynamicColor = false) {
+            CourtFlowTheme {
                 TeamListContent(
                     state = TeamListState(error = DataErrorKind.SERVER),
                     onTeamClick = {},
@@ -89,7 +89,7 @@ class TeamListContentTest {
         var retries = 0
 
         composeTestRule.setContent {
-            CourtFlowTheme(dynamicColor = false) {
+            CourtFlowTheme {
                 TeamListContent(
                     state = TeamListState(error = DataErrorKind.SERVER),
                     onTeamClick = {},

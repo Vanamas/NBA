@@ -51,7 +51,7 @@ fun AttributeRow(
 @Preview(showBackground = true)
 @Composable
 private fun AttributeRowPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         AttributeRow(label = "Height", value = "6-2")
     }
 }

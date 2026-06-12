@@ -162,7 +162,7 @@ internal fun TeamListContent(
 @PreviewScreenSizes
 @Composable
 private fun TeamListScreenPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         TeamListScreen(
             state =
                 TeamListState(
@@ -182,7 +182,7 @@ private fun TeamListScreenPreview() {
 @PreviewLightDark
 @Composable
 private fun TeamListScreenErrorPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         TeamListScreen(
             state = TeamListState(error = DataErrorKind.SERVER),
             onTeamClick = {},

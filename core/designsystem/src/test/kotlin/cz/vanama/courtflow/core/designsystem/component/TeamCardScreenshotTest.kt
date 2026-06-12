@@ -39,7 +39,7 @@ class TeamCardScreenshotTest {
     @Test
     fun teamCardLight() {
         composeTestRule.setContent {
-            CourtFlowTheme(darkTheme = false, dynamicColor = false) {
+            CourtFlowTheme(darkTheme = false) {
                 SampleTeamCard()
             }
         }
@@ -50,7 +50,7 @@ class TeamCardScreenshotTest {
     @Test
     fun teamCardDark() {
         composeTestRule.setContent {
-            CourtFlowTheme(darkTheme = true, dynamicColor = false) {
+            CourtFlowTheme(darkTheme = true) {
                 SampleTeamCard()
             }
         }
