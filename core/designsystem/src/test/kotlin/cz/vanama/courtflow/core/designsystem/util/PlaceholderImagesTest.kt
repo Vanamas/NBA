@@ -7,14 +7,12 @@ import org.junit.Test
 
 class PlaceholderImagesTest {
     @Test
-    fun `playerPortrait builds pollinations url seeded by player id`() {
+    fun `playerPortrait builds dicebear url seeded by player id`() {
         val url = PlaceholderImages.playerPortrait(playerId = 19)
 
-        assertTrue(url.startsWith("https://image.pollinations.ai/prompt/"))
+        assertTrue(url.startsWith("https://api.dicebear.com/9.x/avataaars/png"))
         assertTrue(url.contains("seed=19"))
-        assertTrue(url.contains("width=512"))
-        assertTrue(url.contains("height=512"))
-        assertTrue(url.contains("nologo=true"))
+        assertTrue(url.contains("size=512"))
         assertFalse("URL must not contain raw spaces", url.contains(" "))
     }
 
@@ -27,12 +25,11 @@ class PlaceholderImagesTest {
     }
 
     @Test
-    fun `teamEmblem builds pollinations url seeded by team id`() {
+    fun `teamEmblem builds dicebear url seeded by team id`() {
         val url = PlaceholderImages.teamEmblem(teamId = 10)
 
-        assertTrue(url.startsWith("https://image.pollinations.ai/prompt/"))
+        assertTrue(url.startsWith("https://api.dicebear.com/9.x/shapes/png"))
         assertTrue(url.contains("seed=10"))
-        assertTrue(url.contains("nologo=true"))
         assertFalse("URL must not contain raw spaces", url.contains(" "))
     }
 
