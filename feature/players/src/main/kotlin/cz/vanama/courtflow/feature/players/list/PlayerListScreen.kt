@@ -1,6 +1,5 @@
 package cz.vanama.courtflow.feature.players.list
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,6 +63,7 @@ import cz.vanama.courtflow.core.designsystem.R as DesignR
 internal const val SEARCH_FIELD_TEST_TAG = "player_search_field"
 internal const val REFRESH_ERROR_TEST_TAG = "refresh_error"
 internal const val EMPTY_STATE_TEST_TAG = "player_list_empty_state"
+internal const val PULL_TO_REFRESH_TEST_TAG = "player_pull_to_refresh"
 
 /**
  * Endlessly scrolling list of NBA players; tapping a row navigates to the
@@ -205,9 +206,11 @@ private fun PlayerSearchField(
 }
 
 /**
- * The list body below the search field: the lazy list with append states,
- * the initial-load spinner, the first-load failure state, or — when the
- * refresh finished with zero items — the empty state.
+ * The list body below the search field: the lazy list with append states
+ * wrapped in pull-to-refresh, the initial-load spinner, the first-load
+ * failure state, or — when the refresh finished with zero items — the empty
+ * state. The pull indicator only shows while refreshing an already populated
+ * list; the very first load keeps the centered spinner.
  */
 @Composable
 private fun PlayerListItems(
@@ -217,8 +220,15 @@ private fun PlayerListItems(
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        val refreshState = players.loadState.refresh
+    val refreshState = players.loadState.refresh
+    PullToRefreshBox(
+        isRefreshing = refreshState is LoadState.Loading && players.itemCount > 0,
+        onRefresh = { players.refresh() },
+        modifier =
+            modifier
+                .fillMaxSize()
+                .testTag(PULL_TO_REFRESH_TEST_TAG),
+    ) {
         when {
             refreshState is LoadState.Error -> {
                 ErrorState(
@@ -243,7 +253,7 @@ private fun PlayerListItems(
                     onPlayerClick = onPlayerClick,
                 )
 
-                if (refreshState is LoadState.Loading) {
+                if (refreshState is LoadState.Loading && players.itemCount == 0) {
                     CircularProgressIndicator(
                         modifier =
                             Modifier

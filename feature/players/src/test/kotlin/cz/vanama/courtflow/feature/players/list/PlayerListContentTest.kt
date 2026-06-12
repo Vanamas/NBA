@@ -87,6 +87,31 @@ class PlayerListContentTest {
     }
 
     @Test
+    fun `refresh with loaded items keeps list visible without centered spinner`() {
+        val refreshingStates =
+            LoadStates(
+                refresh = LoadState.Loading,
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.NotLoading(endOfPaginationReached = false),
+            )
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.from(listOf(player), sourceLoadStates = refreshingStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithTag(PULL_TO_REFRESH_TEST_TAG).assertExists()
+        composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertDoesNotExist()
+    }
+
+    @Test
     fun `players are displayed with name position and team`() {
         composeTestRule.setContent {
             PlayerListContent(
