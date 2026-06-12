@@ -10,6 +10,7 @@ import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
@@ -66,7 +67,7 @@ class PlayerListContentTest {
             )
         }
 
-        composeTestRule.onNodeWithTag("loading_indicator").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertIsDisplayed()
     }
 
     @Test
@@ -116,7 +117,7 @@ class PlayerListContentTest {
             )
         }
 
-        composeTestRule.onNodeWithTag("player_search_field").performTextInput("curry")
+        composeTestRule.onNodeWithTag(SEARCH_FIELD_TEST_TAG).performTextInput("curry")
 
         lastQuery shouldBe "curry"
     }
@@ -141,7 +142,7 @@ class PlayerListContentTest {
             )
         }
 
-        composeTestRule.onNodeWithTag("refresh_error").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(REFRESH_ERROR_TEST_TAG).assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 }

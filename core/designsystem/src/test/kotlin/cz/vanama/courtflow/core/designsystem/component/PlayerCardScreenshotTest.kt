@@ -47,7 +47,7 @@ class PlayerCardScreenshotTest {
     private fun awaitAvatarFailureAndCapture() {
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule
-                .onAllNodes(hasTestTag("avatar_failure"), useUnmergedTree = true)
+                .onAllNodes(hasTestTag(TestTags.AVATAR_FAILURE), useUnmergedTree = true)
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }

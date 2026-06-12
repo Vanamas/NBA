@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.TeamCard
+import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
@@ -128,7 +129,7 @@ internal fun TeamListContent(
                     modifier =
                         Modifier
                             .align(Alignment.Center)
-                            .testTag("loading_indicator"),
+                            .testTag(TestTags.LOADING_INDICATOR),
                 )
             }
             state.error != null -> {

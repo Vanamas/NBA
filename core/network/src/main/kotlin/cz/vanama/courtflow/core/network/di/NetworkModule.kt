@@ -12,6 +12,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import timber.log.Timber
 
 private const val HTTP_LOG_TAG = "OkHttp"
+private const val HEADER_AUTHORIZATION = "Authorization"
 
 /**
  * Koin module wiring the network stack: Moshi, OkHttp (with logging routed
@@ -39,7 +40,7 @@ val coreNetworkModule =
                     } else {
                         HttpLoggingInterceptor.Level.NONE
                     }
-                redactHeader("Authorization")
+                redactHeader(HEADER_AUTHORIZATION)
             }
         }
 
@@ -52,7 +53,7 @@ val coreNetworkModule =
                         chain
                             .request()
                             .newBuilder()
-                            .addHeader("Authorization", BuildConfig.BALLDONTLIE_API_KEY)
+                            .addHeader(HEADER_AUTHORIZATION, BuildConfig.BALLDONTLIE_API_KEY)
                             .build()
                     chain.proceed(request)
                 }.build()

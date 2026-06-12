@@ -35,6 +35,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
+import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
@@ -44,6 +45,9 @@ import cz.vanama.courtflow.feature.players.errorMessage
 import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
 import cz.vanama.courtflow.core.designsystem.R as DesignR
+
+internal const val SEARCH_FIELD_TEST_TAG = "player_search_field"
+internal const val REFRESH_ERROR_TEST_TAG = "refresh_error"
 
 /**
  * Endlessly scrolling list of NBA players; tapping a row navigates to the
@@ -143,7 +147,7 @@ internal fun PlayerListContent(
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .testTag("player_search_field"),
+                    .testTag(SEARCH_FIELD_TEST_TAG),
         )
 
         PlayerListItems(
@@ -172,7 +176,7 @@ private fun PlayerListItems(
                 modifier =
                     Modifier
                         .align(Alignment.Center)
-                        .testTag("refresh_error"),
+                        .testTag(REFRESH_ERROR_TEST_TAG),
             )
         } else {
             PlayerLazyList(
@@ -185,7 +189,7 @@ private fun PlayerListItems(
                     modifier =
                         Modifier
                             .align(Alignment.Center)
-                            .testTag("loading_indicator"),
+                            .testTag(TestTags.LOADING_INDICATOR),
                 )
             }
         }

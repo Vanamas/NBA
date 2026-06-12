@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -60,7 +61,7 @@ class PlayerDetailContentTest {
             )
         }
 
-        composeTestRule.onNodeWithTag("loading_indicator").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertIsDisplayed()
     }
 
     @Test

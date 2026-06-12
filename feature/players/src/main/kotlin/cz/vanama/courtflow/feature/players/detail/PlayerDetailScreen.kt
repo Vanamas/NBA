@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.players.detail
 
+import android.content.ClipDescription
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,7 @@ import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
+import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.core.designsystem.util.positionLabel
@@ -93,7 +95,7 @@ fun PlayerDetailScreen(
                             )
                         val sendIntent =
                             Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
+                                type = ClipDescription.MIMETYPE_TEXT_PLAIN
                                 putExtra(Intent.EXTRA_TEXT, text)
                             }
                         context.startActivity(Intent.createChooser(sendIntent, null))
@@ -179,7 +181,7 @@ internal fun PlayerDetailContent(
         contentAlignment = Alignment.Center,
     ) {
         if (state.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
+            CircularProgressIndicator(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
         } else if (state.error != null) {
             ErrorState(
                 message = errorMessage(state.error),

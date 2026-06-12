@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.teams.detail
 
+import android.content.ClipDescription
 import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
+import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.error.DataErrorKind
@@ -62,6 +64,8 @@ import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
+
+internal const val TEAM_DETAIL_LIST_TEST_TAG = "team_detail_list"
 
 /**
  * Detail of a single team with all information available from the API and
@@ -90,7 +94,7 @@ fun TeamDetailScreen(
                         val text = context.getString(R.string.share_team_text, effect.team.fullName, effect.team.id)
                         val sendIntent =
                             Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
+                                type = ClipDescription.MIMETYPE_TEXT_PLAIN
                                 putExtra(Intent.EXTRA_TEXT, text)
                             }
                         context.startActivity(Intent.createChooser(sendIntent, null))
@@ -180,7 +184,7 @@ internal fun TeamDetailContent(
         contentAlignment = Alignment.Center,
     ) {
         if (state.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
+            CircularProgressIndicator(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
         } else if (state.error != null) {
             ErrorState(
                 message = errorMessage(state.error),
@@ -211,7 +215,7 @@ private fun TeamDetailBody(
         modifier =
             modifier
                 .fillMaxSize()
-                .testTag("team_detail_list"),
+                .testTag(TEAM_DETAIL_LIST_TEST_TAG),
     ) {
         item { TeamHeader(team = team) }
 

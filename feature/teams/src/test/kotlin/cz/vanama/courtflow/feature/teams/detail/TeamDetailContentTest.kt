@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -59,7 +60,7 @@ class TeamDetailContentTest {
             )
         }
 
-        composeTestRule.onNodeWithTag("loading_indicator").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertIsDisplayed()
     }
 
     @Test
@@ -128,7 +129,7 @@ class TeamDetailContentTest {
         }
 
         composeTestRule
-            .onNodeWithTag("team_detail_list")
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
             .performScrollToNode(hasText("Stephen Curry"))
         composeTestRule.onNodeWithText("Roster").assertIsDisplayed()
         composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
@@ -148,7 +149,7 @@ class TeamDetailContentTest {
         }
 
         composeTestRule
-            .onNodeWithTag("team_detail_list")
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
             .performScrollToNode(hasText("Stephen Curry"))
         composeTestRule.onNodeWithText("Stephen Curry").performClick()
 

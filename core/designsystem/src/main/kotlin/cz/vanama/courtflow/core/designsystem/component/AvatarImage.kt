@@ -48,7 +48,7 @@ fun AvatarImage(
                 PlaceholderIcon(
                     icon = loadingIcon,
                     tint = contentColor,
-                    modifier = Modifier.testTag("avatar_loading"),
+                    modifier = Modifier.testTag(TestTags.AVATAR_LOADING),
                 )
             },
         failure =
@@ -56,7 +56,7 @@ fun AvatarImage(
                 PlaceholderIcon(
                     icon = Icons.Filled.BrokenImage,
                     tint = contentColor,
-                    modifier = Modifier.testTag("avatar_failure"),
+                    modifier = Modifier.testTag(TestTags.AVATAR_FAILURE),
                 )
             },
         modifier =
