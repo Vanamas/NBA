@@ -49,7 +49,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
-import cz.vanama.courtflow.core.designsystem.component.TestTags
+import cz.vanama.courtflow.core.designsystem.component.PlayerCardSkeleton
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
@@ -64,6 +64,8 @@ internal const val SEARCH_FIELD_TEST_TAG = "player_search_field"
 internal const val REFRESH_ERROR_TEST_TAG = "refresh_error"
 internal const val EMPTY_STATE_TEST_TAG = "player_list_empty_state"
 internal const val PULL_TO_REFRESH_TEST_TAG = "player_pull_to_refresh"
+
+private const val SKELETON_ITEM_COUNT = 7
 
 /**
  * Endlessly scrolling list of NBA players; tapping a row navigates to the
@@ -207,10 +209,10 @@ private fun PlayerSearchField(
 
 /**
  * The list body below the search field: the lazy list with append states
- * wrapped in pull-to-refresh, the initial-load spinner, the first-load
- * failure state, or — when the refresh finished with zero items — the empty
- * state. The pull indicator only shows while refreshing an already populated
- * list; the very first load keeps the centered spinner.
+ * wrapped in pull-to-refresh, the first-load skeleton placeholders, the
+ * first-load failure state, or — when the refresh finished with zero items —
+ * the empty state. The pull indicator only shows while refreshing an already
+ * populated list; the very first load renders the skeleton column.
  */
 @Composable
 private fun PlayerListItems(
@@ -240,6 +242,15 @@ private fun PlayerListItems(
                             .testTag(REFRESH_ERROR_TEST_TAG),
                 )
             }
+            refreshState is LoadState.Loading && players.itemCount == 0 -> {
+                // First-load placeholder: a static column of shimmering skeletons
+                // matching the real list's content padding and item spacing.
+                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                    repeat(SKELETON_ITEM_COUNT) {
+                        PlayerCardSkeleton(modifier = Modifier.padding(bottom = 8.dp))
+                    }
+                }
+            }
             refreshState is LoadState.NotLoading && players.itemCount == 0 -> {
                 EmptyPlayersState(
                     searchQuery = searchQuery,
@@ -252,15 +263,6 @@ private fun PlayerListItems(
                     players = players,
                     onPlayerClick = onPlayerClick,
                 )
-
-                if (refreshState is LoadState.Loading && players.itemCount == 0) {
-                    CircularProgressIndicator(
-                        modifier =
-                            Modifier
-                                .align(Alignment.Center)
-                                .testTag(TestTags.LOADING_INDICATOR),
-                    )
-                }
             }
         }
     }

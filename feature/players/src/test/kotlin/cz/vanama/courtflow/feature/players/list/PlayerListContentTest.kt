@@ -8,6 +8,8 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasImeAction
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -70,7 +72,7 @@ class PlayerListContentTest {
         )
 
     @Test
-    fun `initial refresh shows loading indicator`() {
+    fun `initial refresh shows skeleton placeholders instead of spinner`() {
         val loadingStates =
             LoadStates(
                 refresh = LoadState.Loading,
@@ -89,7 +91,11 @@ class PlayerListContentTest {
             )
         }
 
-        composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertIsDisplayed()
+        composeTestRule
+            .onAllNodesWithTag(TestTags.PLAYER_CARD_SKELETON)
+            .onFirst()
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestTags.LOADING_INDICATOR).assertDoesNotExist()
     }
 
     @Test
