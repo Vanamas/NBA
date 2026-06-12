@@ -3,13 +3,20 @@ package cz.vanama.courtflow.feature.players.list
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -48,6 +56,7 @@ import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val SEARCH_FIELD_TEST_TAG = "player_search_field"
 internal const val REFRESH_ERROR_TEST_TAG = "refresh_error"
+internal const val EMPTY_STATE_TEST_TAG = "player_list_empty_state"
 
 /**
  * Endlessly scrolling list of NBA players; tapping a row navigates to the
@@ -152,6 +161,8 @@ internal fun PlayerListContent(
 
         PlayerListItems(
             players = players,
+            searchQuery = searchQuery,
+            onClearSearch = { onSearchQueryChanged("") },
             onPlayerClick = onPlayerClick,
         )
     }
@@ -159,38 +170,93 @@ internal fun PlayerListContent(
 
 /**
  * The list body below the search field: the lazy list with append states,
- * the initial-load spinner, or the first-load failure state.
+ * the initial-load spinner, the first-load failure state, or — when the
+ * refresh finished with zero items — the empty state.
  */
 @Composable
 private fun PlayerListItems(
     players: LazyPagingItems<Player>,
+    searchQuery: String,
+    onClearSearch: () -> Unit,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         val refreshState = players.loadState.refresh
-        if (refreshState is LoadState.Error) {
-            ErrorState(
-                message = stringResource(R.string.player_list_refresh_error, errorMessage(refreshState.error)),
-                onRetry = { players.retry() },
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .testTag(REFRESH_ERROR_TEST_TAG),
-            )
-        } else {
-            PlayerLazyList(
-                players = players,
-                onPlayerClick = onPlayerClick,
-            )
-
-            if (refreshState is LoadState.Loading) {
-                CircularProgressIndicator(
+        when {
+            refreshState is LoadState.Error -> {
+                ErrorState(
+                    message = stringResource(R.string.player_list_refresh_error, errorMessage(refreshState.error)),
+                    onRetry = { players.retry() },
                     modifier =
                         Modifier
                             .align(Alignment.Center)
-                            .testTag(TestTags.LOADING_INDICATOR),
+                            .testTag(REFRESH_ERROR_TEST_TAG),
                 )
+            }
+            refreshState is LoadState.NotLoading && players.itemCount == 0 -> {
+                EmptyPlayersState(
+                    searchQuery = searchQuery,
+                    onClearSearch = onClearSearch,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
+            else -> {
+                PlayerLazyList(
+                    players = players,
+                    onPlayerClick = onPlayerClick,
+                )
+
+                if (refreshState is LoadState.Loading) {
+                    CircularProgressIndicator(
+                        modifier =
+                            Modifier
+                                .align(Alignment.Center)
+                                .testTag(TestTags.LOADING_INDICATOR),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Centered empty state shown when the paging refresh finished with zero
+ * players: either nothing matches [searchQuery] (offers a clear-search
+ * action), or — with a blank query — the catalog itself is empty.
+ */
+@Composable
+private fun EmptyPlayersState(
+    searchQuery: String,
+    onClearSearch: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+            modifier
+                .padding(16.dp)
+                .testTag(EMPTY_STATE_TEST_TAG),
+    ) {
+        Icon(
+            imageVector = if (searchQuery.isBlank()) Icons.Filled.Person else Icons.Filled.SearchOff,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        if (searchQuery.isBlank()) {
+            Text(
+                text = stringResource(R.string.player_list_empty),
+                textAlign = TextAlign.Center,
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.player_list_empty_search, searchQuery),
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            TextButton(onClick = onClearSearch) {
+                Text(stringResource(R.string.player_list_clear_search))
             }
         }
     }

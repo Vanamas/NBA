@@ -52,6 +52,13 @@ class PlayerListContentTest {
             team = team,
         )
 
+    private val emptyNotLoadingStates =
+        LoadStates(
+            refresh = LoadState.NotLoading(endOfPaginationReached = true),
+            prepend = LoadState.NotLoading(endOfPaginationReached = true),
+            append = LoadState.NotLoading(endOfPaginationReached = true),
+        )
+
     @Test
     fun `initial refresh shows loading indicator`() {
         val loadingStates =
@@ -250,5 +257,60 @@ class PlayerListContentTest {
             .assertIsEnabled()
             .assertHasClickAction()
             .performClick()
+    }
+
+    @Test
+    fun `empty search results show message and clear search button`() {
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.from(emptyList<Player>(), sourceLoadStates = emptyNotLoadingStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "xyzzy",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithTag(EMPTY_STATE_TEST_TAG).assertIsDisplayed()
+        composeTestRule.onNodeWithText("No players found for “xyzzy”").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Clear search").assertIsDisplayed()
+    }
+
+    @Test
+    fun `clear search button resets the query`() {
+        var lastQuery: String? = null
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.from(emptyList<Player>(), sourceLoadStates = emptyNotLoadingStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "xyzzy",
+                onSearchQueryChanged = { lastQuery = it },
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Clear search").performClick()
+
+        lastQuery shouldBe ""
+    }
+
+    @Test
+    fun `empty catalog without search shows generic message without clear button`() {
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.from(emptyList<Player>(), sourceLoadStates = emptyNotLoadingStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("No players available").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Clear search").assertDoesNotExist()
     }
 }

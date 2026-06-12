@@ -5,6 +5,9 @@
     <string name="player_list_search_hint">Search players</string>
     <string name="player_list_refresh_error">Failed to load players: %1$s</string>
     <string name="player_list_append_error">Error loading more players: %1$s</string>
+    <string name="player_list_empty">No players available</string>
+    <string name="player_list_empty_search">No players found for “%1$s”</string>
+    <string name="player_list_clear_search">Clear search</string>
 
     <string name="player_detail_title">Player Details</string>
     <string name="share_player">Share player</string>
