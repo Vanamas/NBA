@@ -76,7 +76,7 @@ fun TeamCard(
 @PreviewLightDark
 @Composable
 private fun TeamCardPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         TeamCard(
             fullName = "Golden State Warriors",
             conference = "West",

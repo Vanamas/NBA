@@ -128,7 +128,7 @@ private fun PlayerInfo(
 @Preview(showBackground = true)
 @Composable
 private fun PlayerCardPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         PlayerCard(
             firstName = "Stephen",
             lastName = "Curry",

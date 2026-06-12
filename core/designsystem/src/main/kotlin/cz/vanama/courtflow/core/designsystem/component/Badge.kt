@@ -68,7 +68,7 @@ private fun badgeColors(tone: BadgeTone): Pair<Color, Color> =
 @Preview(showBackground = true)
 @Composable
 private fun BadgePreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         Badge(text = "G")
     }
 }
@@ -76,7 +76,7 @@ private fun BadgePreview() {
 @Preview(showBackground = true)
 @Composable
 private fun BadgePrimaryPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         Badge(
             text = "GSW",
             tone = BadgeTone.Primary,

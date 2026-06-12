@@ -37,7 +37,7 @@ class ErrorStateScreenshotTest {
     @Test
     fun errorStateLight() {
         composeTestRule.setContent {
-            CourtFlowTheme(darkTheme = false, dynamicColor = false) {
+            CourtFlowTheme(darkTheme = false) {
                 SampleErrorState()
             }
         }
@@ -48,7 +48,7 @@ class ErrorStateScreenshotTest {
     @Test
     fun errorStateDark() {
         composeTestRule.setContent {
-            CourtFlowTheme(darkTheme = true, dynamicColor = false) {
+            CourtFlowTheme(darkTheme = true) {
                 SampleErrorState()
             }
         }

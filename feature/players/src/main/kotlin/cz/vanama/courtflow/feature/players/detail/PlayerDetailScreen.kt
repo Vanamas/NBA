@@ -321,7 +321,7 @@ private fun PlayerAttributes(
 @PreviewScreenSizes
 @Composable
 private fun PlayerDetailScreenPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         PlayerDetailScreen(
             state =
                 PlayerDetailState(
@@ -362,7 +362,7 @@ private fun PlayerDetailScreenPreview() {
 @PreviewLightDark
 @Composable
 private fun PlayerDetailScreenLoadingPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         PlayerDetailScreen(
             state = PlayerDetailState(isLoading = true),
             onTeamClick = {},
@@ -376,7 +376,7 @@ private fun PlayerDetailScreenLoadingPreview() {
 @PreviewLightDark
 @Composable
 private fun PlayerDetailScreenErrorPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         PlayerDetailScreen(
             state = PlayerDetailState(error = DataErrorKind.SERVER),
             onTeamClick = {},

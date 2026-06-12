@@ -334,7 +334,7 @@ private fun TeamDetailScreenPreview() {
             Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team),
         )
 
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         TeamDetailScreen(
             state = TeamDetailState(team = team),
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
@@ -349,7 +349,7 @@ private fun TeamDetailScreenPreview() {
 @PreviewLightDark
 @Composable
 private fun TeamDetailScreenErrorPreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         TeamDetailScreen(
             state = TeamDetailState(error = DataErrorKind.SERVER),
             players = flowOf(PagingData.empty<Player>()).collectAsLazyPagingItems(),

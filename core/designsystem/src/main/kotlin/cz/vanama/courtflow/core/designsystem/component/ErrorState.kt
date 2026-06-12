@@ -47,7 +47,7 @@ fun ErrorState(
 @PreviewLightDark
 @Composable
 private fun ErrorStatePreview() {
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         ErrorState(
             message = "Failed to load players: HTTP 500",
             onRetry = {},

@@ -280,7 +280,7 @@ private fun PlayerListScreenPreview() {
             Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team),
         )
 
-    CourtFlowTheme(dynamicColor = false) {
+    CourtFlowTheme {
         PlayerListScreen(
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             searchQuery = "",
