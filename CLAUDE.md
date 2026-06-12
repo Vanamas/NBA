@@ -66,4 +66,5 @@ Unit tests use JUnit 4 + MockK + Turbine (flow assertions) + `kotlinx-coroutines
 - Images are loaded with **Glide Compose** (`GlideImage`), not Coil — the project was deliberately migrated.
 - JSON via Moshi with KSP codegen (`moshi-kotlin-codegen`).
 - All dependency versions belong in `gradle/libs.versions.toml` (version catalog); module build files reference `libs.*` aliases only.
+- Library modules apply the `courtflow.android.library` convention plugin (from the `build-logic` included build) instead of declaring `compileSdk`/`minSdk`/test runner themselves — shared Android config lives in `build-logic/src/main/kotlin/AndroidLibraryConventionPlugin.kt`.
 - Package root: `cz.vanama.courtflow`, each module appends its path (e.g. `cz.vanama.courtflow.feature.players`).
