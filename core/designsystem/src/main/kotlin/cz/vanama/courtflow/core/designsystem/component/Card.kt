@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 
 /**
@@ -28,7 +28,6 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
  * @param imageUrl URL of the player portrait loaded by Glide.
  * @param onClick called when the user taps the card.
  */
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PlayerCard(
     firstName: String,
@@ -52,9 +51,10 @@ fun PlayerCard(
                     .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            GlideImage(
+            AvatarImage(
                 model = imageUrl,
                 contentDescription = "$firstName $lastName",
+                loadingIcon = Icons.Filled.Person,
                 modifier = Modifier.size(64.dp),
             )
             Spacer(modifier = Modifier.width(16.dp))

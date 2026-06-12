@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,8 +25,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Team
@@ -62,7 +63,6 @@ fun TeamDetailScreen(
 /**
  * Stateless content of the team detail screen rendered purely from [state].
  */
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun TeamDetailContent(
     state: TeamDetailState,
@@ -82,9 +82,10 @@ fun TeamDetailContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(16.dp),
                 ) {
-                    GlideImage(
+                    AvatarImage(
                         model = PlaceholderImages.teamEmblem(team.id),
                         contentDescription = team.fullName,
+                        loadingIcon = Icons.Filled.Groups,
                         modifier = Modifier.size(200.dp),
                     )
                     Spacer(modifier = Modifier.height(16.dp))

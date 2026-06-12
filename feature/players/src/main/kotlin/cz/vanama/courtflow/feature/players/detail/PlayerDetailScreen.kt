@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,8 +31,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
@@ -81,7 +82,6 @@ fun PlayerDetailScreen(
  * Stateless content of the player detail screen rendered purely from [state];
  * [onTeamClick] is invoked with the team id when the team button is tapped.
  */
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PlayerDetailContent(
     state: PlayerDetailState,
@@ -98,51 +98,62 @@ fun PlayerDetailContent(
             Text(text = state.error)
         } else {
             state.player?.let { player ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier =
-                        Modifier
-                            .padding(16.dp)
-                            .verticalScroll(rememberScrollState()),
-                ) {
-                    GlideImage(
-                        model = PlaceholderImages.playerPortrait(player.id),
-                        contentDescription = "${player.firstName} ${player.lastName}",
-                        modifier = Modifier.size(200.dp),
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "${player.firstName} ${player.lastName}",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = "Position: ${player.position}",
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    PlayerAttribute(label = "Height", value = player.height)
-                    PlayerAttribute(label = "Weight", value = player.weight?.let { "$it lbs" })
-                    PlayerAttribute(label = "Jersey number", value = player.jerseyNumber)
-                    PlayerAttribute(label = "College", value = player.college)
-                    PlayerAttribute(label = "Country", value = player.country)
-                    PlayerAttribute(
-                        label = "Draft",
-                        value =
-                            player.draftYear?.let { year ->
-                                listOfNotNull(
-                                    "$year",
-                                    player.draftRound?.let { "round $it" },
-                                    player.draftNumber?.let { "pick $it" },
-                                ).joinToString(", ")
-                            },
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Button(onClick = { onTeamClick(player.team.id) }) {
-                        Text(text = "View Team: ${player.team.fullName}")
-                    }
-                }
+                PlayerDetailBody(player = player, onTeamClick = onTeamClick)
             }
+        }
+    }
+}
+
+/** Scrollable column with the player's portrait, attributes and team button. */
+@Composable
+private fun PlayerDetailBody(
+    player: Player,
+    onTeamClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+            modifier
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+    ) {
+        AvatarImage(
+            model = PlaceholderImages.playerPortrait(player.id),
+            contentDescription = "${player.firstName} ${player.lastName}",
+            loadingIcon = Icons.Filled.Person,
+            modifier = Modifier.size(200.dp),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "${player.firstName} ${player.lastName}",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = "Position: ${player.position}",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        PlayerAttribute(label = "Height", value = player.height)
+        PlayerAttribute(label = "Weight", value = player.weight?.let { "$it lbs" })
+        PlayerAttribute(label = "Jersey number", value = player.jerseyNumber)
+        PlayerAttribute(label = "College", value = player.college)
+        PlayerAttribute(label = "Country", value = player.country)
+        PlayerAttribute(
+            label = "Draft",
+            value =
+                player.draftYear?.let { year ->
+                    listOfNotNull(
+                        "$year",
+                        player.draftRound?.let { "round $it" },
+                        player.draftNumber?.let { "pick $it" },
+                    ).joinToString(", ")
+                },
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(onClick = { onTeamClick(player.team.id) }) {
+            Text(text = "View Team: ${player.team.fullName}")
         }
     }
 }

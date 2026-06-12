@@ -7,8 +7,17 @@ Player data is provided by the [balldontlie](https://app.balldontlie.io/) API.
 ## Features
 
 - **Player list** — paginated list of NBA players (35 records per page, loaded automatically as you scroll) showing name, position and current team
+- **Player search** — debounced search field backed by the API's `search` query parameter
 - **Player detail** — full player information with a link to their team
-- **Team detail** — team information (city, abbreviation, conference, division)
+- **Team list** — all 30 NBA teams, reachable from the player list top bar
+- **Team detail** — team information (city, abbreviation, conference, division), cached in memory so it works offline after the first load
+- **Error handling** — failed first loads show a message with a Retry button instead of a blank screen
+
+## Images
+
+The balldontlie API returns **no images** — no player photos and no team logos, in any pricing tier (verified against both the docs and the live API). The app therefore generates deterministic placeholder art via [DiceBear](https://www.dicebear.com) (free, keyless): the player/team **id is used as the generation seed**, so the same entity always renders the same avatar/emblem.
+
+Images are loaded with **Glide Compose** with a loading placeholder icon, an error-state icon and a circular crop. Screenshot tests pass an empty `imageUrl` so goldens stay deterministic.
 
 ## Tech stack
 
@@ -20,9 +29,9 @@ Player data is provided by the [balldontlie](https://app.balldontlie.io/) API.
 | Dependency injection | [Koin](https://insert-koin.io/) |
 | Networking | Retrofit + OkHttp + Moshi |
 | Pagination | AndroidX Paging 3 |
-| Images | Glide Compose |
+| Images | Glide Compose + [DiceBear](https://www.dicebear.com) placeholders |
 | Static analysis | Detekt, Ktlint, [Konsist](https://docs.konsist.lemonappdev.com/) |
-| Testing | JUnit 4, MockK, Turbine, MockWebServer |
+| Testing | JUnit 4, MockK, Turbine, MockWebServer, Robolectric, Roborazzi (screenshots), Kotest assertions |
 
 ## Architecture
 
@@ -69,9 +78,11 @@ app ─────► feature:players ──► domain ──► core:common
 ## Development
 
 ```bash
-./gradlew test                           # run all unit tests
-./gradlew :domain:testDebugUnitTest      # run tests of a single module
-./gradlew detekt ktlintCheck             # static analysis
+./gradlew test                                       # run all unit tests
+./gradlew :domain:testDebugUnitTest                  # run tests of a single module
+./gradlew detekt ktlintCheck                         # static analysis
+./gradlew :core:designsystem:verifyRoborazziDebug    # screenshot tests against goldens
+./gradlew :core:designsystem:recordRoborazziDebug    # re-record goldens after intended visual changes
 ```
 
 Architecture rules (package placement of ViewModels and UseCases) are enforced by Konsist tests:
