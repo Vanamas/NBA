@@ -116,16 +116,19 @@ class PlayerRepositoryImplTest {
     }
 
     @Test
-    fun `getPlayerById translates HTTP 404 into NOT_FOUND`() =
+    fun `getPlayerById translates HTTP 404 into NOT_FOUND`() {
         expectGetPlayerByIdKind(httpException(404), DataErrorKind.NOT_FOUND)
+    }
 
     @Test
-    fun `getPlayerById translates HTTP 500 into SERVER`() =
+    fun `getPlayerById translates HTTP 500 into SERVER`() {
         expectGetPlayerByIdKind(httpException(500), DataErrorKind.SERVER)
+    }
 
     @Test
-    fun `getPlayerById translates IOException into NETWORK`() =
+    fun `getPlayerById translates IOException into NETWORK`() {
         expectGetPlayerByIdKind(IOException("offline"), DataErrorKind.NETWORK)
+    }
 
     private fun expectGetPlayerByIdKind(
         thrown: Exception,
