@@ -21,11 +21,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
@@ -56,6 +58,7 @@ fun PlayerCardSkeleton(
     modifier: Modifier = Modifier,
     shimmerEnabled: Boolean = true,
 ) {
+    val alpha = shimmerAlpha(enabled = shimmerEnabled)
     Card(
         modifier =
             modifier
@@ -67,7 +70,7 @@ fun PlayerCardSkeleton(
                 Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
-                    .alpha(shimmerAlpha(enabled = shimmerEnabled)),
+                    .graphicsLayer { this.alpha = alpha.value },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SkeletonBox(width = AvatarSize, height = AvatarSize, shape = CircleShape)
@@ -81,12 +84,16 @@ fun PlayerCardSkeleton(
     }
 }
 
-/** Constant full alpha when disabled, an infinite pulse otherwise. */
+/**
+ * Constant full alpha when disabled, an infinite pulse otherwise. Returned
+ * as [State] so callers read it inside the draw phase (graphicsLayer) and
+ * the pulse animates without recomposing the skeleton every frame.
+ */
 @Composable
-private fun shimmerAlpha(enabled: Boolean): Float {
-    if (!enabled) return SHIMMER_MAX_ALPHA
+private fun shimmerAlpha(enabled: Boolean): State<Float> {
+    if (!enabled) return remember { mutableStateOf(SHIMMER_MAX_ALPHA) }
     val transition = rememberInfiniteTransition(label = "skeleton_shimmer")
-    val alpha by transition.animateFloat(
+    return transition.animateFloat(
         initialValue = SHIMMER_MAX_ALPHA,
         targetValue = SHIMMER_MIN_ALPHA,
         animationSpec =
@@ -96,7 +103,6 @@ private fun shimmerAlpha(enabled: Boolean): Float {
             ),
         label = "skeleton_alpha",
     )
-    return alpha
 }
 
 /** Single grey placeholder block. */
