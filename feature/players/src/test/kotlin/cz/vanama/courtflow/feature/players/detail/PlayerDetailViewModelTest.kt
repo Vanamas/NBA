@@ -21,14 +21,15 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerDetailViewModelTest {
     private lateinit var getPlayerDetailUseCase: GetPlayerDetailUseCase
-    private lateinit var viewModel: PlayerDetailViewModel
     private val testDispatcher = StandardTestDispatcher()
+
+    private val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+    private val player = Player(id = 1, firstName = "LeBron", lastName = "James", position = "F", team = team)
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getPlayerDetailUseCase = mockk()
-        viewModel = PlayerDetailViewModel(getPlayerDetailUseCase)
     }
 
     @After
@@ -37,13 +38,11 @@ class PlayerDetailViewModelTest {
     }
 
     @Test
-    fun `LoadPlayer intent updates state with player on success`() =
+    fun `player is loaded in init on success`() =
         runTest {
-            val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
-            val player = Player(id = 1, firstName = "LeBron", lastName = "James", position = "F", team = team)
             coEvery { getPlayerDetailUseCase(1) } returns player
 
-            viewModel.onIntent(PlayerDetailIntent.LoadPlayer(1))
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(player, viewModel.uiState.value.player)
@@ -52,11 +51,11 @@ class PlayerDetailViewModelTest {
         }
 
     @Test
-    fun `LoadPlayer intent updates state with error on failure`() =
+    fun `init updates state with error on failure`() =
         runTest {
             coEvery { getPlayerDetailUseCase(1) } throws DataException("Error")
 
-            viewModel.onIntent(PlayerDetailIntent.LoadPlayer(1))
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals("Error", viewModel.uiState.value.error)
@@ -64,8 +63,28 @@ class PlayerDetailViewModelTest {
         }
 
     @Test
+    fun `Retry intent reloads the player after a failure`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws DataException("Error") andThen player
+
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            testDispatcher.scheduler.advanceUntilIdle()
+            assertEquals("Error", viewModel.uiState.value.error)
+
+            viewModel.onIntent(PlayerDetailIntent.Retry)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(player, viewModel.uiState.value.player)
+            assertEquals(null, viewModel.uiState.value.error)
+        }
+
+    @Test
     fun `OnTeamClicked intent emits NavigateToTeamDetail effect`() =
         runTest {
+            coEvery { getPlayerDetailUseCase(1) } returns player
+
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+
             viewModel.uiEffect.test {
                 viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(14))
                 assertEquals(PlayerDetailEffect.NavigateToTeamDetail(14), awaitItem())

@@ -22,14 +22,14 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class TeamListViewModelTest {
     private lateinit var getTeamsUseCase: GetTeamsUseCase
-    private lateinit var viewModel: TeamListViewModel
     private val testDispatcher = StandardTestDispatcher()
+
+    private val teams = listOf(Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"))
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getTeamsUseCase = mockk()
-        viewModel = TeamListViewModel(getTeamsUseCase)
     }
 
     @After
@@ -38,12 +38,11 @@ class TeamListViewModelTest {
     }
 
     @Test
-    fun `LoadTeams intent updates state with teams on success`() =
+    fun `teams are loaded in init on success`() =
         runTest {
-            val teams = listOf(Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"))
             every { getTeamsUseCase() } returns flowOf(teams)
 
-            viewModel.onIntent(TeamListIntent.LoadTeams)
+            val viewModel = TeamListViewModel(getTeamsUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(teams, viewModel.uiState.value.teams)
@@ -52,11 +51,11 @@ class TeamListViewModelTest {
         }
 
     @Test
-    fun `LoadTeams intent updates state with error on failure`() =
+    fun `init updates state with error on failure`() =
         runTest {
             every { getTeamsUseCase() } returns flow { throw DataException("Error") }
 
-            viewModel.onIntent(TeamListIntent.LoadTeams)
+            val viewModel = TeamListViewModel(getTeamsUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals("Error", viewModel.uiState.value.error)
@@ -64,8 +63,28 @@ class TeamListViewModelTest {
         }
 
     @Test
+    fun `Retry intent reloads the teams after a failure`() =
+        runTest {
+            every { getTeamsUseCase() } returns flow { throw DataException("Error") } andThen flowOf(teams)
+
+            val viewModel = TeamListViewModel(getTeamsUseCase)
+            testDispatcher.scheduler.advanceUntilIdle()
+            assertEquals("Error", viewModel.uiState.value.error)
+
+            viewModel.onIntent(TeamListIntent.Retry)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(teams, viewModel.uiState.value.teams)
+            assertEquals(null, viewModel.uiState.value.error)
+        }
+
+    @Test
     fun `OnTeamClicked intent emits NavigateToTeamDetail effect`() =
         runTest {
+            every { getTeamsUseCase() } returns flowOf(teams)
+
+            val viewModel = TeamListViewModel(getTeamsUseCase)
+
             viewModel.uiEffect.test {
                 viewModel.onIntent(TeamListIntent.OnTeamClicked(7))
                 assertEquals(TeamListEffect.NavigateToTeamDetail(7), awaitItem())

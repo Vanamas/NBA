@@ -9,11 +9,9 @@ data class PlayerDetailState(
     val error: String? = null,
 )
 
-/** User actions of the player detail screen. */
+/** User actions of the player detail screen; the initial load happens in the ViewModel's `init`. */
 sealed class PlayerDetailIntent {
-    data class LoadPlayer(
-        val playerId: Int,
-    ) : PlayerDetailIntent()
+    data object Retry : PlayerDetailIntent()
 
     data class OnTeamClicked(
         val teamId: Int,

@@ -14,10 +14,12 @@ import kotlinx.coroutines.launch
 /**
  * MVI ViewModel of the player detail screen.
  *
- * Loads the player on [PlayerDetailIntent.LoadPlayer] and emits a navigation
- * effect when the user taps the team button.
+ * Loads the player with [playerId] in `init` (and again on
+ * [PlayerDetailIntent.Retry]) and emits a navigation effect when the
+ * user taps the team button.
  */
 class PlayerDetailViewModel(
+    private val playerId: Int,
     private val getPlayerDetailUseCase: GetPlayerDetailUseCase,
 ) : ViewModel() {
     val uiState: StateFlow<PlayerDetailState>
@@ -26,14 +28,18 @@ class PlayerDetailViewModel(
     val uiEffect: SharedFlow<PlayerDetailEffect>
         field = MutableSharedFlow<PlayerDetailEffect>()
 
+    init {
+        loadPlayer()
+    }
+
     fun onIntent(intent: PlayerDetailIntent) {
         when (intent) {
-            is PlayerDetailIntent.LoadPlayer -> loadPlayer(intent.playerId)
+            is PlayerDetailIntent.Retry -> loadPlayer()
             is PlayerDetailIntent.OnTeamClicked -> onTeamClicked(intent.teamId)
         }
     }
 
-    private fun loadPlayer(playerId: Int) {
+    private fun loadPlayer() {
         viewModelScope.launch {
             uiState.update { it.copy(isLoading = true, error = null) }
             try {

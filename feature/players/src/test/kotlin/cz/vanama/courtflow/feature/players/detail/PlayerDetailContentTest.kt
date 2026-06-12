@@ -55,6 +55,7 @@ class PlayerDetailContentTest {
             PlayerDetailContent(
                 state = PlayerDetailState(isLoading = true),
                 onTeamClick = {},
+                onRetry = {},
             )
         }
 
@@ -62,15 +63,34 @@ class PlayerDetailContentTest {
     }
 
     @Test
-    fun `error state shows error message`() {
+    fun `error state shows error message and retry button`() {
         composeTestRule.setContent {
             PlayerDetailContent(
                 state = PlayerDetailState(error = "Network error"),
                 onTeamClick = {},
+                onRetry = {},
             )
         }
 
         composeTestRule.onNodeWithText("Network error").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
+    }
+
+    @Test
+    fun `retry button click invokes onRetry`() {
+        var retries = 0
+
+        composeTestRule.setContent {
+            PlayerDetailContent(
+                state = PlayerDetailState(error = "Network error"),
+                onTeamClick = {},
+                onRetry = { retries++ },
+            )
+        }
+
+        composeTestRule.onNodeWithText("Retry").performClick()
+
+        retries shouldBe 1
     }
 
     @Test
@@ -79,6 +99,7 @@ class PlayerDetailContentTest {
             PlayerDetailContent(
                 state = PlayerDetailState(player = player),
                 onTeamClick = {},
+                onRetry = {},
             )
         }
 
@@ -110,6 +131,7 @@ class PlayerDetailContentTest {
             PlayerDetailContent(
                 state = PlayerDetailState(player = rookie),
                 onTeamClick = {},
+                onRetry = {},
             )
         }
 
@@ -126,6 +148,7 @@ class PlayerDetailContentTest {
             PlayerDetailContent(
                 state = PlayerDetailState(player = player),
                 onTeamClick = { clickedTeamId = it },
+                onRetry = {},
             )
         }
 

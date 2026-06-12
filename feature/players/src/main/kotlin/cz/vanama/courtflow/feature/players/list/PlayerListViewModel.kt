@@ -20,39 +20,36 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * MVI ViewModel of the player list screen.
  *
- * Exposes [uiState] with the paginated player stream and one-shot
- * navigation events through [uiEffect]; all input goes through [onIntent].
- * The search query is debounced so the API is queried at most ~3× per
- * second while the user types; a blank query means "all players".
+ * The paginated player stream starts when the ViewModel is created and is
+ * exposed through [uiState]; one-shot navigation events go through
+ * [uiEffect] and all input through [onIntent]. The search query is
+ * debounced so the API is queried at most ~3× per second while the user
+ * types; a blank query means "all players".
  */
 class PlayerListViewModel(
-    private val getPlayersUseCase: GetPlayersUseCase,
+    getPlayersUseCase: GetPlayersUseCase,
 ) : ViewModel() {
+    private val searchQuery = MutableStateFlow("")
+
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    private val players =
+        searchQuery
+            .debounce(SEARCH_DEBOUNCE_MS.milliseconds)
+            .distinctUntilChanged()
+            .flatMapLatest { query -> getPlayersUseCase(query.ifBlank { null }) }
+            .cachedIn(viewModelScope)
+
     val uiState: StateFlow<PlayerListState>
-        field = MutableStateFlow(PlayerListState())
+        field = MutableStateFlow(PlayerListState(players = players))
 
     val uiEffect: SharedFlow<PlayerListEffect>
         field = MutableSharedFlow<PlayerListEffect>()
 
-    private val searchQuery = MutableStateFlow("")
-
     fun onIntent(intent: PlayerListIntent) {
         when (intent) {
-            is PlayerListIntent.LoadPlayers -> loadPlayers()
             is PlayerListIntent.OnSearchQueryChanged -> onSearchQueryChanged(intent.query)
             is PlayerListIntent.OnPlayerClicked -> onPlayerClicked(intent.playerId)
         }
-    }
-
-    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    private fun loadPlayers() {
-        val players =
-            searchQuery
-                .debounce(SEARCH_DEBOUNCE_MS.milliseconds)
-                .distinctUntilChanged()
-                .flatMapLatest { query -> getPlayersUseCase(query.ifBlank { null }) }
-                .cachedIn(viewModelScope)
-        uiState.update { it.copy(players = players) }
     }
 
     private fun onSearchQueryChanged(query: String) {

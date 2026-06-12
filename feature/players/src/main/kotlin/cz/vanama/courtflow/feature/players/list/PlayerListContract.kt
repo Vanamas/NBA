@@ -4,16 +4,14 @@ import androidx.paging.PagingData
 import cz.vanama.courtflow.domain.model.Player
 import kotlinx.coroutines.flow.Flow
 
-/** UI state of the player list screen; [players] is `null` until loading starts. */
+/** UI state of the player list screen; the paging stream starts in the ViewModel's `init`. */
 data class PlayerListState(
-    val players: Flow<PagingData<Player>>? = null,
+    val players: Flow<PagingData<Player>>,
     val searchQuery: String = "",
 )
 
 /** User actions of the player list screen. */
 sealed class PlayerListIntent {
-    data object LoadPlayers : PlayerListIntent()
-
     data class OnSearchQueryChanged(
         val query: String,
     ) : PlayerListIntent()

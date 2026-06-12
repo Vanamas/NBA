@@ -35,7 +35,11 @@ class TeamListContentTest {
     fun `shows loading indicator while loading`() {
         composeTestRule.setContent {
             CourtFlowTheme(dynamicColor = false) {
-                TeamListContent(state = TeamListState(isLoading = true), onTeamClick = {})
+                TeamListContent(
+                    state = TeamListState(isLoading = true),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
             }
         }
 
@@ -51,6 +55,7 @@ class TeamListContentTest {
                 TeamListContent(
                     state = TeamListState(teams = listOf(team)),
                     onTeamClick = { clickedId = it },
+                    onRetry = {},
                 )
             }
         }
@@ -63,13 +68,37 @@ class TeamListContentTest {
     }
 
     @Test
-    fun `shows error text on error`() {
+    fun `shows error text and retry button on error`() {
         composeTestRule.setContent {
             CourtFlowTheme(dynamicColor = false) {
-                TeamListContent(state = TeamListState(error = "Boom"), onTeamClick = {})
+                TeamListContent(
+                    state = TeamListState(error = "Boom"),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
             }
         }
 
         composeTestRule.onNodeWithText("Boom").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
+    }
+
+    @Test
+    fun `retry button click invokes onRetry`() {
+        var retries = 0
+
+        composeTestRule.setContent {
+            CourtFlowTheme(dynamicColor = false) {
+                TeamListContent(
+                    state = TeamListState(error = "Boom"),
+                    onTeamClick = {},
+                    onRetry = { retries++ },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Retry").performClick()
+
+        retries shouldBe 1
     }
 }
