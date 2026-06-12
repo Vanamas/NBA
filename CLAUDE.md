@@ -38,7 +38,7 @@ app ──► feature:players, feature:teams ──► domain ──► core:com
 - **`core:network`** — Retrofit `BallDontLieApi`, Moshi DTOs, OkHttp setup. Base URL: `https://api.balldontlie.io/v1/`.
 - **`core:designsystem`** — shared Compose theme and components (Material 3).
 - **`feature:*`** — one package per screen (`list/`, `detail/`), each with three files: `*Contract.kt`, `*Screen.kt`, `*ViewModel.kt`.
-- **`app`** — `MainActivity`, navigation, Koin startup, `viewModelModule`.
+- **`app`** — `MainActivity`, navigation, Koin startup.
 
 ### MVI pattern
 
@@ -46,7 +46,7 @@ Each screen's `*Contract.kt` defines three types: a `*State` data class, a seale
 
 ### Dependency injection (Koin, not Hilt)
 
-One Koin module per layer: `coreNetworkModule`, `dataModule`, `domainModule`, `viewModelModule` — all registered in `CourtFlowApplication`. The project was migrated from Hilt to Koin; do not introduce Hilt annotations. ViewModels are obtained in composables via `koinViewModel()`.
+One Koin module per layer plus one per feature: `coreNetworkModule`, `dataModule`, `domainModule`, `playersFeatureModule`, `teamsFeatureModule` (each feature module hosts its own ViewModel bindings in a `di/` package) — all registered in `CourtFlowApplication`. The project was migrated from Hilt to Koin; do not introduce Hilt annotations. ViewModels are obtained in composables via `koinViewModel()`.
 
 ### Navigation
 
