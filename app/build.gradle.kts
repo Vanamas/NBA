@@ -32,6 +32,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -67,6 +68,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.material)
+    implementation(libs.timber)
     testImplementation(libs.konsist)
     testImplementation(libs.koin.test)
     testImplementation(libs.androidx.core)

@@ -9,13 +9,19 @@ import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import timber.log.Timber
 
 /**
- * Application entry point; starts the Koin container with all DI modules.
+ * Application entry point; plants Timber and starts the Koin container
+ * with all DI modules.
  */
 class CourtFlowApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
 
         startKoin {
             androidLogger()
