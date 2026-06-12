@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import cz.vanama.courtflow.domain.error.DataException
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 class TeamDetailViewModel(
     private val teamId: Int,
     private val getTeamDetailUseCase: GetTeamDetailUseCase,
+    private val getTeamGamesUseCase: GetTeamGamesUseCase,
     getTeamPlayersUseCase: GetTeamPlayersUseCase,
 ) : ViewModel() {
     val uiState: StateFlow<TeamDetailState>
@@ -32,11 +34,15 @@ class TeamDetailViewModel(
 
     init {
         loadTeam()
+        loadRecentGames()
     }
 
     fun onIntent(intent: TeamDetailIntent) {
         when (intent) {
-            is TeamDetailIntent.Retry -> loadTeam()
+            is TeamDetailIntent.Retry -> {
+                loadTeam()
+                loadRecentGames()
+            }
             is TeamDetailIntent.OnPlayerClicked -> onPlayerClicked(intent.playerId)
             is TeamDetailIntent.OnShareClicked -> shareTeam()
         }
@@ -51,6 +57,20 @@ class TeamDetailViewModel(
             } catch (e: DataException) {
                 uiState.update { it.copy(isLoading = false, error = e.kind) }
             }
+        }
+    }
+
+    private fun loadRecentGames() {
+        viewModelScope.launch {
+            val games =
+                try {
+                    getTeamGamesUseCase(teamId)
+                } catch (_: DataException) {
+                    // Bonus section: on failure keep it hidden and leave the
+                    // team info and roster untouched.
+                    emptyList()
+                }
+            uiState.update { it.copy(recentGames = games) }
         }
     }
 
