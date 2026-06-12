@@ -32,8 +32,11 @@ import cz.vanama.courtflow.core.designsystem.R as DesignR
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun CourtFlowNavGraph(modifier: Modifier = Modifier) {
-    val backStack = rememberNavBackStack(Destination.PlayerList)
+fun CourtFlowNavGraph(
+    modifier: Modifier = Modifier,
+    initialBackStack: List<Destination> = listOf(Destination.PlayerList),
+) {
+    val backStack = rememberNavBackStack(*initialBackStack.toTypedArray())
     val navigateBack: () -> Unit = { backStack.removeLastOrNull() }
 
     NavDisplay(

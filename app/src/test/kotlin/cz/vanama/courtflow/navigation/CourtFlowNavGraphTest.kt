@@ -136,6 +136,19 @@ class CourtFlowNavGraphTest {
     }
 
     @Test
+    fun `deep linked detail opens with the list beneath it`() {
+        composeRule.setContent {
+            CourtFlowNavGraph(initialBackStack = listOf(Destination.PlayerList, Destination.PlayerDetail(19)))
+        }
+
+        composeRule.onNodeWithText("Player Details").assertExists()
+
+        composeRule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("NBA Players").assertExists()
+    }
+
+    @Test
     fun `teams action opens the team list and back returns`() {
         composeRule.setContent { CourtFlowNavGraph() }
         awaitPlayerRow()
