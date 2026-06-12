@@ -1,6 +1,7 @@
 package cz.vanama.courtflow.core.designsystem.component
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -39,6 +40,20 @@ class PlayerCardScreenshotTest {
         )
     }
 
+    /**
+     * Glide delivers the failure for the empty URL asynchronously; wait for
+     * the failure placeholder so the capture is deterministic.
+     */
+    private fun awaitAvatarFailureAndCapture() {
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            composeTestRule
+                .onAllNodes(hasTestTag("avatar_failure"), useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeTestRule.onRoot().captureRoboImage()
+    }
+
     @Test
     fun playerCardLight() {
         composeTestRule.setContent {
@@ -47,7 +62,7 @@ class PlayerCardScreenshotTest {
             }
         }
 
-        composeTestRule.onRoot().captureRoboImage()
+        awaitAvatarFailureAndCapture()
     }
 
     @Test
@@ -58,6 +73,6 @@ class PlayerCardScreenshotTest {
             }
         }
 
-        composeTestRule.onRoot().captureRoboImage()
+        awaitAvatarFailureAndCapture()
     }
 }
