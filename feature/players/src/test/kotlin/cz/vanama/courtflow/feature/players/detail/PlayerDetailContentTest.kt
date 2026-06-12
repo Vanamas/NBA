@@ -83,7 +83,8 @@ class PlayerDetailContentTest {
         }
 
         composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Position: G").assertIsDisplayed()
+        composeTestRule.onNodeWithText("G").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Guard").assertIsDisplayed()
         composeTestRule.onNodeWithText("6-2").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("185 lbs").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Davidson").performScrollTo().assertIsDisplayed()

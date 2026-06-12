@@ -2,6 +2,14 @@ package cz.vanama.courtflow.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
+/**
+ * Brand accent taken from the basketball launcher mark; used for the
+ * position badge. Identical in light and dark theme, always paired
+ * with [OnCourtOrange] text for contrast.
+ */
+val CourtOrange = Color(0xFFFF9800)
+val OnCourtOrange = Color(0xFF1A1C1E)
+
 val PrimaryLight = Color(0xFF0061A4)
 val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFD1E4FF)

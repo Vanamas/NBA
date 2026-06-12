@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.players.detail
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,13 +11,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,9 +37,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
+import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
+import cz.vanama.courtflow.core.designsystem.util.positionLabel
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.players.R
@@ -118,70 +126,94 @@ private fun PlayerDetailBody(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
             modifier
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 28.dp),
     ) {
         AvatarImage(
             model = PlaceholderImages.playerPortrait(player.id),
             contentDescription = "${player.firstName} ${player.lastName}",
             loadingIcon = Icons.Filled.Person,
-            modifier = Modifier.size(200.dp),
+            modifier = Modifier.size(160.dp),
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "${player.firstName} ${player.lastName}",
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
         )
-        Text(
-            text = stringResource(R.string.player_detail_position, player.position),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        PlayerAttribute(
-            label = stringResource(R.string.player_attribute_height),
-            value = player.height
-        )
-        PlayerAttribute(
-            label = stringResource(R.string.player_attribute_weight),
-            value = player.weight?.let { stringResource(R.string.player_attribute_weight_lbs, it) },
-        )
-        PlayerAttribute(
-            label = stringResource(R.string.player_attribute_jersey_number),
-            value = player.jerseyNumber
-        )
-        PlayerAttribute(
-            label = stringResource(R.string.player_attribute_college),
-            value = player.college
-        )
-        PlayerAttribute(
-            label = stringResource(R.string.player_attribute_country),
-            value = player.country
-        )
-        PlayerAttribute(
-            label = stringResource(R.string.player_attribute_draft),
-            value =
-                player.draftYear?.let { year ->
-                    listOfNotNull(
-                        "$year",
-                        player.draftRound?.let {
-                            stringResource(
-                                R.string.player_attribute_draft_round,
-                                it
-                            )
-                        },
-                        player.draftNumber?.let {
-                            stringResource(
-                                R.string.player_attribute_draft_pick,
-                                it
-                            )
-                        },
-                    ).joinToString(", ")
-                },
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = { onTeamClick(player.team.id) }) {
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (player.position.isNotBlank()) {
+                Badge(text = player.position)
+            }
+            Text(
+                text = positionLabel(player.position),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Column(
+            modifier =
+                Modifier
+                    .widthIn(max = 360.dp)
+                    .fillMaxWidth(),
+        ) {
+            AttributeRow(
+                label = stringResource(R.string.player_attribute_height),
+                value = player.height,
+            )
+            AttributeRow(
+                label = stringResource(R.string.player_attribute_weight),
+                value = player.weight?.let { stringResource(R.string.player_attribute_weight_lbs, it) },
+            )
+            AttributeRow(
+                label = stringResource(R.string.player_attribute_jersey_number),
+                value = player.jerseyNumber,
+            )
+            AttributeRow(
+                label = stringResource(R.string.player_attribute_college),
+                value = player.college,
+            )
+            AttributeRow(
+                label = stringResource(R.string.player_attribute_country),
+                value = player.country,
+            )
+            AttributeRow(
+                label = stringResource(R.string.player_attribute_draft),
+                value =
+                    player.draftYear?.let { year ->
+                        listOfNotNull(
+                            "$year",
+                            player.draftRound?.let {
+                                stringResource(R.string.player_attribute_draft_round, it)
+                            },
+                            player.draftNumber?.let {
+                                stringResource(R.string.player_attribute_draft_pick, it)
+                            },
+                        ).joinToString(", ")
+                    },
+            )
+        }
+        Spacer(modifier = Modifier.height(28.dp))
+        Button(
+            onClick = { onTeamClick(player.team.id) },
+            modifier =
+                Modifier
+                    .widthIn(max = 360.dp)
+                    .fillMaxWidth(),
+        ) {
             Text(text = stringResource(R.string.player_detail_view_team, player.team.fullName))
+            Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize),
+            )
         }
     }
 }
@@ -242,28 +274,6 @@ private fun PlayerDetailContentErrorPreview() {
         PlayerDetailContent(
             state = PlayerDetailState(error = "Player could not be loaded."),
             onTeamClick = {},
-        )
-    }
-}
-
-/** Single "label - value" row of the detail; renders nothing when [value] is `null`. */
-@Composable
-private fun PlayerAttribute(
-    label: String,
-    value: String?,
-    modifier: Modifier = Modifier,
-) {
-    if (value == null) return
-    Row(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.width(140.dp),
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
