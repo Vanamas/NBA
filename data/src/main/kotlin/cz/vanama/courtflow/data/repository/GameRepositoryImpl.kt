@@ -27,16 +27,17 @@ class GameRepositoryImpl(
 ) : GameRepository {
     override suspend fun getRecentGames(teamId: Int): List<Game> =
         safeApiCall {
+            val now = nowMillis()
             api
                 .nbaV1GamesGet(
                     perPage = PAGE_SIZE,
                     teamIds = listOf(teamId),
-                    startDate = isoDate(nowMillis() - TimeUnit.DAYS.toMillis(WINDOW_DAYS)),
-                    endDate = isoDate(nowMillis()),
+                    startDate = isoDate(now - TimeUnit.DAYS.toMillis(WINDOW_DAYS)),
+                    endDate = isoDate(now),
                 ).data
                 .orEmpty()
-                .map { it.toDomain() }
                 .filter { it.status == STATUS_FINAL }
+                .map { it.toDomain() }
                 .sortedByDescending { it.date }
                 .take(RECENT_GAMES_LIMIT)
         }

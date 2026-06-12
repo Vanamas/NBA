@@ -15,7 +15,6 @@ fun NBAGame.toDomain(): Game =
     Game(
         id = requireNotNull(id) { "Game is missing an id" },
         date = date.orEmpty(),
-        status = status.orEmpty(),
         homeTeam = requireNotNull(homeTeam) { "Game $id is missing a home team" }.toDomain(),
         homeTeamScore = homeTeamScore ?: 0,
         visitorTeam = requireNotNull(visitorTeam) { "Game $id is missing a visitor team" }.toDomain(),

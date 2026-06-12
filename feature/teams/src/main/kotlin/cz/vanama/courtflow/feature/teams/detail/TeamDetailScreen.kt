@@ -377,7 +377,6 @@ private fun TeamDetailScreenPreview() {
             Game(
                 id = 1,
                 date = "2026-06-10",
-                status = "Final",
                 homeTeam = team,
                 homeTeamScore = 112,
                 visitorTeam = lakers,

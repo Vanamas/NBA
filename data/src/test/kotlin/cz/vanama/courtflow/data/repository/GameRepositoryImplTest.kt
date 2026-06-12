@@ -76,6 +76,35 @@ class GameRepositoryImplTest {
         }
 
     @Test
+    fun `malformed non-Final game is silently dropped — valid Final games still returned`() =
+        runTest {
+            // Game 99 has a non-Final status AND is missing its homeTeam (malformed).
+            // Before the fix, toDomain() throws before the status filter can discard it.
+            val malformedNonFinal =
+                NBAGame(
+                    id = 99,
+                    date = "2026-06-12",
+                    status = "7:30 pm ET",
+                    homeTeamScore = null,
+                    visitorTeamScore = null,
+                    homeTeam = null,
+                    visitorTeam = lakersDto,
+                )
+            coEvery {
+                api.nbaV1GamesGet(
+                    perPage = 50,
+                    teamIds = listOf(10),
+                    startDate = "2026-04-28",
+                    endDate = "2026-06-12",
+                )
+            } returns NbaV1GamesGet200Response(data = listOf(finalGame(id = 1, date = "2026-06-01"), malformedNonFinal))
+
+            val result = repository.getRecentGames(10)
+
+            assertEquals(listOf(1), result.map { it.id })
+        }
+
+    @Test
     fun `translates a malformed game payload into a DataException`() =
         runTest {
             coEvery {

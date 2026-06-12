@@ -33,7 +33,6 @@ class GetTeamGamesUseCaseTest {
                     Game(
                         id = 1,
                         date = "2026-06-10",
-                        status = "Final",
                         homeTeam = warriors,
                         homeTeamScore = 112,
                         visitorTeam = lakers,

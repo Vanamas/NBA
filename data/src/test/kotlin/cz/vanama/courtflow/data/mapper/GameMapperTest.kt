@@ -47,7 +47,6 @@ class GameMapperTest {
 
         assertEquals(1, game.id)
         assertEquals("2026-06-10", game.date)
-        assertEquals("Final", game.status)
         assertEquals("GSW", game.homeTeam.abbreviation)
         assertEquals(112, game.homeTeamScore)
         assertEquals("LAL", game.visitorTeam.abbreviation)
@@ -60,7 +59,6 @@ class GameMapperTest {
             NBAGame(
                 id = 1,
                 date = null,
-                status = null,
                 homeTeamScore = null,
                 visitorTeamScore = null,
                 homeTeam = warriorsDto,
@@ -70,7 +68,6 @@ class GameMapperTest {
         val game = dto.toDomain()
 
         assertEquals("", game.date)
-        assertEquals("", game.status)
         assertEquals(0, game.homeTeamScore)
         assertEquals(0, game.visitorTeamScore)
     }
