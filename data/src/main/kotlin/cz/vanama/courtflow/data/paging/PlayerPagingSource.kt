@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import cz.vanama.courtflow.core.network.api.BallDontLieApi
 import cz.vanama.courtflow.data.mapper.toDomain
+import cz.vanama.courtflow.data.repository.toDataException
 import cz.vanama.courtflow.domain.model.Player
 import retrofit2.HttpException
 import java.io.IOException
@@ -40,9 +41,9 @@ class PlayerPagingSource(
                 nextKey = response.meta?.nextCursor,
             )
         } catch (e: IOException) {
-            LoadResult.Error(e)
+            LoadResult.Error(e.toDataException())
         } catch (e: HttpException) {
-            LoadResult.Error(e)
+            LoadResult.Error(e.toDataException())
         }
 
     private companion object {
