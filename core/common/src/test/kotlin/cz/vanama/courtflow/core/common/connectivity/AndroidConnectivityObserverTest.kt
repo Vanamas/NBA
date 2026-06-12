@@ -45,4 +45,34 @@ class AndroidConnectivityObserverTest {
                 cancelAndIgnoreRemainingEvents()
             }
         }
+
+    @Test
+    fun `losing the network emits false`() =
+        runTest {
+            val capabilities = ShadowNetworkCapabilities.newInstance()
+            shadowOf(capabilities).addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            shadowOf(connectivityManager)
+                .setNetworkCapabilities(connectivityManager.activeNetwork, capabilities)
+
+            AndroidConnectivityObserver(context).isOnline.test {
+                awaitItem() shouldBe true
+
+                val callback = shadowOf(connectivityManager).networkCallbacks.single()
+                callback.onLost(connectivityManager.activeNetwork!!)
+
+                awaitItem() shouldBe false
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `cancelling collection unregisters the callback`() =
+        runTest {
+            AndroidConnectivityObserver(context).isOnline.test {
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            shadowOf(connectivityManager).networkCallbacks shouldBe emptySet()
+        }
 }

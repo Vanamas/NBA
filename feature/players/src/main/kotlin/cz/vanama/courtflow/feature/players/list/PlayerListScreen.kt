@@ -157,6 +157,7 @@ internal fun PlayerListScreen(
  *
  * @param players paginated players including their load states.
  * @param searchQuery current search text shown in the search field.
+ * @param isOffline whether the offline banner is shown above the list.
  * @param onSearchQueryChanged invoked on every change of the search text.
  * @param onPlayerClick invoked with the player id when a row is tapped.
  */
