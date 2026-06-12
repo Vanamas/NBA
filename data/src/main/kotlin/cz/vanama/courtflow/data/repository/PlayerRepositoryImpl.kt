@@ -3,7 +3,7 @@ package cz.vanama.courtflow.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import cz.vanama.courtflow.core.network.api.BallDontLieApi
+import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.data.mapper.toDomain
 import cz.vanama.courtflow.data.paging.PlayerPagingSource
 import cz.vanama.courtflow.domain.model.Player
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
  * [PlayerRepository] backed by the balldontlie REST API.
  */
 class PlayerRepositoryImpl(
-    private val api: BallDontLieApi,
+    private val api: NBAApi,
 ) : PlayerRepository {
     override fun getPlayers(query: String?): Flow<PagingData<Player>> =
         Pager(
@@ -37,5 +37,8 @@ class PlayerRepositoryImpl(
             enablePlaceholders = false,
         )
 
-    override suspend fun getPlayerById(id: Int): Player = safeApiCall { api.getPlayer(id).data.toDomain() }
+    override suspend fun getPlayerById(id: Int): Player =
+        safeApiCall {
+            requireNotNull(api.nbaV1PlayersIdGet(id).data) { "Player $id missing in response" }.toDomain()
+        }
 }

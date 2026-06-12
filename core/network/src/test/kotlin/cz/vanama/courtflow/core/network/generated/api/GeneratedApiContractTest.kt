@@ -1,4 +1,4 @@
-package cz.vanama.courtflow.core.network.api
+package cz.vanama.courtflow.core.network.generated.api
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -12,9 +12,14 @@ import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-class BallDontLieApiTest {
+/**
+ * Verifies that the [NBAApi] client generated from the official OpenAPI
+ * definition (`openapi/nba.yml`) parses the real balldontlie response
+ * envelopes and addresses the `nba/v1` endpoints relative to the bare host.
+ */
+class GeneratedApiContractTest {
     private lateinit var server: MockWebServer
-    private lateinit var api: BallDontLieApi
+    private lateinit var api: NBAApi
 
     @Before
     fun setup() {
@@ -30,7 +35,7 @@ class BallDontLieApiTest {
                 .baseUrl(server.url("/"))
                 .addConverterFactory(MoshiConverterFactory.create(moshi))
                 .build()
-                .create(BallDontLieApi::class.java)
+                .create(NBAApi::class.java)
     }
 
     @After
@@ -39,40 +44,14 @@ class BallDontLieApiTest {
     }
 
     @Test
-    fun `getPlayers returns success`() =
+    fun `getPlayers parses the list envelope and paging metadata`() =
         runTest {
-            val json =
-                """
-                {
-                  "data": [
-                    {
-                      "id": 1,
-                      "first_name": "LeBron",
-                      "last_name": "James",
-                      "position": "F",
-                      "team": {
-                        "id": 14,
-                        "abbreviation": "LAL",
-                        "city": "Los Angeles",
-                        "conference": "West",
-                        "division": "Pacific",
-                        "full_name": "Los Angeles Lakers",
-                        "name": "Lakers"
-                      }
-                    }
-                  ],
-                  "meta": {
-                    "next_cursor": 2,
-                    "per_page": 35
-                  }
-                }
-                """.trimIndent()
-            server.enqueue(MockResponse().setBody(json))
+            server.enqueue(MockResponse().setBody(PLAYERS_PAGE_JSON))
 
-            val response = api.getPlayers()
+            val response = api.nbaV1PlayersGet()
 
-            assertEquals(1, response.data.size)
-            assertEquals("LeBron", response.data[0].firstName)
+            assertEquals(1, response.data?.size)
+            assertEquals("LeBron", response.data?.first()?.firstName)
             assertEquals(2, response.meta?.nextCursor)
         }
 
@@ -82,10 +61,20 @@ class BallDontLieApiTest {
             val json = """{"data": [], "meta": {"per_page": 35}}"""
             server.enqueue(MockResponse().setBody(json))
 
-            api.getPlayers(teamIds = listOf(10))
+            api.nbaV1PlayersGet(teamIds = listOf(10))
 
             val request = server.takeRequest()
             assertEquals(listOf("10"), request.requestUrl?.queryParameterValues("team_ids[]"))
+        }
+
+    @Test
+    fun `getPlayers addresses the versioned endpoint with query parameters`() =
+        runTest {
+            server.enqueue(MockResponse().setBody(PLAYERS_PAGE_JSON))
+
+            api.nbaV1PlayersGet(cursor = 2, perPage = 35)
+
+            assertEquals("/nba/v1/players?cursor=2&per_page=35", server.takeRequest().path)
         }
 
     @Test
@@ -122,18 +111,18 @@ class BallDontLieApiTest {
                 """.trimIndent()
             server.enqueue(MockResponse().setBody(json))
 
-            val response = api.getPlayer(19)
+            val player = api.nbaV1PlayersIdGet(19).data
 
-            assertEquals("Stephen", response.data.firstName)
-            assertEquals("GSW", response.data.team.abbreviation)
-            assertEquals("6-2", response.data.height)
-            assertEquals("185", response.data.weight)
-            assertEquals("30", response.data.jerseyNumber)
-            assertEquals("Davidson", response.data.college)
-            assertEquals("USA", response.data.country)
-            assertEquals(2009, response.data.draftYear)
-            assertEquals(1, response.data.draftRound)
-            assertEquals(7, response.data.draftNumber)
+            assertEquals("Stephen", player?.firstName)
+            assertEquals("GSW", player?.team?.abbreviation)
+            assertEquals("6-2", player?.height)
+            assertEquals("185", player?.weight)
+            assertEquals("30", player?.jerseyNumber)
+            assertEquals("Davidson", player?.college)
+            assertEquals("USA", player?.country)
+            assertEquals(2009, player?.draftYear)
+            assertEquals(1, player?.draftRound)
+            assertEquals(7, player?.draftNumber)
         }
 
     @Test
@@ -155,13 +144,13 @@ class BallDontLieApiTest {
                 """.trimIndent()
             server.enqueue(MockResponse().setBody(json))
 
-            val response = api.getTeam(10)
+            val response = api.nbaV1TeamsIdGet(10)
 
-            assertEquals("Golden State Warriors", response.data.fullName)
+            assertEquals("Golden State Warriors", response.data?.fullName)
         }
 
     @Test
-    fun `getTeams returns success`() =
+    fun `getTeams parses the list envelope`() =
         runTest {
             val json =
                 """
@@ -181,9 +170,38 @@ class BallDontLieApiTest {
                 """.trimIndent()
             server.enqueue(MockResponse().setBody(json))
 
-            val response = api.getTeams()
+            val response = api.nbaV1TeamsGet()
 
-            assertEquals(1, response.data.size)
-            assertEquals("LAL", response.data[0].abbreviation)
+            assertEquals(1, response.data?.size)
+            assertEquals("LAL", response.data?.first()?.abbreviation)
         }
+
+    private companion object {
+        val PLAYERS_PAGE_JSON =
+            """
+            {
+              "data": [
+                {
+                  "id": 1,
+                  "first_name": "LeBron",
+                  "last_name": "James",
+                  "position": "F",
+                  "team": {
+                    "id": 14,
+                    "abbreviation": "LAL",
+                    "city": "Los Angeles",
+                    "conference": "West",
+                    "division": "Pacific",
+                    "full_name": "Los Angeles Lakers",
+                    "name": "Lakers"
+                  }
+                }
+              ],
+              "meta": {
+                "next_cursor": 2,
+                "per_page": 35
+              }
+            }
+            """.trimIndent()
+    }
 }

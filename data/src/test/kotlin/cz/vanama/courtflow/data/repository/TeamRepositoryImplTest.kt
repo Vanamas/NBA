@@ -1,10 +1,10 @@
 package cz.vanama.courtflow.data.repository
 
 import app.cash.turbine.test
-import cz.vanama.courtflow.core.network.api.BallDontLieApi
-import cz.vanama.courtflow.core.network.model.CommonResponse
-import cz.vanama.courtflow.core.network.model.SingleResponse
-import cz.vanama.courtflow.core.network.model.TeamDto
+import cz.vanama.courtflow.core.network.generated.api.NBAApi
+import cz.vanama.courtflow.core.network.generated.model.NBATeam
+import cz.vanama.courtflow.core.network.generated.model.NbaV1TeamsGet200Response
+import cz.vanama.courtflow.core.network.generated.model.NbaV1TeamsIdGet200Response
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -14,7 +14,7 @@ import org.junit.Before
 import org.junit.Test
 
 class TeamRepositoryImplTest {
-    private lateinit var api: BallDontLieApi
+    private lateinit var api: NBAApi
     private lateinit var repository: TeamRepositoryImpl
 
     @Before
@@ -27,17 +27,17 @@ class TeamRepositoryImplTest {
     fun `getTeams emits mapped teams`() =
         runTest {
             val teamDto =
-                TeamDto(
+                NBATeam(
                     id = 1,
                     abbreviation = "ATL",
                     city = "Atlanta",
-                    conference = "East",
-                    division = "Southeast",
+                    conference = NBATeam.Conference.East,
+                    division = NBATeam.Division.Southeast,
                     fullName = "Atlanta Hawks",
                     name = "Hawks",
                 )
-            val response = CommonResponse(data = listOf(teamDto))
-            coEvery { api.getTeams() } returns response
+            val response = NbaV1TeamsGet200Response(data = listOf(teamDto))
+            coEvery { api.nbaV1TeamsGet() } returns response
 
             repository.getTeams().test {
                 val result = awaitItem()
@@ -51,16 +51,16 @@ class TeamRepositoryImplTest {
     fun `getTeamById returns mapped team`() =
         runTest {
             val teamDto =
-                TeamDto(
+                NBATeam(
                     id = 1,
                     abbreviation = "ATL",
                     city = "Atlanta",
-                    conference = "East",
-                    division = "Southeast",
+                    conference = NBATeam.Conference.East,
+                    division = NBATeam.Division.Southeast,
                     fullName = "Atlanta Hawks",
                     name = "Hawks",
                 )
-            coEvery { api.getTeam(1) } returns SingleResponse(teamDto)
+            coEvery { api.nbaV1TeamsIdGet(1) } returns NbaV1TeamsIdGet200Response(teamDto)
 
             val result = repository.getTeamById(1)
 
@@ -70,8 +70,8 @@ class TeamRepositoryImplTest {
     @Test
     fun `getTeams hits the network only once and serves the cache afterwards`() =
         runTest {
-            val response = CommonResponse(data = listOf(atlantaDto))
-            coEvery { api.getTeams() } returns response
+            val response = NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            coEvery { api.nbaV1TeamsGet() } returns response
 
             repository.getTeams().test {
                 awaitItem()
@@ -82,14 +82,14 @@ class TeamRepositoryImplTest {
                 awaitComplete()
             }
 
-            coVerify(exactly = 1) { api.getTeams() }
+            coVerify(exactly = 1) { api.nbaV1TeamsGet() }
         }
 
     @Test
     fun `getTeamById serves a cached team without a network call`() =
         runTest {
-            val response = CommonResponse(data = listOf(atlantaDto))
-            coEvery { api.getTeams() } returns response
+            val response = NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            coEvery { api.nbaV1TeamsGet() } returns response
 
             repository.getTeams().test {
                 awaitItem()
@@ -98,16 +98,16 @@ class TeamRepositoryImplTest {
             val result = repository.getTeamById(1)
 
             assertEquals("Atlanta Hawks", result.fullName)
-            coVerify(exactly = 0) { api.getTeam(any()) }
+            coVerify(exactly = 0) { api.nbaV1TeamsIdGet(any()) }
         }
 
     private val atlantaDto =
-        TeamDto(
+        NBATeam(
             id = 1,
             abbreviation = "ATL",
             city = "Atlanta",
-            conference = "East",
-            division = "Southeast",
+            conference = NBATeam.Conference.East,
+            division = NBATeam.Division.Southeast,
             fullName = "Atlanta Hawks",
             name = "Hawks",
         )

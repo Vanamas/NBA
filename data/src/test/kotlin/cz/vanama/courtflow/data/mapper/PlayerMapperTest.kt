@@ -1,19 +1,19 @@
 package cz.vanama.courtflow.data.mapper
 
-import cz.vanama.courtflow.core.network.model.PlayerDto
-import cz.vanama.courtflow.core.network.model.TeamDto
+import cz.vanama.courtflow.core.network.generated.model.NBAPlayer
+import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PlayerMapperTest {
     private val teamDto =
-        TeamDto(
+        NBATeam(
             id = 10,
             abbreviation = "GSW",
             city = "Golden State",
-            conference = "West",
-            division = "Pacific",
+            conference = NBATeam.Conference.West,
+            division = NBATeam.Division.Pacific,
             fullName = "Golden State Warriors",
             name = "Warriors",
         )
@@ -21,7 +21,7 @@ class PlayerMapperTest {
     @Test
     fun `toDomain maps all player attributes`() {
         val dto =
-            PlayerDto(
+            NBAPlayer(
                 id = 19,
                 firstName = "Stephen",
                 lastName = "Curry",
@@ -57,7 +57,7 @@ class PlayerMapperTest {
     @Test
     fun `toDomain handles missing optional attributes`() {
         val dto =
-            PlayerDto(
+            NBAPlayer(
                 id = 19,
                 firstName = "Stephen",
                 lastName = "Curry",

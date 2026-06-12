@@ -2,7 +2,7 @@ package cz.vanama.courtflow.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import cz.vanama.courtflow.core.network.api.BallDontLieApi
+import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.data.mapper.toDomain
 import cz.vanama.courtflow.data.repository.toDataException
 import cz.vanama.courtflow.domain.model.Player
@@ -16,7 +16,7 @@ import java.io.IOException
  * value returned by the previous page, `null` for the first page.
  */
 class PlayerPagingSource(
-    private val api: BallDontLieApi,
+    private val api: NBAApi,
     private val search: String? = null,
     private val teamIds: List<Int>? = null,
 ) : PagingSource<Int, Player>() {
@@ -30,7 +30,7 @@ class PlayerPagingSource(
         try {
             val cursor = params.key
             val response =
-                api.getPlayers(
+                api.nbaV1PlayersGet(
                     cursor = cursor,
                     perPage = params.loadSize.coerceAtMost(MAX_PAGE_SIZE),
                     search = search,
@@ -38,7 +38,7 @@ class PlayerPagingSource(
                 )
 
             LoadResult.Page(
-                data = response.data.map { it.toDomain() },
+                data = response.data.orEmpty().map { it.toDomain() },
                 prevKey = null, // The API uses cursor-based pagination, prevKey is tricky without more info
                 nextKey = response.meta?.nextCursor,
             )
