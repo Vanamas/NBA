@@ -25,8 +25,6 @@ class TeamListViewModelTest {
     private lateinit var getTeamsUseCase: GetTeamsUseCase
     private val testDispatcher = StandardTestDispatcher()
 
-    private val teams = listOf(Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"))
-
     private val celtics = Team(1, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")
     private val nets = Team(2, "BKN", "Brooklyn", "East", "Atlantic", "Brooklyn Nets", "Nets")
     private val bucks = Team(3, "MIL", "Milwaukee", "East", "Central", "Milwaukee Bucks", "Bucks")
@@ -45,16 +43,49 @@ class TeamListViewModelTest {
     }
 
     @Test
-    fun `teams are loaded in init on success`() =
+    fun `teams are loaded and grouped in init on success`() =
         runTest {
-            every { getTeamsUseCase() } returns flowOf(teams)
+            every { getTeamsUseCase() } returns flowOf(listOf(lakers, celtics))
 
             val viewModel = TeamListViewModel(getTeamsUseCase)
-            testDispatcher.scheduler.advanceUntilIdle()
 
-            assertEquals(teams, viewModel.uiState.value.teams)
-            assertEquals(false, viewModel.uiState.value.isLoading)
-            assertEquals(null, viewModel.uiState.value.error)
+            viewModel.uiState.test {
+                awaitItem() // initial state
+                testDispatcher.scheduler.advanceUntilIdle()
+                val loaded = expectMostRecentItem()
+                assertEquals(
+                    listOf(
+                        TeamSection("East", "Atlantic", listOf(celtics)),
+                        TeamSection("West", "Pacific", listOf(lakers)),
+                    ),
+                    loaded.sections,
+                )
+                assertEquals(false, loaded.isLoading)
+                assertEquals(null, loaded.error)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `blank-conference teams land in the fallback section of the state`() =
+        runTest {
+            every { getTeamsUseCase() } returns flowOf(listOf(bullets, lakers))
+
+            val viewModel = TeamListViewModel(getTeamsUseCase)
+
+            viewModel.uiState.test {
+                awaitItem() // initial state
+                testDispatcher.scheduler.advanceUntilIdle()
+                val loaded = expectMostRecentItem()
+                assertEquals(
+                    listOf(
+                        TeamSection("West", "Pacific", listOf(lakers)),
+                        TeamSection("", "", listOf(bullets)),
+                    ),
+                    loaded.sections,
+                )
+                cancelAndIgnoreRemainingEvents()
+            }
         }
 
     @Test
@@ -72,7 +103,8 @@ class TeamListViewModelTest {
     @Test
     fun `Retry intent reloads the teams after a failure`() =
         runTest {
-            every { getTeamsUseCase() } returns flow { throw DataException(DataErrorKind.SERVER) } andThen flowOf(teams)
+            every { getTeamsUseCase() } returns
+                flow { throw DataException(DataErrorKind.SERVER) } andThen flowOf(listOf(lakers))
 
             val viewModel = TeamListViewModel(getTeamsUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
@@ -81,7 +113,7 @@ class TeamListViewModelTest {
             viewModel.onIntent(TeamListIntent.Retry)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            assertEquals(teams, viewModel.uiState.value.teams)
+            assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
             assertEquals(null, viewModel.uiState.value.error)
         }
 
@@ -122,7 +154,7 @@ class TeamListViewModelTest {
     @Test
     fun `OnTeamClicked intent emits NavigateToTeamDetail effect`() =
         runTest {
-            every { getTeamsUseCase() } returns flowOf(teams)
+            every { getTeamsUseCase() } returns flowOf(listOf(lakers))
 
             val viewModel = TeamListViewModel(getTeamsUseCase)
 

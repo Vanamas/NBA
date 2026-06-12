@@ -46,7 +46,7 @@ class TeamListViewModel(
                     if (e !is DataException) throw e
                     uiState.update { it.copy(isLoading = false, error = e.kind) }
                 }.collect { teams ->
-                    uiState.update { it.copy(isLoading = false, teams = teams) }
+                    uiState.update { it.copy(isLoading = false, sections = teams.groupIntoSections()) }
                 }
         }
     }

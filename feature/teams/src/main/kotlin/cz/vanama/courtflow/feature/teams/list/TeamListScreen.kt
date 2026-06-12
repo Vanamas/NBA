@@ -144,7 +144,7 @@ internal fun TeamListContent(
                     contentPadding = PaddingValues(16.dp),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(state.teams, key = { it.id }) { team ->
+                    items(state.sections.flatMap(TeamSection::teams), key = { it.id }) { team ->
                         TeamCard(
                             fullName = team.fullName,
                             conference = team.conference,
@@ -167,10 +167,22 @@ private fun TeamListScreenPreview() {
         TeamListScreen(
             state =
                 TeamListState(
-                    teams =
+                    sections =
                         listOf(
-                            Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors"),
-                            Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"),
+                            TeamSection(
+                                conference = "East",
+                                division = "Atlantic",
+                                teams = listOf(Team(2, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")),
+                            ),
+                            TeamSection(
+                                conference = "West",
+                                division = "Pacific",
+                                teams =
+                                    listOf(
+                                        Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors"),
+                                        Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"),
+                                    ),
+                            ),
                         ),
                 ),
             onTeamClick = {},

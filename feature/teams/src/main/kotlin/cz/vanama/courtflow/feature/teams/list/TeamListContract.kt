@@ -6,7 +6,7 @@ import cz.vanama.courtflow.domain.model.Team
 /** UI state of the team list screen. */
 data class TeamListState(
     val isLoading: Boolean = false,
-    val teams: List<Team> = emptyList(),
+    val sections: List<TeamSection> = emptyList(),
     val error: DataErrorKind? = null,
 )
 

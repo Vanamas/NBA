@@ -55,7 +55,7 @@ class TeamListContentTest {
         composeTestRule.setContent {
             CourtFlowTheme {
                 TeamListContent(
-                    state = TeamListState(teams = listOf(team)),
+                    state = TeamListState(sections = listOf(TeamSection("West", "Pacific", listOf(team)))),
                     onTeamClick = { clickedId = it },
                     onRetry = {},
                 )
