@@ -1,6 +1,5 @@
 package cz.vanama.courtflow.core.designsystem.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,10 +44,8 @@ fun PlayerCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick),
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
     ) {
         Row(
             modifier =
