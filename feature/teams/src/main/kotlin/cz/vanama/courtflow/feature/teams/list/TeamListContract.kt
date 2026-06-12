@@ -1,12 +1,13 @@
 package cz.vanama.courtflow.feature.teams.list
 
+import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 
 /** UI state of the team list screen. */
 data class TeamListState(
     val isLoading: Boolean = false,
     val teams: List<Team> = emptyList(),
-    val error: String? = null,
+    val error: DataErrorKind? = null,
 )
 
 /** User actions of the team list screen; the initial load happens in the ViewModel's `init`. */

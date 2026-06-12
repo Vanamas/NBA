@@ -3,7 +3,10 @@
     <string name="team_list_title">NBA Teams</string>
 
     <string name="team_detail_title">Team Details</string>
+    <string name="share_team">Share team</string>
+    <string name="share_team_text">Check out %1$s on CourtFlow: courtflow://team/%2$d</string>
     <string name="team_attribute_city">City</string>
     <string name="team_attribute_conference">Conference</string>
     <string name="team_attribute_division">Division</string>
+    <string name="team_detail_roster">Roster</string>
 </resources>

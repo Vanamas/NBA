@@ -11,6 +11,9 @@ interface PlayerRepository {
     /** Returns a paginated stream of players, optionally filtered by [query]. */
     fun getPlayers(query: String? = null): Flow<PagingData<Player>>
 
+    /** Returns a paginated stream of the players of the team with [teamId]. */
+    fun getTeamPlayers(teamId: Int): Flow<PagingData<Player>>
+
     /** Fetches a single player by its [id]. */
     suspend fun getPlayerById(id: Int): Player
 }

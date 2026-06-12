@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
@@ -42,8 +43,22 @@ fun AvatarImage(
     GlideImage(
         model = model,
         contentDescription = contentDescription,
-        loading = placeholder { PlaceholderIcon(icon = loadingIcon, tint = contentColor) },
-        failure = placeholder { PlaceholderIcon(icon = Icons.Filled.BrokenImage, tint = contentColor) },
+        loading =
+            placeholder {
+                PlaceholderIcon(
+                    icon = loadingIcon,
+                    tint = contentColor,
+                    modifier = Modifier.testTag("avatar_loading"),
+                )
+            },
+        failure =
+            placeholder {
+                PlaceholderIcon(
+                    icon = Icons.Filled.BrokenImage,
+                    tint = contentColor,
+                    modifier = Modifier.testTag("avatar_failure"),
+                )
+            },
         modifier =
             modifier
                 .clip(shape)

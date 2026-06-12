@@ -1,6 +1,7 @@
 package cz.vanama.courtflow.feature.players.detail
 
 import app.cash.turbine.test
+import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.error.DataException
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -53,23 +54,23 @@ class PlayerDetailViewModelTest {
     @Test
     fun `init updates state with error on failure`() =
         runTest {
-            coEvery { getPlayerDetailUseCase(1) } throws DataException("Error")
+            coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER)
 
             val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            assertEquals("Error", viewModel.uiState.value.error)
+            assertEquals(DataErrorKind.SERVER, viewModel.uiState.value.error)
             assertEquals(false, viewModel.uiState.value.isLoading)
         }
 
     @Test
     fun `Retry intent reloads the player after a failure`() =
         runTest {
-            coEvery { getPlayerDetailUseCase(1) } throws DataException("Error") andThen player
+            coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER) andThen player
 
             val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
-            assertEquals("Error", viewModel.uiState.value.error)
+            assertEquals(DataErrorKind.SERVER, viewModel.uiState.value.error)
 
             viewModel.onIntent(PlayerDetailIntent.Retry)
             testDispatcher.scheduler.advanceUntilIdle()
@@ -88,6 +89,34 @@ class PlayerDetailViewModelTest {
             viewModel.uiEffect.test {
                 viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(14))
                 assertEquals(PlayerDetailEffect.NavigateToTeamDetail(14), awaitItem())
+            }
+        }
+
+    @Test
+    fun `OnShareClicked emits Share with the loaded player`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } returns player
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiEffect.test {
+                viewModel.onIntent(PlayerDetailIntent.OnShareClicked)
+                testDispatcher.scheduler.advanceUntilIdle()
+                assertEquals(PlayerDetailEffect.Share(player), awaitItem())
+            }
+        }
+
+    @Test
+    fun `OnShareClicked is ignored while no player is loaded`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER)
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiEffect.test {
+                viewModel.onIntent(PlayerDetailIntent.OnShareClicked)
+                testDispatcher.scheduler.advanceUntilIdle()
+                expectNoEvents()
             }
         }
 }

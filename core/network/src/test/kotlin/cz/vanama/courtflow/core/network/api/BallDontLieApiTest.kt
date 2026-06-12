@@ -77,6 +77,18 @@ class BallDontLieApiTest {
         }
 
     @Test
+    fun `getPlayers sends team_ids array parameter`() =
+        runTest {
+            val json = """{"data": [], "meta": {"per_page": 35}}"""
+            server.enqueue(MockResponse().setBody(json))
+
+            api.getPlayers(teamIds = listOf(10))
+
+            val request = server.takeRequest()
+            assertEquals(listOf("10"), request.requestUrl?.queryParameterValues("team_ids[]"))
+        }
+
+    @Test
     fun `getPlayer parses single player wrapped in data envelope`() =
         runTest {
             // Real response shape per https://docs.balldontlie.io - single resources are wrapped in "data"

@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import cz.vanama.courtflow.core.network.api.BallDontLieApi
 import cz.vanama.courtflow.data.mapper.toDomain
+import cz.vanama.courtflow.data.repository.toDataException
 import cz.vanama.courtflow.domain.model.Player
 import retrofit2.HttpException
 import java.io.IOException
@@ -17,6 +18,7 @@ import java.io.IOException
 class PlayerPagingSource(
     private val api: BallDontLieApi,
     private val search: String? = null,
+    private val teamIds: List<Int>? = null,
 ) : PagingSource<Int, Player>() {
     override fun getRefreshKey(state: PagingState<Int, Player>): Int? =
         state.anchorPosition?.let { anchorPosition ->
@@ -32,6 +34,7 @@ class PlayerPagingSource(
                     cursor = cursor,
                     perPage = params.loadSize.coerceAtMost(MAX_PAGE_SIZE),
                     search = search,
+                    teamIds = teamIds,
                 )
 
             LoadResult.Page(
@@ -40,9 +43,9 @@ class PlayerPagingSource(
                 nextKey = response.meta?.nextCursor,
             )
         } catch (e: IOException) {
-            LoadResult.Error(e)
+            LoadResult.Error(e.toDataException())
         } catch (e: HttpException) {
-            LoadResult.Error(e)
+            LoadResult.Error(e.toDataException())
         }
 
     private companion object {

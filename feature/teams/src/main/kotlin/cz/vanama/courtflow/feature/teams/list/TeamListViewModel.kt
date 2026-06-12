@@ -43,7 +43,7 @@ class TeamListViewModel(
             getTeamsUseCase()
                 .catch { e ->
                     if (e !is DataException) throw e
-                    uiState.update { it.copy(isLoading = false, error = e.message.orEmpty()) }
+                    uiState.update { it.copy(isLoading = false, error = e.kind) }
                 }.collect { teams ->
                     uiState.update { it.copy(isLoading = false, teams = teams) }
                 }

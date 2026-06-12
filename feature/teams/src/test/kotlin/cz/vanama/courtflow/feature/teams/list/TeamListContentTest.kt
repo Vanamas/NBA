@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
+import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
 import org.junit.Rule
@@ -72,14 +73,14 @@ class TeamListContentTest {
         composeTestRule.setContent {
             CourtFlowTheme(dynamicColor = false) {
                 TeamListContent(
-                    state = TeamListState(error = "Boom"),
+                    state = TeamListState(error = DataErrorKind.SERVER),
                     onTeamClick = {},
                     onRetry = {},
                 )
             }
         }
 
-        composeTestRule.onNodeWithText("Boom").assertIsDisplayed()
+        composeTestRule.onNodeWithText("The server is having trouble. Try again later.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 
@@ -90,7 +91,7 @@ class TeamListContentTest {
         composeTestRule.setContent {
             CourtFlowTheme(dynamicColor = false) {
                 TeamListContent(
-                    state = TeamListState(error = "Boom"),
+                    state = TeamListState(error = DataErrorKind.SERVER),
                     onTeamClick = {},
                     onRetry = { retries++ },
                 )

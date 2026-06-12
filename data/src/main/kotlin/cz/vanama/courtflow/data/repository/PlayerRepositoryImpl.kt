@@ -18,16 +18,24 @@ class PlayerRepositoryImpl(
 ) : PlayerRepository {
     override fun getPlayers(query: String?): Flow<PagingData<Player>> =
         Pager(
-            config =
-                PagingConfig(
-                    pageSize = 35,
-                    // Default initialLoadSize is 3 × pageSize = 105, which the API
-                    // rejects (per_page max 100); the assignment wants 35 per page.
-                    initialLoadSize = 35,
-                    enablePlaceholders = false,
-                ),
-            pagingSourceFactory = { PlayerPagingSource(api, query) },
+            config = playerPagingConfig(),
+            pagingSourceFactory = { PlayerPagingSource(api, search = query) },
         ).flow
+
+    override fun getTeamPlayers(teamId: Int): Flow<PagingData<Player>> =
+        Pager(
+            config = playerPagingConfig(),
+            pagingSourceFactory = { PlayerPagingSource(api, teamIds = listOf(teamId)) },
+        ).flow
+
+    private fun playerPagingConfig() =
+        PagingConfig(
+            pageSize = 35,
+            // Default initialLoadSize is 3 × pageSize = 105, which the API
+            // rejects (per_page max 100); the assignment wants 35 per page.
+            initialLoadSize = 35,
+            enablePlaceholders = false,
+        )
 
     override suspend fun getPlayerById(id: Int): Player = safeApiCall { api.getPlayer(id).data.toDomain() }
 }

@@ -50,7 +50,7 @@ One Koin module per layer plus one per feature: `coreNetworkModule`, `dataModule
 
 ### Navigation
 
-`app/.../navigation/NavGraph.kt` uses a simple manual back stack (`mutableStateListOf<Destination>` + `when` over the last entry) with destinations defined in `Destination.kt`. Navigation 3 / adaptive libraries are declared as dependencies but the graph itself is hand-rolled.
+`app/.../navigation/NavGraph.kt` uses Navigation 3: a `NavDisplay` over `rememberNavBackStack` with `@Serializable` `Destination` keys (`Destination.kt`, they implement `NavKey`). The back stack survives rotation/process death; per-entry decorators keep saved state (scroll positions) and scope ViewModels to their destination. Navigation flows are covered by `CourtFlowNavGraphTest` (Robolectric + Koin-mocked use cases).
 
 ## Testing
 

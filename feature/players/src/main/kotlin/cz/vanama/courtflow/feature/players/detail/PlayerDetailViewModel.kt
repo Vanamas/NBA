@@ -36,6 +36,7 @@ class PlayerDetailViewModel(
         when (intent) {
             is PlayerDetailIntent.Retry -> loadPlayer()
             is PlayerDetailIntent.OnTeamClicked -> onTeamClicked(intent.teamId)
+            is PlayerDetailIntent.OnShareClicked -> sharePlayer()
         }
     }
 
@@ -46,7 +47,7 @@ class PlayerDetailViewModel(
                 val player = getPlayerDetailUseCase(playerId)
                 uiState.update { it.copy(isLoading = false, player = player) }
             } catch (e: DataException) {
-                uiState.update { it.copy(isLoading = false, error = e.message.orEmpty()) }
+                uiState.update { it.copy(isLoading = false, error = e.kind) }
             }
         }
     }
@@ -54,6 +55,13 @@ class PlayerDetailViewModel(
     private fun onTeamClicked(teamId: Int) {
         viewModelScope.launch {
             uiEffect.emit(PlayerDetailEffect.NavigateToTeamDetail(teamId))
+        }
+    }
+
+    private fun sharePlayer() {
+        val player = uiState.value.player ?: return
+        viewModelScope.launch {
+            uiEffect.emit(PlayerDetailEffect.Share(player))
         }
     }
 }

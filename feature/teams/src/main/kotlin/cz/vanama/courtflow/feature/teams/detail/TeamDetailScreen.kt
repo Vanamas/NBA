@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.teams.detail
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,10 +10,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,44 +26,86 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
+import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
+import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
+import cz.vanama.courtflow.feature.teams.errorMessage
+import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /**
- * Detail of a single team with all information available from the API.
+ * Detail of a single team with all information available from the API and
+ * the team's paginated player roster; tapping a roster row navigates to the
+ * player detail via [onNavigateToPlayerDetail].
  */
 @Composable
 fun TeamDetailScreen(
     teamId: Int,
     onNavigateBack: () -> Unit,
+    onNavigateToPlayerDetail: (Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TeamDetailViewModel = koinViewModel { parametersOf(teamId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val players = uiState.players.collectAsLazyPagingItems()
+    val context = LocalContext.current
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(viewModel.uiEffect, lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    is TeamDetailEffect.NavigateToPlayerDetail -> onNavigateToPlayerDetail(effect.playerId)
+                    is TeamDetailEffect.Share -> {
+                        val text = context.getString(R.string.share_team_text, effect.team.fullName, effect.team.id)
+                        val sendIntent =
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, text)
+                            }
+                        context.startActivity(Intent.createChooser(sendIntent, null))
+                    }
+                }
+            }
+        }
+    }
 
     TeamDetailScreen(
         state = uiState,
+        players = players,
         onRetry = { viewModel.onIntent(TeamDetailIntent.Retry) },
+        onPlayerClick = { playerId -> viewModel.onIntent(TeamDetailIntent.OnPlayerClicked(playerId)) },
+        onShare = { viewModel.onIntent(TeamDetailIntent.OnShareClicked) },
         onNavigateBack = onNavigateBack,
         modifier = modifier,
     )
@@ -73,7 +119,10 @@ fun TeamDetailScreen(
 @Composable
 internal fun TeamDetailScreen(
     state: TeamDetailState,
+    players: LazyPagingItems<Player>,
     onRetry: () -> Unit,
+    onPlayerClick: (Int) -> Unit,
+    onShare: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -89,26 +138,41 @@ internal fun TeamDetailScreen(
                         )
                     }
                 },
+                actions = {
+                    if (state.team != null) {
+                        IconButton(onClick = onShare) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = stringResource(R.string.share_team),
+                            )
+                        }
+                    }
+                },
             )
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->
         TeamDetailContent(
             state = state,
+            players = players,
             onRetry = onRetry,
+            onPlayerClick = onPlayerClick,
             modifier = Modifier.padding(padding),
         )
     }
 }
 
 /**
- * Stateless content of the team detail screen rendered purely from [state];
- * [onRetry] is invoked when the user retries after a load failure.
+ * Stateless content of the team detail screen rendered purely from [state]
+ * and the paginated roster in [players]; [onRetry] is invoked when the user
+ * retries after a load failure, [onPlayerClick] when a roster row is tapped.
  */
 @Composable
 internal fun TeamDetailContent(
     state: TeamDetailState,
+    players: LazyPagingItems<Player>,
     onRetry: () -> Unit,
+    onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -119,26 +183,84 @@ internal fun TeamDetailContent(
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
         } else if (state.error != null) {
             ErrorState(
-                message = state.error.ifBlank { stringResource(DesignR.string.error_unknown) },
+                message = errorMessage(state.error),
                 onRetry = onRetry,
             )
         } else {
             state.team?.let { team ->
-                TeamDetailBody(team = team)
+                TeamDetailBody(
+                    team = team,
+                    players = players,
+                    onPlayerClick = onPlayerClick,
+                )
             }
         }
     }
 }
 
-/** Column with the team emblem, name, abbreviation badge and attributes. */
+/** Scrollable body: the team header followed by the player roster. */
 @Composable
 private fun TeamDetailBody(
+    team: Team,
+    players: LazyPagingItems<Player>,
+    onPlayerClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+            modifier
+                .fillMaxSize()
+                .testTag("team_detail_list"),
+    ) {
+        item { TeamHeader(team = team) }
+
+        if (players.itemCount > 0) {
+            item { RosterHeader() }
+        }
+
+        items(count = players.itemCount) { index ->
+            val player = players[index]
+            if (player != null) {
+                PlayerCard(
+                    firstName = player.firstName,
+                    lastName = player.lastName,
+                    position = player.position,
+                    teamName = team.fullName,
+                    imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
+                    onClick = { onPlayerClick(player.id) },
+                    modifier =
+                        Modifier
+                            .widthIn(max = 360.dp)
+                            .padding(horizontal = 24.dp)
+                            .padding(bottom = 8.dp),
+                )
+            }
+        }
+
+        if (players.loadState.append is LoadState.Loading) {
+            item {
+                CircularProgressIndicator(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .wrapContentWidth(Alignment.CenterHorizontally),
+                )
+            }
+        }
+    }
+}
+
+/** The team emblem, name, abbreviation badge and attribute rows. */
+@Composable
+private fun TeamHeader(
     team: Team,
     modifier: Modifier = Modifier,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 28.dp),
+        modifier = modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 12.dp),
     ) {
         AvatarImage(
             model = PlaceholderImages.teamEmblem(team.id),
@@ -185,26 +307,40 @@ private fun TeamDetailBody(
     }
 }
 
+/** Section title above the roster list. */
+@Composable
+private fun RosterHeader(modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(R.string.team_detail_roster),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier =
+            modifier
+                .widthIn(max = 360.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(top = 8.dp, bottom = 8.dp),
+    )
+}
+
 @PreviewLightDark
 @PreviewScreenSizes
 @Composable
 private fun TeamDetailScreenPreview() {
+    val team = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
+    val players =
+        listOf(
+            Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
+            Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team),
+        )
+
     CourtFlowTheme(dynamicColor = false) {
         TeamDetailScreen(
-            state =
-                TeamDetailState(
-                    team =
-                        Team(
-                            10,
-                            "GSW",
-                            "Golden State",
-                            "West",
-                            "Pacific",
-                            "Golden State Warriors",
-                            "Warriors",
-                        ),
-                ),
+            state = TeamDetailState(team = team),
+            players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             onRetry = {},
+            onPlayerClick = {},
+            onShare = {},
             onNavigateBack = {},
         )
     }
@@ -215,8 +351,11 @@ private fun TeamDetailScreenPreview() {
 private fun TeamDetailScreenErrorPreview() {
     CourtFlowTheme(dynamicColor = false) {
         TeamDetailScreen(
-            state = TeamDetailState(error = "Team could not be loaded."),
+            state = TeamDetailState(error = DataErrorKind.SERVER),
+            players = flowOf(PagingData.empty<Player>()).collectAsLazyPagingItems(),
             onRetry = {},
+            onPlayerClick = {},
+            onShare = {},
             onNavigateBack = {},
         )
     }
