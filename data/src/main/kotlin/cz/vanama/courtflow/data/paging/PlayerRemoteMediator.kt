@@ -86,9 +86,9 @@ class PlayerRemoteMediator(
 
     private companion object {
         /**
-         * The API rejects `per_page` above 100 with HTTP 400. Duplicated from
-         * [PlayerPagingSource] on purpose — that file is owned by the
-         * paging-source-hardening plan and its constant is private.
+         * The API rejects `per_page` above 100 with HTTP 400. [PlayerPagingSource]
+         * keeps an identical private constant; duplicated here rather than widening
+         * its visibility for the sake of a single value.
          */
         const val MAX_PAGE_SIZE = 100
     }
