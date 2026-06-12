@@ -1,12 +1,16 @@
 package cz.vanama.courtflow.data.repository
 
+import androidx.paging.testing.asSnapshot
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBAPlayer
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
+import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersGet200Response
 import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersIdGet200Response
+import cz.vanama.courtflow.core.network.generated.model.Pagination
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.error.DataException
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -42,6 +46,61 @@ class PlayerRepositoryImplTest {
             assertEquals("G", result.position)
             assertEquals("30", result.jerseyNumber)
             assertEquals("Golden State Warriors", result.team.fullName)
+        }
+
+    @Test
+    fun `getPlayers requests exactly 35 players on the initial load`() =
+        runTest {
+            // nextCursor = null stops Paging from prefetching a second page,
+            // so the strict mock proves initialLoadSize == 35: the default
+            // (3 x pageSize = 105) would be clamped to perPage = 100 by the
+            // paging source, match no stub, and fail this test.
+            coEvery {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = null)
+            } returns playersResponse(offset = 0, nextCursor = null)
+
+            val snapshot = repository.getPlayers(query = null).asSnapshot()
+
+            assertEquals(35, snapshot.size)
+            coVerify(exactly = 1) {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = null)
+            }
+        }
+
+    @Test
+    fun `getPlayers requests exactly 35 players per appended page`() =
+        runTest {
+            coEvery {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = null)
+            } returns playersResponse(offset = 0, nextCursor = 35)
+            coEvery {
+                api.nbaV1PlayersGet(cursor = 35, perPage = 35, search = null, teamIds = null)
+            } returns playersResponse(offset = 35, nextCursor = null)
+
+            val snapshot =
+                repository.getPlayers(query = null).asSnapshot {
+                    scrollTo(40)
+                }
+
+            assertEquals(70, snapshot.size)
+            coVerify(exactly = 1) {
+                api.nbaV1PlayersGet(cursor = 35, perPage = 35, search = null, teamIds = null)
+            }
+        }
+
+    @Test
+    fun `getTeamPlayers filters by team id with the same 35 page size`() =
+        runTest {
+            coEvery {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = listOf(10))
+            } returns playersResponse(offset = 0, nextCursor = null)
+
+            val snapshot = repository.getTeamPlayers(teamId = 10).asSnapshot()
+
+            assertEquals(35, snapshot.size)
+            coVerify(exactly = 1) {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = listOf(10))
+            }
         }
 
     @Test
@@ -83,6 +142,16 @@ class PlayerRepositoryImplTest {
     }
 
     private fun httpException(code: Int): HttpException = HttpException(Response.error<Any>(code, "".toResponseBody()))
+
+    /** A full 35-item page, matching the page size the repository must request. */
+    private fun playersResponse(
+        offset: Int,
+        nextCursor: Int?,
+    ): NbaV1PlayersGet200Response =
+        NbaV1PlayersGet200Response(
+            data = List(35) { index -> NBAPlayer(id = offset + index, team = warriorsDto) },
+            meta = Pagination(nextCursor = nextCursor),
+        )
 
     private val warriorsDto =
         NBATeam(
