@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -21,11 +19,11 @@ import kotlinx.coroutines.launch
 class TeamListViewModel(
     private val getTeamsUseCase: GetTeamsUseCase,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(TeamListState())
-    val uiState: StateFlow<TeamListState> = _uiState.asStateFlow()
+    val uiState: StateFlow<TeamListState>
+        field = MutableStateFlow(TeamListState())
 
-    private val _uiEffect = MutableSharedFlow<TeamListEffect>()
-    val uiEffect: SharedFlow<TeamListEffect> = _uiEffect.asSharedFlow()
+    val uiEffect: SharedFlow<TeamListEffect>
+        field = MutableSharedFlow<TeamListEffect>()
 
     fun onIntent(intent: TeamListIntent) {
         when (intent) {
@@ -36,20 +34,20 @@ class TeamListViewModel(
 
     private fun loadTeams() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            uiState.update { it.copy(isLoading = true, error = null) }
             getTeamsUseCase()
                 .catch { e ->
                     if (e !is DataException) throw e
-                    _uiState.update { it.copy(isLoading = false, error = e.message.orEmpty()) }
+                    uiState.update { it.copy(isLoading = false, error = e.message.orEmpty()) }
                 }.collect { teams ->
-                    _uiState.update { it.copy(isLoading = false, teams = teams) }
+                    uiState.update { it.copy(isLoading = false, teams = teams) }
                 }
         }
     }
 
     private fun onTeamClicked(teamId: Int) {
         viewModelScope.launch {
-            _uiEffect.emit(TeamListEffect.NavigateToTeamDetail(teamId))
+            uiEffect.emit(TeamListEffect.NavigateToTeamDetail(teamId))
         }
     }
 }

@@ -10,8 +10,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -30,11 +28,11 @@ import kotlin.time.Duration.Companion.milliseconds
 class PlayerListViewModel(
     private val getPlayersUseCase: GetPlayersUseCase,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(PlayerListState())
-    val uiState: StateFlow<PlayerListState> = _uiState.asStateFlow()
+    val uiState: StateFlow<PlayerListState>
+        field = MutableStateFlow(PlayerListState())
 
-    private val _uiEffect = MutableSharedFlow<PlayerListEffect>()
-    val uiEffect: SharedFlow<PlayerListEffect> = _uiEffect.asSharedFlow()
+    val uiEffect: SharedFlow<PlayerListEffect>
+        field = MutableSharedFlow<PlayerListEffect>()
 
     private val searchQuery = MutableStateFlow("")
 
@@ -54,17 +52,17 @@ class PlayerListViewModel(
                 .distinctUntilChanged()
                 .flatMapLatest { query -> getPlayersUseCase(query.ifBlank { null }) }
                 .cachedIn(viewModelScope)
-        _uiState.update { it.copy(players = players) }
+        uiState.update { it.copy(players = players) }
     }
 
     private fun onSearchQueryChanged(query: String) {
         searchQuery.value = query
-        _uiState.update { it.copy(searchQuery = query) }
+        uiState.update { it.copy(searchQuery = query) }
     }
 
     private fun onPlayerClicked(playerId: Int) {
         viewModelScope.launch {
-            _uiEffect.emit(PlayerListEffect.NavigateToPlayerDetail(playerId))
+            uiEffect.emit(PlayerListEffect.NavigateToPlayerDetail(playerId))
         }
     }
 
