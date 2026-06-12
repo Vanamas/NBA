@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
@@ -65,7 +65,7 @@ private fun badgeColors(tone: BadgeTone): Pair<Color, Color> =
                 MaterialTheme.colorScheme.onPrimaryContainer
     }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 private fun BadgePreview() {
     CourtFlowTheme {
@@ -73,7 +73,7 @@ private fun BadgePreview() {
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 private fun BadgePrimaryPreview() {
     CourtFlowTheme {
