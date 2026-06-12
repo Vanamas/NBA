@@ -70,6 +70,56 @@ class TeamListContentTest {
     }
 
     @Test
+    fun `renders section headers in order with fallback last`() {
+        val celtics = Team(1, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")
+        val bullets = Team(2, "BAL", "Baltimore", "", "", "Baltimore Bullets", "Bullets")
+
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state =
+                        TeamListState(
+                            sections =
+                                listOf(
+                                    TeamSection("East", "Atlantic", listOf(celtics)),
+                                    TeamSection("West", "Pacific", listOf(team)),
+                                    TeamSection("", "", listOf(bullets)),
+                                ),
+                        ),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("East — Atlantic").assertIsDisplayed()
+        composeTestRule.onNodeWithText("West — Pacific").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Other teams").assertIsDisplayed()
+
+        val eastTop = composeTestRule.onNodeWithText("East — Atlantic").fetchSemanticsNode().boundsInRoot.top
+        val westTop = composeTestRule.onNodeWithText("West — Pacific").fetchSemanticsNode().boundsInRoot.top
+        val otherTop = composeTestRule.onNodeWithText("Other teams").fetchSemanticsNode().boundsInRoot.top
+
+        (eastTop < westTop) shouldBe true
+        (westTop < otherTop) shouldBe true
+    }
+
+    @Test
+    fun `section with blank division shows conference-only header`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state = TeamListState(sections = listOf(TeamSection("East", "", listOf(team)))),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("East").assertIsDisplayed()
+    }
+
+    @Test
     fun `shows error text and retry button on error`() {
         composeTestRule.setContent {
             CourtFlowTheme {
