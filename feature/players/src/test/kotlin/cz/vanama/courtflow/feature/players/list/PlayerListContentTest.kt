@@ -14,10 +14,16 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.text.input.ImeAction
 import androidx.paging.LoadState
 import androidx.paging.LoadStates
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.domain.model.Player
@@ -377,6 +383,33 @@ class PlayerListContentTest {
     }
 
     @Test
+    fun `pull down gesture triggers a paging refresh`() {
+        var pagingSourcesCreated = 0
+        val pager =
+            Pager(PagingConfig(pageSize = 35)) {
+                pagingSourcesCreated++
+                FakePlayerPagingSource(listOf(player))
+            }
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = pager.flow.collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.waitUntil(timeoutMillis = 5_000) { pagingSourcesCreated == 1 }
+        composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
+
+        composeTestRule.onNodeWithTag(PULL_TO_REFRESH_TEST_TAG).performTouchInput { swipeDown() }
+
+        // refresh() invalidates the current PagingSource; Paging asks the factory for a new one.
+        composeTestRule.waitUntil(timeoutMillis = 5_000) { pagingSourcesCreated == 2 }
+    }
+
+    @Test
     fun `search field uses the Search ime action`() {
         composeTestRule.setContent {
             PlayerListContent(
@@ -389,4 +422,14 @@ class PlayerListContentTest {
 
         composeTestRule.onNodeWithTag(SEARCH_FIELD_TEST_TAG).assert(hasImeAction(ImeAction.Search))
     }
+}
+
+/** Single static page; each refresh makes the Pager factory build a new instance. */
+private class FakePlayerPagingSource(
+    private val players: List<Player>,
+) : PagingSource<Int, Player>() {
+    override fun getRefreshKey(state: PagingState<Int, Player>): Int? = null
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Player> =
+        LoadResult.Page(data = players, prevKey = null, nextKey = null)
 }
