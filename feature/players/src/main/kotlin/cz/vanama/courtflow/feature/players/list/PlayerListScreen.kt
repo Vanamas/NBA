@@ -20,7 +20,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
@@ -55,7 +55,7 @@ fun PlayerListScreen(
     modifier: Modifier = Modifier,
     viewModel: PlayerListViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val players = uiState.players?.collectAsLazyPagingItems()
 
     LaunchedEffect(Unit) {
@@ -86,8 +86,20 @@ fun PlayerListScreen(
         PlayerListContent(
             players = players,
             searchQuery = uiState.searchQuery,
-            onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
-            onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
+            onSearchQueryChanged = { query ->
+                viewModel.onIntent(
+                    PlayerListIntent.OnSearchQueryChanged(
+                        query
+                    )
+                )
+            },
+            onPlayerClick = { playerId ->
+                viewModel.onIntent(
+                    PlayerListIntent.OnPlayerClicked(
+                        playerId
+                    )
+                )
+            },
             modifier = Modifier.padding(padding),
         )
     }
@@ -177,6 +189,7 @@ private fun PlayerListItems(
                     is LoadState.Loading -> {
                         item { AppendLoading() }
                     }
+
                     is LoadState.Error -> {
                         item {
                             AppendError(
@@ -185,6 +198,7 @@ private fun PlayerListItems(
                             )
                         }
                     }
+
                     else -> {}
                 }
             }
@@ -262,12 +276,19 @@ private fun AppendError(
 @PreviewScreenSizes
 @Composable
 private fun PlayerListContentPreview() {
-    val team = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
+    val team =
+        Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors")
     val players =
         listOf(
             Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
             Player(id = 20, firstName = "Klay", lastName = "Thompson", position = "G", team = team),
-            Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team),
+            Player(
+                id = 21,
+                firstName = "Draymond",
+                lastName = "Green",
+                position = "F",
+                team = team
+            ),
         )
 
     CourtFlowTheme(dynamicColor = false) {

@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
@@ -44,7 +44,7 @@ fun TeamDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: TeamDetailViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(teamId) {
         viewModel.onIntent(TeamDetailIntent.LoadTeam(teamId))
@@ -126,7 +126,15 @@ private fun TeamDetailContentPreview() {
         TeamDetailContent(
             state =
                 TeamDetailState(
-                    team = Team(10, "GSW", "Golden State", "West", "Pacific", "Golden State Warriors", "Warriors"),
+                    team = Team(
+                        10,
+                        "GSW",
+                        "Golden State",
+                        "West",
+                        "Pacific",
+                        "Golden State Warriors",
+                        "Warriors"
+                    ),
                 ),
         )
     }

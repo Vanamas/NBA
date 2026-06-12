@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
@@ -53,7 +53,7 @@ fun PlayerDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: PlayerDetailViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(playerId) {
         viewModel.onIntent(PlayerDetailIntent.LoadPlayer(playerId))
@@ -138,22 +138,44 @@ private fun PlayerDetailBody(
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(modifier = Modifier.height(16.dp))
-        PlayerAttribute(label = stringResource(R.string.player_attribute_height), value = player.height)
+        PlayerAttribute(
+            label = stringResource(R.string.player_attribute_height),
+            value = player.height
+        )
         PlayerAttribute(
             label = stringResource(R.string.player_attribute_weight),
             value = player.weight?.let { stringResource(R.string.player_attribute_weight_lbs, it) },
         )
-        PlayerAttribute(label = stringResource(R.string.player_attribute_jersey_number), value = player.jerseyNumber)
-        PlayerAttribute(label = stringResource(R.string.player_attribute_college), value = player.college)
-        PlayerAttribute(label = stringResource(R.string.player_attribute_country), value = player.country)
+        PlayerAttribute(
+            label = stringResource(R.string.player_attribute_jersey_number),
+            value = player.jerseyNumber
+        )
+        PlayerAttribute(
+            label = stringResource(R.string.player_attribute_college),
+            value = player.college
+        )
+        PlayerAttribute(
+            label = stringResource(R.string.player_attribute_country),
+            value = player.country
+        )
         PlayerAttribute(
             label = stringResource(R.string.player_attribute_draft),
             value =
                 player.draftYear?.let { year ->
                     listOfNotNull(
                         "$year",
-                        player.draftRound?.let { stringResource(R.string.player_attribute_draft_round, it) },
-                        player.draftNumber?.let { stringResource(R.string.player_attribute_draft_pick, it) },
+                        player.draftRound?.let {
+                            stringResource(
+                                R.string.player_attribute_draft_round,
+                                it
+                            )
+                        },
+                        player.draftNumber?.let {
+                            stringResource(
+                                R.string.player_attribute_draft_pick,
+                                it
+                            )
+                        },
                     ).joinToString(", ")
                 },
         )
