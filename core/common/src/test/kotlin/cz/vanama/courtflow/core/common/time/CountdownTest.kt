@@ -2,8 +2,8 @@ package cz.vanama.courtflow.core.common.time
 
 import app.cash.turbine.test
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class CountdownTest {
