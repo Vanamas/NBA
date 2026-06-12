@@ -28,10 +28,15 @@ class PlayerPagingSource(
     private val search: String? = null,
     private val teamIds: List<Int>? = null,
 ) : PagingSource<Int, Player>() {
+    /**
+     * The cursor is opaque, so no arithmetic on it can be correct. The
+     * closest page's `prevKey` is always `null` here, which restarts a
+     * refresh from the first page — the only safe option for the API's
+     * forward-only cursors.
+     */
     override fun getRefreshKey(state: PagingState<Int, Player>): Int? =
         state.anchorPosition?.let { anchorPosition ->
-            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
+            state.closestPageToPosition(anchorPosition)?.prevKey
         }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Player> =
