@@ -186,6 +186,7 @@ internal fun PlayerDetailContent(
             ErrorState(
                 message = errorMessage(state.error),
                 onRetry = onRetry,
+                retryInSeconds = state.retryInSeconds,
             )
         } else {
             state.player?.let { player ->

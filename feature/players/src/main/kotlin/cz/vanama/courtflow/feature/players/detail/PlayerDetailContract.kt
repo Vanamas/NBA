@@ -8,6 +8,7 @@ data class PlayerDetailState(
     val isLoading: Boolean = false,
     val player: Player? = null,
     val error: DataErrorKind? = null,
+    val retryInSeconds: Int? = null,
 )
 
 /** User actions of the player detail screen; the initial load happens in the ViewModel's `init`. */
