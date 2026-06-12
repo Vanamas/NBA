@@ -112,6 +112,7 @@ koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = 
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
