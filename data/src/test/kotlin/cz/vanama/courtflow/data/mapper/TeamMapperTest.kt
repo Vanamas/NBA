@@ -28,6 +28,7 @@ class TeamMapperTest {
         assertEquals("Pacific", team.division)
         assertEquals("Golden State Warriors", team.fullName)
         assertEquals("Warriors", team.name)
+        assertEquals("https://api.dicebear.com/9.x/shapes/png?seed=10&size=512", team.imageUrl)
     }
 
     @Test

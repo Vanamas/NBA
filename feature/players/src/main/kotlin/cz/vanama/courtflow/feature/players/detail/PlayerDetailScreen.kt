@@ -53,7 +53,6 @@ import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.LoadingIndicator
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
-import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.core.designsystem.util.positionLabel
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -219,7 +218,7 @@ private fun PlayerDetailBody(
                 .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 28.dp),
     ) {
         AvatarImage(
-            model = PlaceholderImages.playerPortrait(player.id),
+            model = player.imageUrl,
             contentDescription = "${player.firstName} ${player.lastName}",
             loadingIcon = Icons.Filled.Person,
             modifier = Modifier.size(160.dp),

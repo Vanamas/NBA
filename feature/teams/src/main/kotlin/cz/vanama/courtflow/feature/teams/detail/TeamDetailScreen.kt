@@ -59,7 +59,6 @@ import cz.vanama.courtflow.core.designsystem.component.LoadingIndicator
 import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
-import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -341,7 +340,7 @@ private fun TeamHeader(
         modifier = modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 12.dp),
     ) {
         AvatarImage(
-            model = PlaceholderImages.teamEmblem(team.id),
+            model = team.imageUrl,
             contentDescription = team.fullName,
             loadingIcon = Icons.Filled.Groups,
             shape = RoundedCornerShape(12.dp),

@@ -16,6 +16,7 @@ class TeamEntityMapperTest {
                 division = "Pacific",
                 fullName = "Golden State Warriors",
                 name = "Warriors",
+                imageUrl = "https://api.dicebear.com/9.x/shapes/png?seed=10&size=512",
             )
 
         assertEquals(team, team.toEntity().toDomain())

@@ -20,4 +20,6 @@ data class Player(
     val draftRound: Int? = null,
     val draftNumber: Int? = null,
     val team: Team,
+    /** Ready-to-load artwork URL; resolved by the data layer. */
+    val imageUrl: String = "",
 )

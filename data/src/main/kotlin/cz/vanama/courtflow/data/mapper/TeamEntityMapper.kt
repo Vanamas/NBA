@@ -15,7 +15,7 @@ fun Team.toEntity(): TeamEntity =
         name = name,
     )
 
-/** Maps the Room cache row back to the domain [Team]. */
+/** Maps the Room cache row back to the domain [Team]; the artwork URL is re-derived from the id. */
 fun TeamEntity.toDomain(): Team =
     Team(
         id = id,
@@ -25,4 +25,5 @@ fun TeamEntity.toDomain(): Team =
         division = division,
         fullName = fullName,
         name = name,
+        imageUrl = PlaceholderImages.teamEmblem(id),
     )

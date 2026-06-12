@@ -19,7 +19,6 @@ import cz.vanama.courtflow.core.designsystem.component.PagingAppendError
 import cz.vanama.courtflow.core.designsystem.component.PagingAppendLoading
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
-import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
@@ -45,7 +44,7 @@ internal fun LazyListScope.rosterItems(
                 lastName = player.lastName,
                 position = player.position,
                 teamName = team.fullName,
-                imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
+                imageUrl = player.imageUrl,
                 onClick = { onPlayerClick(player.id) },
                 modifier =
                     Modifier

@@ -11,4 +11,6 @@ data class Team(
     val division: String,
     val fullName: String,
     val name: String,
+    /** Ready-to-load artwork URL; resolved by the data layer. */
+    val imageUrl: String = "",
 )

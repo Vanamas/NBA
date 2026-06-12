@@ -16,6 +16,7 @@ class PlayerEntityMapperTest {
             division = "Pacific",
             fullName = "Golden State Warriors",
             name = "Warriors",
+            imageUrl = "https://api.dicebear.com/9.x/shapes/png?seed=10&size=512",
         )
 
     @Test
@@ -35,6 +36,7 @@ class PlayerEntityMapperTest {
                 draftRound = 1,
                 draftNumber = 7,
                 team = warriors,
+                imageUrl = "https://api.dicebear.com/9.x/avataaars/png?seed=19&size=512",
             )
 
         assertEquals(player, player.toEntity().toDomain())
@@ -49,6 +51,7 @@ class PlayerEntityMapperTest {
                 lastName = "James",
                 position = "F",
                 team = warriors,
+                imageUrl = "https://api.dicebear.com/9.x/avataaars/png?seed=1&size=512",
             )
 
         val entity = player.toEntity()

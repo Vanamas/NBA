@@ -63,7 +63,6 @@ import cz.vanama.courtflow.core.designsystem.component.PlayerCardSkeleton
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
-import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.players.R
@@ -386,7 +385,7 @@ private fun PlayerLazyList(
                     lastName = player.lastName,
                     position = player.position,
                     teamName = player.team.fullName,
-                    imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
+                    imageUrl = player.imageUrl,
                     onClick = { onPlayerClick(player.id) },
                 )
             }

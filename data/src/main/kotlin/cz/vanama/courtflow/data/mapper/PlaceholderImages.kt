@@ -1,4 +1,4 @@
-package cz.vanama.courtflow.core.designsystem.util
+package cz.vanama.courtflow.data.mapper
 
 /**
  * Builds URLs of generated placeholder images served by DiceBear
@@ -12,7 +12,7 @@ package cz.vanama.courtflow.core.designsystem.util
  * DiceBear replaced pollinations.ai, which started returning HTTP 402
  * (payment required) for anonymous image generation in 2026.
  */
-object PlaceholderImages {
+internal object PlaceholderImages {
     private const val BASE_URL = "https://api.dicebear.com/9.x"
 
     /** Returns a deterministic avatar URL for the given player. */
