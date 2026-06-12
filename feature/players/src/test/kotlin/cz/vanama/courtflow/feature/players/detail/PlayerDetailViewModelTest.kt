@@ -91,4 +91,32 @@ class PlayerDetailViewModelTest {
                 assertEquals(PlayerDetailEffect.NavigateToTeamDetail(14), awaitItem())
             }
         }
+
+    @Test
+    fun `OnShareClicked emits Share with the loaded player`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } returns player
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiEffect.test {
+                viewModel.onIntent(PlayerDetailIntent.OnShareClicked)
+                testDispatcher.scheduler.advanceUntilIdle()
+                assertEquals(PlayerDetailEffect.Share(player), awaitItem())
+            }
+        }
+
+    @Test
+    fun `OnShareClicked is ignored while no player is loaded`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER)
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiEffect.test {
+                viewModel.onIntent(PlayerDetailIntent.OnShareClicked)
+                testDispatcher.scheduler.advanceUntilIdle()
+                expectNoEvents()
+            }
+        }
 }

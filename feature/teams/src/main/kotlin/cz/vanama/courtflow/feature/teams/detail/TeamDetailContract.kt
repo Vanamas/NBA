@@ -19,6 +19,8 @@ data class TeamDetailState(
 sealed class TeamDetailIntent {
     data object Retry : TeamDetailIntent()
 
+    data object OnShareClicked : TeamDetailIntent()
+
     data class OnPlayerClicked(
         val playerId: Int,
     ) : TeamDetailIntent()
@@ -28,5 +30,9 @@ sealed class TeamDetailIntent {
 sealed class TeamDetailEffect {
     data class NavigateToPlayerDetail(
         val playerId: Int,
+    ) : TeamDetailEffect()
+
+    data class Share(
+        val team: Team,
     ) : TeamDetailEffect()
 }

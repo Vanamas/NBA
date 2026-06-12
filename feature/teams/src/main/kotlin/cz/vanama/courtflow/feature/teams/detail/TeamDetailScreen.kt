@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.teams.detail
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,6 +78,7 @@ fun TeamDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val players = uiState.players.collectAsLazyPagingItems()
+    val context = LocalContext.current
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(viewModel.uiEffect, lifecycleOwner) {
@@ -82,6 +86,15 @@ fun TeamDetailScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     is TeamDetailEffect.NavigateToPlayerDetail -> onNavigateToPlayerDetail(effect.playerId)
+                    is TeamDetailEffect.Share -> {
+                        val text = context.getString(R.string.share_team_text, effect.team.fullName, effect.team.id)
+                        val sendIntent =
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, text)
+                            }
+                        context.startActivity(Intent.createChooser(sendIntent, null))
+                    }
                 }
             }
         }
@@ -92,6 +105,7 @@ fun TeamDetailScreen(
         players = players,
         onRetry = { viewModel.onIntent(TeamDetailIntent.Retry) },
         onPlayerClick = { playerId -> viewModel.onIntent(TeamDetailIntent.OnPlayerClicked(playerId)) },
+        onShare = { viewModel.onIntent(TeamDetailIntent.OnShareClicked) },
         onNavigateBack = onNavigateBack,
         modifier = modifier,
     )
@@ -108,6 +122,7 @@ internal fun TeamDetailScreen(
     players: LazyPagingItems<Player>,
     onRetry: () -> Unit,
     onPlayerClick: (Int) -> Unit,
+    onShare: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -121,6 +136,16 @@ internal fun TeamDetailScreen(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(DesignR.string.navigate_back),
                         )
+                    }
+                },
+                actions = {
+                    if (state.team != null) {
+                        IconButton(onClick = onShare) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = stringResource(R.string.share_team),
+                            )
+                        }
                     }
                 },
             )
@@ -315,6 +340,7 @@ private fun TeamDetailScreenPreview() {
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             onRetry = {},
             onPlayerClick = {},
+            onShare = {},
             onNavigateBack = {},
         )
     }
@@ -329,6 +355,7 @@ private fun TeamDetailScreenErrorPreview() {
             players = flowOf(PagingData.empty<Player>()).collectAsLazyPagingItems(),
             onRetry = {},
             onPlayerClick = {},
+            onShare = {},
             onNavigateBack = {},
         )
     }

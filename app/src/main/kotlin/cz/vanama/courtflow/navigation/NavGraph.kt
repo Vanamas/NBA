@@ -31,6 +31,7 @@ import cz.vanama.courtflow.core.designsystem.R as DesignR
  * render side by side via [ListDetailSceneStrategy].
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Suppress("SpreadOperator") // rememberNavBackStack only offers a vararg overload; the list is tiny.
 @Composable
 fun CourtFlowNavGraph(
     modifier: Modifier = Modifier,

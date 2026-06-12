@@ -114,4 +114,18 @@ class TeamDetailViewModelTest {
                 assertEquals(TeamDetailEffect.NavigateToPlayerDetail(19), awaitItem())
             }
         }
+
+    @Test
+    fun `OnShareClicked emits Share with the loaded team`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } returns team
+            val viewModel = viewModel()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiEffect.test {
+                viewModel.onIntent(TeamDetailIntent.OnShareClicked)
+                testDispatcher.scheduler.advanceUntilIdle()
+                assertEquals(TeamDetailEffect.Share(team), awaitItem())
+            }
+        }
 }

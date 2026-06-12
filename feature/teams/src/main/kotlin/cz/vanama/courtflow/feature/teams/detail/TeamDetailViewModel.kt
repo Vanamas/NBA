@@ -38,6 +38,7 @@ class TeamDetailViewModel(
         when (intent) {
             is TeamDetailIntent.Retry -> loadTeam()
             is TeamDetailIntent.OnPlayerClicked -> onPlayerClicked(intent.playerId)
+            is TeamDetailIntent.OnShareClicked -> shareTeam()
         }
     }
 
@@ -56,6 +57,13 @@ class TeamDetailViewModel(
     private fun onPlayerClicked(playerId: Int) {
         viewModelScope.launch {
             uiEffect.emit(TeamDetailEffect.NavigateToPlayerDetail(playerId))
+        }
+    }
+
+    private fun shareTeam() {
+        val team = uiState.value.team ?: return
+        viewModelScope.launch {
+            uiEffect.emit(TeamDetailEffect.Share(team))
         }
     }
 }

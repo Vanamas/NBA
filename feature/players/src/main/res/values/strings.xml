@@ -7,6 +7,8 @@
     <string name="player_list_append_error">Error loading more players: %1$s</string>
 
     <string name="player_detail_title">Player Details</string>
+    <string name="share_player">Share player</string>
+    <string name="share_player_text">Check out %1$s %2$s on CourtFlow: courtflow://player/%3$d</string>
     <string name="player_detail_view_team">View Team: %1$s</string>
     <string name="player_attribute_height">Height</string>
     <string name="player_attribute_weight">Weight</string>

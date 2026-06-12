@@ -14,6 +14,8 @@ data class PlayerDetailState(
 sealed class PlayerDetailIntent {
     data object Retry : PlayerDetailIntent()
 
+    data object OnShareClicked : PlayerDetailIntent()
+
     data class OnTeamClicked(
         val teamId: Int,
     ) : PlayerDetailIntent()
@@ -23,5 +25,9 @@ sealed class PlayerDetailIntent {
 sealed class PlayerDetailEffect {
     data class NavigateToTeamDetail(
         val teamId: Int,
+    ) : PlayerDetailEffect()
+
+    data class Share(
+        val player: Player,
     ) : PlayerDetailEffect()
 }

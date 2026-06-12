@@ -14,10 +14,11 @@ internal object DeepLink {
     /** Returns the destination for [uri], or `null` when it is not a recognized deep link. */
     fun parse(uri: Uri?): Destination? {
         if (uri == null || uri.scheme != SCHEME) return null
-        val id = uri.lastPathSegment?.toIntOrNull() ?: return null
-        return when (uri.host) {
-            HOST_PLAYER -> Destination.PlayerDetail(id)
-            HOST_TEAM -> Destination.TeamDetail(id)
+        val id = uri.lastPathSegment?.toIntOrNull()
+        return when {
+            id == null -> null
+            uri.host == HOST_PLAYER -> Destination.PlayerDetail(id)
+            uri.host == HOST_TEAM -> Destination.TeamDetail(id)
             else -> null
         }
     }

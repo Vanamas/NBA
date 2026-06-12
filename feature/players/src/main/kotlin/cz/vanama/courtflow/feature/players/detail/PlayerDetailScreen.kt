@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.players.detail
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,6 +75,7 @@ fun PlayerDetailScreen(
     viewModel: PlayerDetailViewModel = koinViewModel { parametersOf(playerId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(viewModel.uiEffect, lifecycleOwner) {
@@ -79,6 +83,21 @@ fun PlayerDetailScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     is PlayerDetailEffect.NavigateToTeamDetail -> onNavigateToTeamDetail(effect.teamId)
+                    is PlayerDetailEffect.Share -> {
+                        val text =
+                            context.getString(
+                                R.string.share_player_text,
+                                effect.player.firstName,
+                                effect.player.lastName,
+                                effect.player.id,
+                            )
+                        val sendIntent =
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, text)
+                            }
+                        context.startActivity(Intent.createChooser(sendIntent, null))
+                    }
                 }
             }
         }
@@ -88,6 +107,7 @@ fun PlayerDetailScreen(
         state = uiState,
         onTeamClick = { teamId -> viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(teamId)) },
         onRetry = { viewModel.onIntent(PlayerDetailIntent.Retry) },
+        onShare = { viewModel.onIntent(PlayerDetailIntent.OnShareClicked) },
         onNavigateBack = onNavigateBack,
         modifier = modifier,
     )
@@ -103,6 +123,7 @@ internal fun PlayerDetailScreen(
     state: PlayerDetailState,
     onTeamClick: (Int) -> Unit,
     onRetry: () -> Unit,
+    onShare: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -116,6 +137,16 @@ internal fun PlayerDetailScreen(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(DesignR.string.navigate_back),
                         )
+                    }
+                },
+                actions = {
+                    if (state.player != null) {
+                        IconButton(onClick = onShare) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = stringResource(R.string.share_player),
+                            )
+                        }
                     }
                 },
             )
@@ -322,6 +353,7 @@ private fun PlayerDetailScreenPreview() {
                 ),
             onTeamClick = {},
             onRetry = {},
+            onShare = {},
             onNavigateBack = {},
         )
     }
@@ -335,6 +367,7 @@ private fun PlayerDetailScreenLoadingPreview() {
             state = PlayerDetailState(isLoading = true),
             onTeamClick = {},
             onRetry = {},
+            onShare = {},
             onNavigateBack = {},
         )
     }
@@ -348,6 +381,7 @@ private fun PlayerDetailScreenErrorPreview() {
             state = PlayerDetailState(error = DataErrorKind.SERVER),
             onTeamClick = {},
             onRetry = {},
+            onShare = {},
             onNavigateBack = {},
         )
     }
