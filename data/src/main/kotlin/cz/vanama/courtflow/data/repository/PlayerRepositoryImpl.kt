@@ -1,26 +1,48 @@
 package cz.vanama.courtflow.data.repository
 
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.map
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
+import cz.vanama.courtflow.data.local.CourtFlowDatabase
 import cz.vanama.courtflow.data.mapper.toDomain
 import cz.vanama.courtflow.data.paging.PlayerPagingSource
+import cz.vanama.courtflow.data.paging.PlayerRemoteMediator
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.repository.PlayerRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /**
  * [PlayerRepository] backed by the balldontlie REST API.
+ *
+ * The unfiltered player list is offline-first: [PlayerRemoteMediator] syncs
+ * API pages into [CourtFlowDatabase] and Paging 3 pages from Room, so the
+ * list works without a connection and survives process death. Search results
+ * and team rosters stay network-only via [PlayerPagingSource] — caching
+ * arbitrary query results would need per-query tables and remote keys for no
+ * real offline value.
  */
 class PlayerRepositoryImpl(
     private val api: NBAApi,
+    private val database: CourtFlowDatabase,
 ) : PlayerRepository {
+    @OptIn(ExperimentalPagingApi::class)
     override fun getPlayers(query: String?): Flow<PagingData<Player>> =
-        Pager(
-            config = playerPagingConfig(),
-            pagingSourceFactory = { PlayerPagingSource(api, search = query) },
-        ).flow
+        if (query.isNullOrBlank()) {
+            Pager(
+                config = playerPagingConfig(),
+                remoteMediator = PlayerRemoteMediator(api, database),
+                pagingSourceFactory = { database.playerDao().pagingSource() },
+            ).flow.map { pagingData -> pagingData.map { it.toDomain() } }
+        } else {
+            Pager(
+                config = playerPagingConfig(),
+                pagingSourceFactory = { PlayerPagingSource(api, search = query) },
+            ).flow
+        }
 
     override fun getTeamPlayers(teamId: Int): Flow<PagingData<Player>> =
         Pager(
