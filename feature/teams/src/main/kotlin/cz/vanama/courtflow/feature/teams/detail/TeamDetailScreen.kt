@@ -2,8 +2,10 @@ package cz.vanama.courtflow.feature.teams.detail
 
 import android.content.ClipDescription
 import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -55,6 +59,7 @@ import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.error.DataErrorKind
+import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
@@ -194,6 +199,7 @@ internal fun TeamDetailContent(
             state.team?.let { team ->
                 TeamDetailBody(
                     team = team,
+                    recentGames = state.recentGames,
                     players = players,
                     onPlayerClick = onPlayerClick,
                 )
@@ -210,6 +216,7 @@ internal fun TeamDetailContent(
 @Composable
 private fun TeamDetailBody(
     team: Team,
+    recentGames: List<Game>,
     players: LazyPagingItems<Player>,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -232,6 +239,8 @@ private fun TeamDetailBody(
         ) {
             item { TeamHeader(team = team) }
 
+            recentGamesSection(recentGames)
+
             when {
                 refreshState is LoadState.Error ->
                     item {
@@ -248,6 +257,52 @@ private fun TeamDetailBody(
                 }
             }
         }
+    }
+}
+
+/** The "Recent games" block; renders nothing when [games] is empty (off-season or failed load). */
+private fun LazyListScope.recentGamesSection(games: List<Game>) {
+    if (games.isEmpty()) return
+    item { SectionHeader(text = stringResource(R.string.team_detail_recent_games)) }
+    items(games, key = { it.id }) { game ->
+        RecentGameRow(game = game)
+    }
+}
+
+/** One compact score line: game date, home abbreviation, score, visitor abbreviation. */
+@Composable
+private fun RecentGameRow(
+    game: Game,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            modifier
+                .widthIn(max = 360.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 6.dp),
+    ) {
+        Text(
+            text = game.date,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = game.homeTeam.abbreviation,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = stringResource(R.string.game_score, game.homeTeamScore, game.visitorTeamScore),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            text = game.visitorTeam.abbreviation,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
@@ -316,10 +371,23 @@ private fun TeamDetailScreenPreview() {
             Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
             Player(id = 21, firstName = "Draymond", lastName = "Green", position = "F", team = team),
         )
+    val lakers = Team(14, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+    val games =
+        listOf(
+            Game(
+                id = 1,
+                date = "2026-06-10",
+                status = "Final",
+                homeTeam = team,
+                homeTeamScore = 112,
+                visitorTeam = lakers,
+                visitorTeamScore = 99,
+            ),
+        )
 
     CourtFlowTheme {
         TeamDetailScreen(
-            state = TeamDetailState(team = team),
+            state = TeamDetailState(team = team, recentGames = games),
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             onRetry = {},
             onPlayerClick = {},

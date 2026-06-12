@@ -38,7 +38,7 @@ internal fun LazyListScope.rosterItems(
     onPlayerClick: (Int) -> Unit,
 ) {
     if (players.itemCount > 0) {
-        item { RosterHeader() }
+        item { SectionHeader(text = stringResource(R.string.team_detail_roster)) }
     }
 
     items(count = players.itemCount) { index ->
@@ -73,11 +73,14 @@ internal fun LazyListScope.rosterItems(
     }
 }
 
-/** Section title above the roster list. */
+/** Section title above a list block (roster, recent games). */
 @Composable
-private fun RosterHeader(modifier: Modifier = Modifier) {
+internal fun SectionHeader(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
-        text = stringResource(R.string.team_detail_roster),
+        text = text,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         modifier =

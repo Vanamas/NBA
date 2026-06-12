@@ -17,6 +17,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.domain.error.DataErrorKind
 import cz.vanama.courtflow.domain.error.DataException
+import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
@@ -47,6 +48,28 @@ class TeamDetailContentTest {
     private val roster =
         listOf(
             Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
+        )
+
+    private val lakers =
+        Team(
+            id = 14,
+            abbreviation = "LAL",
+            city = "Los Angeles",
+            conference = "West",
+            division = "Pacific",
+            fullName = "Los Angeles Lakers",
+            name = "Lakers",
+        )
+
+    private val game =
+        Game(
+            id = 1,
+            date = "2026-06-10",
+            status = "Final",
+            homeTeam = team,
+            homeTeamScore = 112,
+            visitorTeam = lakers,
+            visitorTeamScore = 99,
         )
 
     @Composable
@@ -178,6 +201,43 @@ class TeamDetailContentTest {
         composeTestRule.onNodeWithText("Stephen Curry").performClick()
 
         clickedId shouldBe 19
+    }
+
+    @Test
+    fun `recent games section shows header, scores and date`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team, recentGames = listOf(game)),
+                players = pagingItems(roster),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasText("Recent games"))
+        composeTestRule.onNodeWithText("Recent games").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasText("112 – 99"))
+        composeTestRule.onNodeWithText("LAL").assertIsDisplayed()
+        composeTestRule.onNodeWithText("112 – 99").assertIsDisplayed()
+        composeTestRule.onNodeWithText("2026-06-10").assertIsDisplayed()
+    }
+
+    @Test
+    fun `recent games section is hidden when there are no games`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team, recentGames = emptyList()),
+                players = pagingItems(roster),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Recent games").assertDoesNotExist()
     }
 
     @Test
