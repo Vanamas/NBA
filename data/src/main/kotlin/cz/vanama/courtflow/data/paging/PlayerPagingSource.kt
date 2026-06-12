@@ -2,6 +2,7 @@ package cz.vanama.courtflow.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.squareup.moshi.JsonDataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.data.mapper.toDomain
 import cz.vanama.courtflow.data.repository.toDataException
@@ -14,6 +15,13 @@ import java.io.IOException
  *
  * The API uses cursor-based pagination: the key is the `next_cursor`
  * value returned by the previous page, `null` for the first page.
+ *
+ * Every failure — transport ([IOException], [HttpException]), Moshi
+ * deserialization ([JsonDataException]) and mapper invariant violations
+ * ([IllegalArgumentException]) — is returned as [LoadResult.Error] carrying
+ * a classified domain exception. Paging 3.5 does NOT catch throwables
+ * escaping [load] (verified in `PageFetcherSnapshot`), so anything uncaught
+ * here would crash the app.
  */
 class PlayerPagingSource(
     private val api: NBAApi,
@@ -45,6 +53,10 @@ class PlayerPagingSource(
         } catch (e: IOException) {
             LoadResult.Error(e.toDataException())
         } catch (e: HttpException) {
+            LoadResult.Error(e.toDataException())
+        } catch (e: JsonDataException) {
+            LoadResult.Error(e.toDataException())
+        } catch (e: IllegalArgumentException) {
             LoadResult.Error(e.toDataException())
         }
 
