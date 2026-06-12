@@ -39,7 +39,7 @@ class TeamDetailViewModel(
                 val team = getTeamDetailUseCase(teamId)
                 _uiState.update { it.copy(isLoading = false, team = team) }
             } catch (e: DataException) {
-                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") }
+                _uiState.update { it.copy(isLoading = false, error = e.message.orEmpty()) }
             }
         }
     }

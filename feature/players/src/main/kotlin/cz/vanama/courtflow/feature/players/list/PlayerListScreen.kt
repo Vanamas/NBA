@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -37,8 +38,10 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
+import cz.vanama.courtflow.feature.players.R
 import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
+import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /**
  * Endlessly scrolling list of NBA players; tapping a row navigates to the
@@ -70,10 +73,10 @@ fun PlayerListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("NBA Players") },
+                title = { Text(stringResource(R.string.player_list_title)) },
                 actions = {
                     TextButton(onClick = onNavigateToTeams) {
-                        Text("Teams")
+                        Text(stringResource(R.string.player_list_teams_action))
                     }
                 },
             )
@@ -110,7 +113,7 @@ fun PlayerListContent(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchQueryChanged,
-            placeholder = { Text("Search players") },
+            placeholder = { Text(stringResource(R.string.player_list_search_hint)) },
             singleLine = true,
             modifier =
                 Modifier
@@ -216,10 +219,16 @@ private fun RefreshError(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.testTag("refresh_error"),
     ) {
-        Text(text = "Failed to load players: ${error.error.message}")
+        Text(
+            text =
+                stringResource(
+                    R.string.player_list_refresh_error,
+                    error.error.message ?: stringResource(DesignR.string.error_unknown),
+                ),
+        )
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onRetry) {
-            Text("Retry")
+            Text(stringResource(DesignR.string.retry))
         }
     }
 }
@@ -236,11 +245,15 @@ private fun AppendError(
         modifier = modifier.fillMaxWidth(),
     ) {
         Text(
-            text = "Error loading more players: ${error.error.message}",
+            text =
+                stringResource(
+                    R.string.player_list_append_error,
+                    error.error.message ?: stringResource(DesignR.string.error_unknown),
+                ),
             modifier = Modifier.padding(16.dp),
         )
         TextButton(onClick = onRetry) {
-            Text("Retry")
+            Text(stringResource(DesignR.string.retry))
         }
     }
 }

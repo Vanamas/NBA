@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_list_title">NBA Players</string>
+    <string name="player_list_teams_action">Teams</string>
+    <string name="player_list_search_hint">Search players</string>
+    <string name="player_list_refresh_error">Failed to load players: %1$s</string>
+    <string name="player_list_append_error">Error loading more players: %1$s</string>
+
+    <string name="player_detail_title">Player Details</string>
+    <string name="player_detail_position">Position: %1$s</string>
+    <string name="player_detail_view_team">View Team: %1$s</string>
+    <string name="player_attribute_height">Height</string>
+    <string name="player_attribute_weight">Weight</string>
+    <string name="player_attribute_weight_lbs">%1$s lbs</string>
+    <string name="player_attribute_jersey_number">Jersey number</string>
+    <string name="player_attribute_college">College</string>
+    <string name="player_attribute_country">Country</string>
+    <string name="player_attribute_draft">Draft</string>
+    <string name="player_attribute_draft_round">round %1$d</string>
+    <string name="player_attribute_draft_pick">pick %1$d</string>
+</resources>

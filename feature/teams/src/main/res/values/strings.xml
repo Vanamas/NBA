@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="team_list_title">NBA Teams</string>
+    <string name="team_list_conference_division">%1$s · %2$s</string>
+
+    <string name="team_detail_title">Team Details</string>
+    <string name="team_detail_abbreviation">Abbreviation: %1$s</string>
+    <string name="team_detail_city">City: %1$s</string>
+    <string name="team_detail_conference">Conference: %1$s</string>
+    <string name="team_detail_division">Division: %1$s</string>
+</resources>

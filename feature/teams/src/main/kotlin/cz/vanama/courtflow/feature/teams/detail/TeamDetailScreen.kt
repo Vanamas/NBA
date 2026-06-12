@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,9 @@ import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Team
+import cz.vanama.courtflow.feature.teams.R
 import org.koin.androidx.compose.koinViewModel
+import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /**
  * Detail of a single team with all information available from the API.
@@ -49,7 +52,7 @@ fun TeamDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Team Details") })
+            TopAppBar(title = { Text(stringResource(R.string.team_detail_title)) })
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->
@@ -75,7 +78,7 @@ fun TeamDetailContent(
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
         } else if (state.error != null) {
-            Text(text = state.error)
+            Text(text = state.error.ifBlank { stringResource(DesignR.string.error_unknown) })
         } else {
             state.team?.let { team ->
                 Column(
@@ -95,19 +98,19 @@ fun TeamDetailContent(
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "Abbreviation: ${team.abbreviation}",
+                        text = stringResource(R.string.team_detail_abbreviation, team.abbreviation),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        text = "City: ${team.city}",
+                        text = stringResource(R.string.team_detail_city, team.city),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(
-                        text = "Conference: ${team.conference}",
+                        text = stringResource(R.string.team_detail_conference, team.conference),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(
-                        text = "Division: ${team.division}",
+                        text = stringResource(R.string.team_detail_division, team.division),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }

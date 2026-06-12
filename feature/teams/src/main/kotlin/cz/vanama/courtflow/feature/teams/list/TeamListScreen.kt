@@ -22,11 +22,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Team
+import cz.vanama.courtflow.feature.teams.R
 import org.koin.androidx.compose.koinViewModel
+import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /**
  * List of all NBA teams; tapping a row navigates to the team detail via
@@ -55,7 +58,7 @@ fun TeamListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("NBA Teams") })
+            TopAppBar(title = { Text(stringResource(R.string.team_list_title)) })
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->
@@ -88,7 +91,7 @@ fun TeamListContent(
             }
             state.error != null -> {
                 Text(
-                    text = state.error,
+                    text = state.error.ifBlank { stringResource(DesignR.string.error_unknown) },
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
@@ -111,7 +114,12 @@ fun TeamListContent(
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                             )
                             Text(
-                                text = "${team.conference} · ${team.division}",
+                                text =
+                                    stringResource(
+                                        R.string.team_list_conference_division,
+                                        team.conference,
+                                        team.division,
+                                    ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 4.dp),
                             )

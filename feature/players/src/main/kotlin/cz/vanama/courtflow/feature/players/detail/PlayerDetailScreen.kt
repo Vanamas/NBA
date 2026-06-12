@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,9 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
+import cz.vanama.courtflow.feature.players.R
 import org.koin.androidx.compose.koinViewModel
+import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /**
  * Detail of a single player with all known attributes and a button
@@ -66,7 +69,7 @@ fun PlayerDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Player Details") })
+            TopAppBar(title = { Text(stringResource(R.string.player_detail_title)) })
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->
@@ -95,7 +98,7 @@ fun PlayerDetailContent(
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
         } else if (state.error != null) {
-            Text(text = state.error)
+            Text(text = state.error.ifBlank { stringResource(DesignR.string.error_unknown) })
         } else {
             state.player?.let { player ->
                 PlayerDetailBody(player = player, onTeamClick = onTeamClick)
@@ -131,29 +134,32 @@ private fun PlayerDetailBody(
             fontWeight = FontWeight.Bold,
         )
         Text(
-            text = "Position: ${player.position}",
+            text = stringResource(R.string.player_detail_position, player.position),
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(modifier = Modifier.height(16.dp))
-        PlayerAttribute(label = "Height", value = player.height)
-        PlayerAttribute(label = "Weight", value = player.weight?.let { "$it lbs" })
-        PlayerAttribute(label = "Jersey number", value = player.jerseyNumber)
-        PlayerAttribute(label = "College", value = player.college)
-        PlayerAttribute(label = "Country", value = player.country)
+        PlayerAttribute(label = stringResource(R.string.player_attribute_height), value = player.height)
         PlayerAttribute(
-            label = "Draft",
+            label = stringResource(R.string.player_attribute_weight),
+            value = player.weight?.let { stringResource(R.string.player_attribute_weight_lbs, it) },
+        )
+        PlayerAttribute(label = stringResource(R.string.player_attribute_jersey_number), value = player.jerseyNumber)
+        PlayerAttribute(label = stringResource(R.string.player_attribute_college), value = player.college)
+        PlayerAttribute(label = stringResource(R.string.player_attribute_country), value = player.country)
+        PlayerAttribute(
+            label = stringResource(R.string.player_attribute_draft),
             value =
                 player.draftYear?.let { year ->
                     listOfNotNull(
                         "$year",
-                        player.draftRound?.let { "round $it" },
-                        player.draftNumber?.let { "pick $it" },
+                        player.draftRound?.let { stringResource(R.string.player_attribute_draft_round, it) },
+                        player.draftNumber?.let { stringResource(R.string.player_attribute_draft_pick, it) },
                     ).joinToString(", ")
                 },
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = { onTeamClick(player.team.id) }) {
-            Text(text = "View Team: ${player.team.fullName}")
+            Text(text = stringResource(R.string.player_detail_view_team, player.team.fullName))
         }
     }
 }
