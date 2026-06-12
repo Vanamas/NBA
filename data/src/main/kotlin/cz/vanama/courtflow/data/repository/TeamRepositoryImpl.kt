@@ -32,7 +32,11 @@ class TeamRepositoryImpl(
             }
             val teams =
                 safeApiCall {
-                    api.nbaV1TeamsGet().data.orEmpty().map { it.toDomain() }
+                    api
+                        .nbaV1TeamsGet()
+                        .data
+                        .orEmpty()
+                        .map { it.toDomain() }
                 }
             teamDao.insertAll(teams.map { it.toEntity() })
             emit(teams)
