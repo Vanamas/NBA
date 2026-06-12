@@ -229,6 +229,29 @@ class TeamDetailContentTest {
     }
 
     @Test
+    fun `roster refresh with loaded players keeps content visible without roster spinner`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team),
+                players =
+                    pagingItems(
+                        players = roster,
+                        loadStates = loadStates(refresh = LoadState.Loading),
+                    ),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithTag(TEAM_ROSTER_PULL_TO_REFRESH_TEST_TAG).assertExists()
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasText("Stephen Curry"))
+        composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(ROSTER_LOADING_TEST_TAG).assertDoesNotExist()
+    }
+
+    @Test
     fun `roster refresh loading shows roster spinner`() {
         composeTestRule.setContent {
             TeamDetailContent(

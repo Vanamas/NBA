@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,6 +65,7 @@ import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val TEAM_DETAIL_LIST_TEST_TAG = "team_detail_list"
+internal const val TEAM_ROSTER_PULL_TO_REFRESH_TEST_TAG = "team_roster_pull_to_refresh"
 
 /**
  * Detail of a single team with all information available from the API and
@@ -200,7 +202,11 @@ internal fun TeamDetailContent(
     }
 }
 
-/** Scrollable body: the team header followed by the player roster. */
+/**
+ * Scrollable body: the team header followed by the player roster, wrapped in
+ * pull-to-refresh. The pull indicator only shows while refreshing an already
+ * populated roster; the very first roster load keeps the inline spinner.
+ */
 @Composable
 private fun TeamDetailBody(
     team: Team,
@@ -208,27 +214,37 @@ private fun TeamDetailBody(
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val refreshState = players.loadState.refresh
+    PullToRefreshBox(
+        isRefreshing = refreshState is LoadState.Loading && players.itemCount > 0,
+        onRefresh = { players.refresh() },
         modifier =
             modifier
                 .fillMaxSize()
-                .testTag(TEAM_DETAIL_LIST_TEST_TAG),
+                .testTag(TEAM_ROSTER_PULL_TO_REFRESH_TEST_TAG),
     ) {
-        item { TeamHeader(team = team) }
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .testTag(TEAM_DETAIL_LIST_TEST_TAG),
+        ) {
+            item { TeamHeader(team = team) }
 
-        when (val refreshState = players.loadState.refresh) {
-            is LoadState.Error ->
-                item {
-                    RosterRefreshError(
-                        error = refreshState,
-                        onRetry = { players.retry() },
-                    )
-                }
-            else -> {
-                rosterItems(team = team, players = players, onPlayerClick = onPlayerClick)
-                if (refreshState is LoadState.Loading) {
-                    item { RosterLoading() }
+            when {
+                refreshState is LoadState.Error ->
+                    item {
+                        RosterRefreshError(
+                            error = refreshState,
+                            onRetry = { players.retry() },
+                        )
+                    }
+                else -> {
+                    rosterItems(team = team, players = players, onPlayerClick = onPlayerClick)
+                    if (refreshState is LoadState.Loading && players.itemCount == 0) {
+                        item { RosterLoading() }
+                    }
                 }
             }
         }
