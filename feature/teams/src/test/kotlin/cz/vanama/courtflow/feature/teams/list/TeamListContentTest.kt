@@ -178,6 +178,6 @@ class TeamListContentTest {
             }
         }
 
-        composeTestRule.onNodeWithTag("offline_banner").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
     }
 }

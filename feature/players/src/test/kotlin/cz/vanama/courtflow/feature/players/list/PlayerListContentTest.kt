@@ -519,7 +519,7 @@ class PlayerListContentTest {
             }
         }
 
-        composeTestRule.onNodeWithTag("connectivity_banner").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
     }
 }
 

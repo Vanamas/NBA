@@ -1,6 +1,6 @@
 package cz.vanama.courtflow.core.designsystem.component
 
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.designsystem.R

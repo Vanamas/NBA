@@ -133,7 +133,7 @@ internal fun TeamListContent(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         if (state.isOffline) {
-            ConnectivityBanner(modifier = Modifier.testTag("offline_banner"))
+            ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
         Box(modifier = Modifier.fillMaxSize()) {
             when {

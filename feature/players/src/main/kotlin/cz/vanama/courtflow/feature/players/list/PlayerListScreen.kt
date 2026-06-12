@@ -172,7 +172,7 @@ internal fun PlayerListContent(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         if (isOffline) {
-            ConnectivityBanner(modifier = Modifier.testTag("offline_banner"))
+            ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
         PlayerSearchField(
             query = searchQuery,

@@ -1,7 +1,7 @@
 package cz.vanama.courtflow.core.designsystem.component
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import cz.vanama.courtflow.core.designsystem.R
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
