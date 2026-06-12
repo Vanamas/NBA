@@ -31,6 +31,22 @@ class DeepLinkTest {
     }
 
     @Test
+    fun `players uri maps to PlayerList`() {
+        assertEquals(Destination.PlayerList, DeepLink.parse(Uri.parse("courtflow://players")))
+    }
+
+    @Test
+    fun `teams uri maps to TeamList`() {
+        assertEquals(Destination.TeamList, DeepLink.parse(Uri.parse("courtflow://teams")))
+    }
+
+    @Test
+    fun `list uris with extra path segments are rejected`() {
+        assertNull(DeepLink.parse(Uri.parse("courtflow://players/19")))
+        assertNull(DeepLink.parse(Uri.parse("courtflow://teams/extra")))
+    }
+
+    @Test
     fun `null, foreign scheme and malformed ids are rejected`() {
         assertNull(DeepLink.parse(null))
         assertNull(DeepLink.parse(Uri.parse("https://player/19")))
