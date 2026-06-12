@@ -212,7 +212,9 @@ private fun PlayerSearchField(
  * wrapped in pull-to-refresh, the first-load skeleton placeholders, the
  * first-load failure state, or — when the refresh finished with zero items —
  * the empty state. The pull indicator only shows while refreshing an already
- * populated list; the very first load renders the skeleton column.
+ * populated list; the very first load renders the skeleton column. A refresh
+ * failure with cached items keeps the list visible behind an [OfflineBanner]
+ * instead of replacing it with the full-screen error.
  */
 @Composable
 private fun PlayerListItems(
@@ -232,7 +234,7 @@ private fun PlayerListItems(
                 .testTag(PULL_TO_REFRESH_TEST_TAG),
     ) {
         when {
-            refreshState is LoadState.Error -> {
+            refreshState is LoadState.Error && players.itemCount == 0 -> {
                 ErrorState(
                     message = stringResource(R.string.player_list_refresh_error, errorMessage(refreshState.error)),
                     onRetry = { players.retry() },
@@ -259,10 +261,17 @@ private fun PlayerListItems(
                 )
             }
             else -> {
-                PlayerLazyList(
-                    players = players,
-                    onPlayerClick = onPlayerClick,
-                )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (refreshState is LoadState.Error) {
+                        // Refresh failed but cached items are available: keep the
+                        // list on screen and surface the failure as an inline banner.
+                        OfflineBanner(onRetry = { players.retry() })
+                    }
+                    PlayerLazyList(
+                        players = players,
+                        onPlayerClick = onPlayerClick,
+                    )
+                }
             }
         }
     }

@@ -200,6 +200,63 @@ class PlayerListContentTest {
     }
 
     @Test
+    fun `refresh error with cached items keeps list visible and shows offline banner`() {
+        val errorStates =
+            LoadStates(
+                refresh = LoadState.Error(RuntimeException("offline")),
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.NotLoading(endOfPaginationReached = false),
+            )
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.from(listOf(player), sourceLoadStates = errorStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(REFRESH_ERROR_TEST_TAG).assertDoesNotExist()
+        composeTestRule.onNodeWithTag(OFFLINE_BANNER_TEST_TAG).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Couldn’t refresh — showing cached data").assertIsDisplayed()
+    }
+
+    @Test
+    fun `retry button on offline banner is enabled and clickable`() {
+        val errorStates =
+            LoadStates(
+                refresh = LoadState.Error(RuntimeException("offline")),
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.NotLoading(endOfPaginationReached = false),
+            )
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.from(listOf(player), sourceLoadStates = errorStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        // Same rationale as the append-error retry test: a static PagingData has a
+        // no-op UiReceiver behind retry(), so the honest assertion is that the
+        // banner offers an enabled, clickable button and clicking does not crash.
+        composeTestRule
+            .onNodeWithText("Retry")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+            .assertHasClickAction()
+            .performClick()
+    }
+
+    @Test
     fun `append loading shows spinner row below items`() {
         val appendLoadingStates =
             LoadStates(

@@ -8,6 +8,7 @@
     <string name="player_list_empty">No players available</string>
     <string name="player_list_empty_search">No players found for “%1$s”</string>
     <string name="player_list_clear_search">Clear search</string>
+    <string name="player_list_offline_banner">Couldn’t refresh — showing cached data</string>
 
     <string name="player_detail_title">Player Details</string>
     <string name="share_player">Share player</string>
