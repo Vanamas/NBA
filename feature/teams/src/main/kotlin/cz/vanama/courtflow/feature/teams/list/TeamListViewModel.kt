@@ -13,8 +13,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * MVI ViewModel of the team list screen; loads all teams on
- * [TeamListIntent.LoadTeams] and emits navigation effects on row taps.
+ * MVI ViewModel of the team list screen; loads all teams in `init`
+ * (and again on [TeamListIntent.Retry]) and emits navigation effects
+ * on row taps.
  */
 class TeamListViewModel(
     private val getTeamsUseCase: GetTeamsUseCase,
@@ -25,9 +26,13 @@ class TeamListViewModel(
     val uiEffect: SharedFlow<TeamListEffect>
         field = MutableSharedFlow<TeamListEffect>()
 
+    init {
+        loadTeams()
+    }
+
     fun onIntent(intent: TeamListIntent) {
         when (intent) {
-            is TeamListIntent.LoadTeams -> loadTeams()
+            is TeamListIntent.Retry -> loadTeams()
             is TeamListIntent.OnTeamClicked -> onTeamClicked(intent.teamId)
         }
     }

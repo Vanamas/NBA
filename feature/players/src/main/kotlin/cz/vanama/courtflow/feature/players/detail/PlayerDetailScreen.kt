@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -22,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,12 +36,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
+import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.core.designsystem.util.positionLabel
@@ -47,43 +54,76 @@ import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.players.R
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /**
  * Detail of a single player with all known attributes and a button
  * navigating to the player's team via [onNavigateToTeamDetail].
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerDetailScreen(
     playerId: Int,
     onNavigateToTeamDetail: (Int) -> Unit,
+    onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PlayerDetailViewModel = koinViewModel(),
+    viewModel: PlayerDetailViewModel = koinViewModel { parametersOf(playerId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(playerId) {
-        viewModel.onIntent(PlayerDetailIntent.LoadPlayer(playerId))
-    }
-
-    LaunchedEffect(viewModel.uiEffect) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                is PlayerDetailEffect.NavigateToTeamDetail -> onNavigateToTeamDetail(effect.teamId)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(viewModel.uiEffect, lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    is PlayerDetailEffect.NavigateToTeamDetail -> onNavigateToTeamDetail(effect.teamId)
+                }
             }
         }
     }
 
+    PlayerDetailScreen(
+        state = uiState,
+        onTeamClick = { teamId -> viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(teamId)) },
+        onRetry = { viewModel.onIntent(PlayerDetailIntent.Retry) },
+        onNavigateBack = onNavigateBack,
+        modifier = modifier,
+    )
+}
+
+/**
+ * Stateless player detail screen with the [Scaffold] and top bar; rendered by
+ * previews and free of any ViewModel wiring.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun PlayerDetailScreen(
+    state: PlayerDetailState,
+    onTeamClick: (Int) -> Unit,
+    onRetry: () -> Unit,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.player_detail_title)) })
+            TopAppBar(
+                title = { Text(stringResource(R.string.player_detail_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(DesignR.string.navigate_back),
+                        )
+                    }
+                },
+            )
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->
         PlayerDetailContent(
-            state = uiState,
-            onTeamClick = { teamId -> viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(teamId)) },
+            state = state,
+            onTeamClick = onTeamClick,
+            onRetry = onRetry,
             modifier = Modifier.padding(padding),
         )
     }
@@ -91,12 +131,14 @@ fun PlayerDetailScreen(
 
 /**
  * Stateless content of the player detail screen rendered purely from [state];
- * [onTeamClick] is invoked with the team id when the team button is tapped.
+ * [onTeamClick] is invoked with the team id when the team button is tapped and
+ * [onRetry] when the user retries after a load failure.
  */
 @Composable
-fun PlayerDetailContent(
+internal fun PlayerDetailContent(
     state: PlayerDetailState,
     onTeamClick: (Int) -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -106,7 +148,10 @@ fun PlayerDetailContent(
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
         } else if (state.error != null) {
-            Text(text = state.error.ifBlank { stringResource(DesignR.string.error_unknown) })
+            ErrorState(
+                message = state.error.ifBlank { stringResource(DesignR.string.error_unknown) },
+                onRetry = onRetry,
+            )
         } else {
             state.player?.let { player ->
                 PlayerDetailBody(player = player, onTeamClick = onTeamClick)
@@ -239,11 +284,12 @@ private fun PlayerAttributes(
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
+@PreviewScreenSizes
 @Composable
-private fun PlayerDetailContentPreview() {
+private fun PlayerDetailScreenPreview() {
     CourtFlowTheme(dynamicColor = false) {
-        PlayerDetailContent(
+        PlayerDetailScreen(
             state =
                 PlayerDetailState(
                     player =
@@ -273,28 +319,34 @@ private fun PlayerDetailContentPreview() {
                         ),
                 ),
             onTeamClick = {},
+            onRetry = {},
+            onNavigateBack = {},
         )
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
-private fun PlayerDetailContentLoadingPreview() {
+private fun PlayerDetailScreenLoadingPreview() {
     CourtFlowTheme(dynamicColor = false) {
-        PlayerDetailContent(
+        PlayerDetailScreen(
             state = PlayerDetailState(isLoading = true),
             onTeamClick = {},
+            onRetry = {},
+            onNavigateBack = {},
         )
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
-private fun PlayerDetailContentErrorPreview() {
+private fun PlayerDetailScreenErrorPreview() {
     CourtFlowTheme(dynamicColor = false) {
-        PlayerDetailContent(
+        PlayerDetailScreen(
             state = PlayerDetailState(error = "Player could not be loaded."),
             onTeamClick = {},
+            onRetry = {},
+            onNavigateBack = {},
         )
     }
 }

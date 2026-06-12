@@ -11,70 +11,104 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
+import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 /**
  * Detail of a single team with all information available from the API.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamDetailScreen(
     teamId: Int,
+    onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TeamDetailViewModel = koinViewModel(),
+    viewModel: TeamDetailViewModel = koinViewModel { parametersOf(teamId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(teamId) {
-        viewModel.onIntent(TeamDetailIntent.LoadTeam(teamId))
-    }
+    TeamDetailScreen(
+        state = uiState,
+        onRetry = { viewModel.onIntent(TeamDetailIntent.Retry) },
+        onNavigateBack = onNavigateBack,
+        modifier = modifier,
+    )
+}
 
+/**
+ * Stateless team detail screen with the [Scaffold] and top bar; rendered by
+ * previews and free of any ViewModel wiring.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun TeamDetailScreen(
+    state: TeamDetailState,
+    onRetry: () -> Unit,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.team_detail_title)) })
+            TopAppBar(
+                title = { Text(stringResource(R.string.team_detail_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(DesignR.string.navigate_back),
+                        )
+                    }
+                },
+            )
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->
         TeamDetailContent(
-            state = uiState,
+            state = state,
+            onRetry = onRetry,
             modifier = Modifier.padding(padding),
         )
     }
 }
 
 /**
- * Stateless content of the team detail screen rendered purely from [state].
+ * Stateless content of the team detail screen rendered purely from [state];
+ * [onRetry] is invoked when the user retries after a load failure.
  */
 @Composable
-fun TeamDetailContent(
+internal fun TeamDetailContent(
     state: TeamDetailState,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -84,7 +118,10 @@ fun TeamDetailContent(
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
         } else if (state.error != null) {
-            Text(text = state.error.ifBlank { stringResource(DesignR.string.error_unknown) })
+            ErrorState(
+                message = state.error.ifBlank { stringResource(DesignR.string.error_unknown) },
+                onRetry = onRetry,
+            )
         } else {
             state.team?.let { team ->
                 TeamDetailBody(team = team)
@@ -148,11 +185,12 @@ private fun TeamDetailBody(
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
+@PreviewScreenSizes
 @Composable
-private fun TeamDetailContentPreview() {
+private fun TeamDetailScreenPreview() {
     CourtFlowTheme(dynamicColor = false) {
-        TeamDetailContent(
+        TeamDetailScreen(
             state =
                 TeamDetailState(
                     team =
@@ -166,14 +204,20 @@ private fun TeamDetailContentPreview() {
                             "Warriors",
                         ),
                 ),
+            onRetry = {},
+            onNavigateBack = {},
         )
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
-private fun TeamDetailContentErrorPreview() {
+private fun TeamDetailScreenErrorPreview() {
     CourtFlowTheme(dynamicColor = false) {
-        TeamDetailContent(state = TeamDetailState(error = "Team could not be loaded."))
+        TeamDetailScreen(
+            state = TeamDetailState(error = "Team could not be loaded."),
+            onRetry = {},
+            onNavigateBack = {},
+        )
     }
 }

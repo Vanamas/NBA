@@ -9,5 +9,5 @@ import org.koin.dsl.module
 val playersFeatureModule =
     module {
         viewModel { PlayerListViewModel(get()) }
-        viewModel { PlayerDetailViewModel(get()) }
+        viewModel { (playerId: Int) -> PlayerDetailViewModel(playerId, get()) }
     }

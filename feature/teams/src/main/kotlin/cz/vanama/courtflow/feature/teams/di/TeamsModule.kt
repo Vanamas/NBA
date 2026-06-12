@@ -8,6 +8,6 @@ import org.koin.dsl.module
 /** Koin module providing the ViewModels of the teams feature. */
 val teamsFeatureModule =
     module {
-        viewModel { TeamDetailViewModel(get()) }
+        viewModel { (teamId: Int) -> TeamDetailViewModel(teamId, get()) }
         viewModel { TeamListViewModel(get()) }
     }

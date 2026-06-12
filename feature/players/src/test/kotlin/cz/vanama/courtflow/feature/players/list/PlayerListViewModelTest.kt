@@ -19,7 +19,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 
@@ -42,20 +41,18 @@ class PlayerListViewModelTest {
     }
 
     @Test
-    fun `LoadPlayers intent starts the paging stream`() =
+    fun `paging stream starts on first collection`() =
         runTest {
             every { getPlayersUseCase(null) } returns flowOf(PagingData.empty<Player>())
 
-            viewModel.onIntent(PlayerListIntent.LoadPlayers)
-
-            assertNotNull(viewModel.uiState.value.players)
             val job =
                 launch {
                     viewModel.uiState.value.players
-                        ?.collect {}
+                        .collect {}
                 }
             advanceTimeBy(301)
             runCurrent()
+
             verify { getPlayersUseCase(null) }
             job.cancel()
         }
@@ -64,11 +61,10 @@ class PlayerListViewModelTest {
     fun `search query change reloads players with the query after debounce`() =
         runTest {
             every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
-            viewModel.onIntent(PlayerListIntent.LoadPlayers)
             val job =
                 launch {
                     viewModel.uiState.value.players
-                        ?.collect {}
+                        .collect {}
                 }
 
             viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged("curry"))

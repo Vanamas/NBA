@@ -27,6 +27,9 @@ class KoinModulesTest {
                 playersFeatureModule,
                 teamsFeatureModule,
             )
-        }.verify()
+        }.verify(
+            // Detail ViewModels take the player/team id as a runtime Koin parameter.
+            extraTypes = listOf(Int::class),
+        )
     }
 }

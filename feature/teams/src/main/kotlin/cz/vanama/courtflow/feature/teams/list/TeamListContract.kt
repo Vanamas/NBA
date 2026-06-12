@@ -9,9 +9,9 @@ data class TeamListState(
     val error: String? = null,
 )
 
-/** User actions of the team list screen. */
+/** User actions of the team list screen; the initial load happens in the ViewModel's `init`. */
 sealed class TeamListIntent {
-    data object LoadTeams : TeamListIntent()
+    data object Retry : TeamListIntent()
 
     data class OnTeamClicked(
         val teamId: Int,

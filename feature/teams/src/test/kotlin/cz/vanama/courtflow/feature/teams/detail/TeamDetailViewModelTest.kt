@@ -19,14 +19,14 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class TeamDetailViewModelTest {
     private lateinit var getTeamDetailUseCase: GetTeamDetailUseCase
-    private lateinit var viewModel: TeamDetailViewModel
     private val testDispatcher = StandardTestDispatcher()
+
+    private val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getTeamDetailUseCase = mockk()
-        viewModel = TeamDetailViewModel(getTeamDetailUseCase)
     }
 
     @After
@@ -35,15 +35,11 @@ class TeamDetailViewModelTest {
     }
 
     @Test
-    fun `LoadTeam intent updates state with team on success`() =
+    fun `team is loaded in init on success`() =
         runTest {
-            val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
             coEvery { getTeamDetailUseCase(1) } returns team
 
-            viewModel.onIntent(TeamDetailIntent.LoadTeam(1))
-
-            // Initial state is loading: false, but after intent it should be loading: true then false.
-            // viewModelScope.launch runs immediately with StandardTestDispatcher if we advance
+            val viewModel = TeamDetailViewModel(1, getTeamDetailUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(team, viewModel.uiState.value.team)
@@ -52,14 +48,30 @@ class TeamDetailViewModelTest {
         }
 
     @Test
-    fun `LoadTeam intent updates state with error on failure`() =
+    fun `init updates state with error on failure`() =
         runTest {
             coEvery { getTeamDetailUseCase(1) } throws DataException("Error")
 
-            viewModel.onIntent(TeamDetailIntent.LoadTeam(1))
+            val viewModel = TeamDetailViewModel(1, getTeamDetailUseCase)
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals("Error", viewModel.uiState.value.error)
             assertEquals(false, viewModel.uiState.value.isLoading)
+        }
+
+    @Test
+    fun `Retry intent reloads the team after a failure`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } throws DataException("Error") andThen team
+
+            val viewModel = TeamDetailViewModel(1, getTeamDetailUseCase)
+            testDispatcher.scheduler.advanceUntilIdle()
+            assertEquals("Error", viewModel.uiState.value.error)
+
+            viewModel.onIntent(TeamDetailIntent.Retry)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(team, viewModel.uiState.value.team)
+            assertEquals(null, viewModel.uiState.value.error)
         }
 }

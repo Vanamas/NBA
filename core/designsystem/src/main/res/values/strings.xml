@@ -2,6 +2,8 @@
 <resources>
     <string name="retry">Retry</string>
     <string name="error_unknown">Unknown error</string>
+    <string name="navigate_back">Back</string>
+    <string name="team_card_conference_division">%1$s · %2$s</string>
 
     <string name="position_guard">Guard</string>
     <string name="position_forward">Forward</string>

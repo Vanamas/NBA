@@ -47,10 +47,19 @@ class PlayerListContentTest {
         )
 
     @Test
-    fun `null players shows loading indicator`() {
+    fun `initial refresh shows loading indicator`() {
+        val loadingStates =
+            LoadStates(
+                refresh = LoadState.Loading,
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.NotLoading(endOfPaginationReached = false),
+            )
+
         composeTestRule.setContent {
             PlayerListContent(
-                players = null,
+                players =
+                    flowOf(PagingData.empty<Player>(sourceLoadStates = loadingStates))
+                        .collectAsLazyPagingItems(),
                 searchQuery = "",
                 onSearchQueryChanged = {},
                 onPlayerClick = {},
@@ -100,7 +109,7 @@ class PlayerListContentTest {
 
         composeTestRule.setContent {
             PlayerListContent(
-                players = null,
+                players = flowOf(PagingData.empty<Player>()).collectAsLazyPagingItems(),
                 searchQuery = "",
                 onSearchQueryChanged = { lastQuery = it },
                 onPlayerClick = {},

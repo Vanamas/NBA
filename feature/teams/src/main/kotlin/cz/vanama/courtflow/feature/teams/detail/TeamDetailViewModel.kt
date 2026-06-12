@@ -12,10 +12,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * MVI ViewModel of the team detail screen; loads the team on
- * [TeamDetailIntent.LoadTeam].
+ * MVI ViewModel of the team detail screen; loads the team with [teamId]
+ * in `init` and again on [TeamDetailIntent.Retry].
  */
 class TeamDetailViewModel(
+    private val teamId: Int,
     private val getTeamDetailUseCase: GetTeamDetailUseCase,
 ) : ViewModel() {
     val uiState: StateFlow<TeamDetailState>
@@ -24,13 +25,17 @@ class TeamDetailViewModel(
     val uiEffect: SharedFlow<TeamDetailEffect>
         field = MutableSharedFlow<TeamDetailEffect>()
 
+    init {
+        loadTeam()
+    }
+
     fun onIntent(intent: TeamDetailIntent) {
         when (intent) {
-            is TeamDetailIntent.LoadTeam -> loadTeam(intent.teamId)
+            is TeamDetailIntent.Retry -> loadTeam()
         }
     }
 
-    private fun loadTeam(teamId: Int) {
+    private fun loadTeam() {
         viewModelScope.launch {
             uiState.update { it.copy(isLoading = true, error = null) }
             try {

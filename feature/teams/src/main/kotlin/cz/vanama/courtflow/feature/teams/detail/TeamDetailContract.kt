@@ -9,11 +9,9 @@ data class TeamDetailState(
     val error: String? = null,
 )
 
-/** User actions of the team detail screen. */
+/** User actions of the team detail screen; the initial load happens in the ViewModel's `init`. */
 sealed class TeamDetailIntent {
-    data class LoadTeam(
-        val teamId: Int,
-    ) : TeamDetailIntent()
+    data object Retry : TeamDetailIntent()
 }
 
 /** One-shot events emitted by [TeamDetailViewModel]; currently none. */
