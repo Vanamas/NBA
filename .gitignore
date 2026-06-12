@@ -8,6 +8,13 @@ build/
 .kotlin/
 .remember/
 .maestro/
+.agent/
+.superset/
+docs/log.md
+docs/health.md
+docs/roadmap.md
+docs/oversight/
+docs/superpowers/
 .externalNativeBuild
 .cxx
 local.properties
