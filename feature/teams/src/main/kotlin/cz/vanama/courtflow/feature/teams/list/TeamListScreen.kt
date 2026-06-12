@@ -1,5 +1,8 @@
 package cz.vanama.courtflow.feature.teams.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -132,7 +135,11 @@ internal fun TeamListContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        if (state.isOffline) {
+        AnimatedVisibility(
+            visible = state.isOffline,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
             ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
         Box(modifier = Modifier.fillMaxSize()) {

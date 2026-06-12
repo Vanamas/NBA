@@ -1,5 +1,8 @@
 package cz.vanama.courtflow.feature.players.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -178,7 +181,11 @@ internal fun PlayerListContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        if (isOffline) {
+        AnimatedVisibility(
+            visible = isOffline,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
             ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
         PlayerSearchField(
@@ -287,9 +294,13 @@ private fun PlayerListItems(
             }
             else -> {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    if (refreshState is LoadState.Error) {
-                        // Refresh failed but cached items are available: keep the
-                        // list on screen and surface the failure as an inline banner.
+                    // Refresh failed but cached items are available: keep the
+                    // list on screen and surface the failure as an inline banner.
+                    AnimatedVisibility(
+                        visible = refreshState is LoadState.Error,
+                        enter = expandVertically(),
+                        exit = shrinkVertically(),
+                    ) {
                         CachedDataBanner(
                             message = stringResource(R.string.player_list_offline_banner),
                             onRetry = { players.retry() },

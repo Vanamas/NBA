@@ -8,6 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -19,7 +22,12 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 fun ConnectivityBanner(modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.errorContainer,
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                // Announce the connectivity/staleness change to TalkBack without
+                // stealing focus.
+                .semantics { liveRegion = LiveRegionMode.Polite },
     ) {
         Text(
             text = stringResource(R.string.connectivity_banner),

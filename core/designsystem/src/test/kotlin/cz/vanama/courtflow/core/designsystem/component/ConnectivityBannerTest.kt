@@ -1,5 +1,8 @@
 package cz.vanama.courtflow.core.designsystem.component
 
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -28,5 +31,18 @@ class ConnectivityBannerTest {
 
         val expected = RuntimeEnvironment.getApplication().getString(R.string.connectivity_banner)
         composeTestRule.onNodeWithText(expected).assertIsDisplayed()
+    }
+
+    @Test
+    fun `announces itself as a polite live region`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                ConnectivityBanner()
+            }
+        }
+
+        composeTestRule
+            .onNode(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
+            .assertExists()
     }
 }
