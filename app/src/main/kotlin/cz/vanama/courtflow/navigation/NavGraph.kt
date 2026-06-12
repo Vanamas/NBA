@@ -1,61 +1,65 @@
 package cz.vanama.courtflow.navigation
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import cz.vanama.courtflow.feature.players.detail.PlayerDetailScreen
 import cz.vanama.courtflow.feature.players.list.PlayerListScreen
 import cz.vanama.courtflow.feature.teams.detail.TeamDetailScreen
 import cz.vanama.courtflow.feature.teams.list.TeamListScreen
 
 /**
- * Root navigation of the app: a simple manual back stack of [Destination]
- * values rendered by a `when` over the top entry. Both the system back
- * gesture and the top bar back arrows pop the stack; on the root
- * destination the system back closes the activity as usual.
+ * Root navigation of the app: a Navigation 3 [NavDisplay] over a saveable
+ * back stack of [Destination] keys. The stack survives configuration
+ * changes and process death; each entry keeps its own saved state
+ * (scroll positions) and ViewModelStore, and the system back gesture
+ * pops with predictive-back animation.
  */
 @Composable
-fun CourtFlowNavGraph() {
-    val backStack = remember { mutableStateListOf<Destination>(Destination.PlayerList) }
+fun CourtFlowNavGraph(modifier: Modifier = Modifier) {
+    val backStack = rememberNavBackStack(Destination.PlayerList)
+    val navigateBack: () -> Unit = { backStack.removeLastOrNull() }
 
-    val navigateBack: () -> Unit = { backStack.removeAt(backStack.lastIndex) }
-
-    BackHandler(enabled = backStack.size > 1, onBack = navigateBack)
-
-    when (val currentDestination = backStack.last()) {
-        is Destination.PlayerList -> {
-            PlayerListScreen(
-                onNavigateToPlayerDetail = { playerId ->
-                    backStack.add(Destination.PlayerDetail(playerId))
-                },
-                onNavigateToTeams = {
-                    backStack.add(Destination.TeamList)
-                },
-            )
-        }
-        is Destination.TeamList -> {
-            TeamListScreen(
-                onNavigateToTeamDetail = { teamId ->
-                    backStack.add(Destination.TeamDetail(teamId))
-                },
-                onNavigateBack = navigateBack,
-            )
-        }
-        is Destination.PlayerDetail -> {
-            PlayerDetailScreen(
-                playerId = currentDestination.playerId,
-                onNavigateToTeamDetail = { teamId ->
-                    backStack.add(Destination.TeamDetail(teamId))
-                },
-                onNavigateBack = navigateBack,
-            )
-        }
-        is Destination.TeamDetail -> {
-            TeamDetailScreen(
-                teamId = currentDestination.teamId,
-                onNavigateBack = navigateBack,
-            )
-        }
-    }
+    NavDisplay(
+        backStack = backStack,
+        onBack = navigateBack,
+        entryDecorators =
+            listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+        entryProvider =
+            entryProvider {
+                entry<Destination.PlayerList> {
+                    PlayerListScreen(
+                        onNavigateToPlayerDetail = { playerId -> backStack.add(Destination.PlayerDetail(playerId)) },
+                        onNavigateToTeams = { backStack.add(Destination.TeamList) },
+                    )
+                }
+                entry<Destination.TeamList> {
+                    TeamListScreen(
+                        onNavigateToTeamDetail = { teamId -> backStack.add(Destination.TeamDetail(teamId)) },
+                        onNavigateBack = navigateBack,
+                    )
+                }
+                entry<Destination.PlayerDetail> { destination ->
+                    PlayerDetailScreen(
+                        playerId = destination.playerId,
+                        onNavigateToTeamDetail = { teamId -> backStack.add(Destination.TeamDetail(teamId)) },
+                        onNavigateBack = navigateBack,
+                    )
+                }
+                entry<Destination.TeamDetail> { destination ->
+                    TeamDetailScreen(
+                        teamId = destination.teamId,
+                        onNavigateBack = navigateBack,
+                    )
+                }
+            },
+        modifier = modifier,
+    )
 }
