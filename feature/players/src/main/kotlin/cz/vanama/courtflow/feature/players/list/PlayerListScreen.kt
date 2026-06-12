@@ -89,15 +89,15 @@ fun PlayerListScreen(
             onSearchQueryChanged = { query ->
                 viewModel.onIntent(
                     PlayerListIntent.OnSearchQueryChanged(
-                        query
-                    )
+                        query,
+                    ),
                 )
             },
             onPlayerClick = { playerId ->
                 viewModel.onIntent(
                     PlayerListIntent.OnPlayerClicked(
-                        playerId
-                    )
+                        playerId,
+                    ),
                 )
             },
             modifier = Modifier.padding(padding),
@@ -287,7 +287,7 @@ private fun PlayerListContentPreview() {
                 firstName = "Draymond",
                 lastName = "Green",
                 position = "F",
-                team = team
+                team = team,
             ),
         )
 

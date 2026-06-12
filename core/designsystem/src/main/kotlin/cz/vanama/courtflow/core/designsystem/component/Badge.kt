@@ -20,15 +20,6 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.theme.CourtOrange
 import cz.vanama.courtflow.core.designsystem.theme.OnCourtOrange
 
-/** Color tone of a [Badge]. */
-enum class BadgeTone {
-    /** Brand orange position badge (G / F / C) used across player surfaces. */
-    Position,
-
-    /** Material primary container, e.g. the team abbreviation. */
-    Primary,
-}
-
 /**
  * Small status pill. Defaults to the brand-orange "position" badge
  * (G / F / C); [tone] switches to the Material container palette.

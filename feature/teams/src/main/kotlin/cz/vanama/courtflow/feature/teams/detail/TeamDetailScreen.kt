@@ -155,15 +155,16 @@ private fun TeamDetailContentPreview() {
         TeamDetailContent(
             state =
                 TeamDetailState(
-                    team = Team(
-                        10,
-                        "GSW",
-                        "Golden State",
-                        "West",
-                        "Pacific",
-                        "Golden State Warriors",
-                        "Warriors"
-                    ),
+                    team =
+                        Team(
+                            10,
+                            "GSW",
+                            "Golden State",
+                            "West",
+                            "Pacific",
+                            "Golden State Warriors",
+                            "Warriors",
+                        ),
                 ),
         )
     }

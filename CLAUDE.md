@@ -16,12 +16,14 @@ The API requires an Authorization header. The key is read from `local.properties
 ./gradlew :domain:testDebugUnitTest      # unit tests of one module
 ./gradlew :feature:players:testDebugUnitTest --tests "cz.vanama.courtflow.feature.players.list.PlayerListViewModelTest"   # single test class
 ./gradlew :app:testDebugUnitTest --tests "cz.vanama.courtflow.konsist.ArchitectureTest"   # Konsist architecture rules
-./gradlew detekt ktlintCheck             # static analysis (see caveat below)
+./gradlew detekt ktlintCheck             # static analysis (runs in every module)
 ./gradlew :core:designsystem:verifyRoborazziDebug   # screenshot tests against goldens
 ./gradlew :core:designsystem:recordRoborazziDebug   # re-record goldens after intended visual changes
 ```
 
-Caveat: detekt and ktlint are applied only in the root `build.gradle.kts` without a `subprojects {}` block, so they currently do **not** analyze module sources. Detekt config lives in `config/detekt/detekt.yml` (maxIssues: 0).
+detekt and ktlint are applied to **all modules** via `subprojects {}` in the root `build.gradle.kts`; config lives in `config/detekt/detekt.yml` (maxIssues: 0, LongMethod max 60 lines, MatchingDeclarationName enforced). Fix ktlint findings with `./gradlew ktlintFormat`.
+
+**Before every commit/push, run the same checks as CI (`.github/workflows/ci.yml`): `./gradlew detekt ktlintCheck test assembleDebug`** — plus `:core:designsystem:verifyRoborazziDebug` when UI in the design system changed. Never rely on tests alone; detekt failures break CI.
 
 ## Architecture
 

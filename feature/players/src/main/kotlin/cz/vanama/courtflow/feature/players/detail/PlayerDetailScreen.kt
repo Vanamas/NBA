@@ -157,64 +157,85 @@ private fun PlayerDetailBody(
             )
         }
         Spacer(modifier = Modifier.height(20.dp))
-        Column(
+        PlayerAttributes(
+            player = player,
             modifier =
                 Modifier
                     .widthIn(max = 360.dp)
                     .fillMaxWidth(),
-        ) {
-            AttributeRow(
-                label = stringResource(R.string.player_attribute_height),
-                value = player.height,
-            )
-            AttributeRow(
-                label = stringResource(R.string.player_attribute_weight),
-                value = player.weight?.let { stringResource(R.string.player_attribute_weight_lbs, it) },
-            )
-            AttributeRow(
-                label = stringResource(R.string.player_attribute_jersey_number),
-                value = player.jerseyNumber,
-            )
-            AttributeRow(
-                label = stringResource(R.string.player_attribute_college),
-                value = player.college,
-            )
-            AttributeRow(
-                label = stringResource(R.string.player_attribute_country),
-                value = player.country,
-            )
-            AttributeRow(
-                label = stringResource(R.string.player_attribute_draft),
-                value =
-                    player.draftYear?.let { year ->
-                        listOfNotNull(
-                            "$year",
-                            player.draftRound?.let {
-                                stringResource(R.string.player_attribute_draft_round, it)
-                            },
-                            player.draftNumber?.let {
-                                stringResource(R.string.player_attribute_draft_pick, it)
-                            },
-                        ).joinToString(", ")
-                    },
-            )
-        }
+        )
         Spacer(modifier = Modifier.height(28.dp))
-        Button(
+        ViewTeamButton(
+            teamName = player.team.fullName,
             onClick = { onTeamClick(player.team.id) },
             modifier =
                 Modifier
                     .widthIn(max = 360.dp)
                     .fillMaxWidth(),
-        ) {
-            Text(text = stringResource(R.string.player_detail_view_team, player.team.fullName))
-            Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                modifier = Modifier.size(ButtonDefaults.IconSize),
-            )
-        }
+        )
+    }
+}
+
+/** Full-width filled button navigating to the player's team. */
+@Composable
+private fun ViewTeamButton(
+    teamName: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(onClick = onClick, modifier = modifier) {
+        Text(text = stringResource(R.string.player_detail_view_team, teamName))
+        Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+    }
+}
+
+/** All known label/value attributes of the player; missing values are skipped. */
+@Composable
+private fun PlayerAttributes(
+    player: Player,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        AttributeRow(
+            label = stringResource(R.string.player_attribute_height),
+            value = player.height,
+        )
+        AttributeRow(
+            label = stringResource(R.string.player_attribute_weight),
+            value = player.weight?.let { stringResource(R.string.player_attribute_weight_lbs, it) },
+        )
+        AttributeRow(
+            label = stringResource(R.string.player_attribute_jersey_number),
+            value = player.jerseyNumber,
+        )
+        AttributeRow(
+            label = stringResource(R.string.player_attribute_college),
+            value = player.college,
+        )
+        AttributeRow(
+            label = stringResource(R.string.player_attribute_country),
+            value = player.country,
+        )
+        AttributeRow(
+            label = stringResource(R.string.player_attribute_draft),
+            value =
+                player.draftYear?.let { year ->
+                    listOfNotNull(
+                        "$year",
+                        player.draftRound?.let {
+                            stringResource(R.string.player_attribute_draft_round, it)
+                        },
+                        player.draftNumber?.let {
+                            stringResource(R.string.player_attribute_draft_pick, it)
+                        },
+                    ).joinToString(", ")
+                },
+        )
     }
 }
 
