@@ -54,9 +54,9 @@ import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
+import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.LoadingIndicator
-import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Game

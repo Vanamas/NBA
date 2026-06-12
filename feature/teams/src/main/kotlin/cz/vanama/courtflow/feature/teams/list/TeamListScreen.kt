@@ -165,9 +165,10 @@ internal fun TeamListContent(
                 }
                 else -> {
                     LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
-                        contentPadding = PaddingValues(16.dp),horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                        columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         state.sections.forEach { section -> teamSection(section, onTeamClick) }

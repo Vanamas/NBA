@@ -53,12 +53,12 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
-import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
-import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.PagingAppendError
 import cz.vanama.courtflow.core.designsystem.component.PagingAppendLoading
+import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.PlayerCardSkeleton
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
@@ -407,7 +407,6 @@ private fun PlayerLazyList(
         }
     }
 }
-
 
 @PreviewLightDark
 @PreviewScreenSizes
