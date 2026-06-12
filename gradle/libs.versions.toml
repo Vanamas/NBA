@@ -100,6 +100,7 @@ moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-code
 androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 androidx-paging-common = { group = "androidx.paging", name = "paging-common", version.ref = "paging" }
+androidx-paging-testing = { group = "androidx.paging", name = "paging-testing", version.ref = "paging" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
