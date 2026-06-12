@@ -61,9 +61,7 @@ val coreNetworkModule =
         single {
             Retrofit
                 .Builder()
-                // The generated endpoint paths already carry the league/version
-                // prefix (`nba/v1/...`), so the base URL is the bare host.
-                .baseUrl("https://api.balldontlie.io/")
+                .baseUrl(BuildConfig.BALLDONTLIE_BASE_URL)
                 .client(get())
                 .addConverterFactory(MoshiConverterFactory.create(get()))
                 .build()

@@ -29,6 +29,15 @@ android {
             "BALLDONTLIE_API_KEY",
             "\"${localProperties.getProperty("balldontlie.apiKey", "")}\"",
         )
+
+        // The generated endpoint paths already carry the league/version prefix
+        // (`nba/v1/...`), so the base URL is the bare host. Build types and
+        // flavors can override this field to point at a different environment.
+        buildConfigField(
+            "String",
+            "BALLDONTLIE_BASE_URL",
+            "\"https://api.balldontlie.io/\"",
+        )
     }
 
     buildFeatures {
