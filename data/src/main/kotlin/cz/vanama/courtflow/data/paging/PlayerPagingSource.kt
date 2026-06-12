@@ -18,6 +18,7 @@ import java.io.IOException
 class PlayerPagingSource(
     private val api: BallDontLieApi,
     private val search: String? = null,
+    private val teamIds: List<Int>? = null,
 ) : PagingSource<Int, Player>() {
     override fun getRefreshKey(state: PagingState<Int, Player>): Int? =
         state.anchorPosition?.let { anchorPosition ->
@@ -33,6 +34,7 @@ class PlayerPagingSource(
                     cursor = cursor,
                     perPage = params.loadSize.coerceAtMost(MAX_PAGE_SIZE),
                     search = search,
+                    teamIds = teamIds,
                 )
 
             LoadResult.Page(
