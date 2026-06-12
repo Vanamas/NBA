@@ -25,6 +25,8 @@ dependencies {
     implementation(libs.androidx.paging.common)
     // Needed to translate retrofit2.HttpException into the domain DataException.
     implementation(libs.retrofit)
+    // Needed to translate Moshi's JsonDataException into the domain DataException.
+    implementation(libs.moshi)
     ksp(libs.androidx.room.compiler)
     implementation(libs.koin.android)
 
