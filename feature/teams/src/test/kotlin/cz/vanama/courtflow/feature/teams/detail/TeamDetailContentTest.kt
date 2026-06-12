@@ -264,6 +264,32 @@ class TeamDetailContentTest {
     }
 
     @Test
+    fun `roster refresh error with loaded players keeps roster and shows offline banner`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team),
+                players =
+                    pagingItems(
+                        players = roster,
+                        loadStates = loadStates(refresh = LoadState.Error(DataException(DataErrorKind.NETWORK))),
+                    ),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasText("Stephen Curry"))
+        composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(ROSTER_REFRESH_ERROR_TEST_TAG).assertDoesNotExist()
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasTestTag(TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG))
+        composeTestRule.onNodeWithTag(TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG).assertIsDisplayed()
+    }
+
+    @Test
     fun `roster append error shows inline error row with retry`() {
         composeTestRule.setContent {
             TeamDetailContent(

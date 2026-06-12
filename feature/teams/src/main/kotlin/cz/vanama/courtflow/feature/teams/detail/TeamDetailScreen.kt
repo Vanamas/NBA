@@ -55,6 +55,7 @@ import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.BadgeTone
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
+import cz.vanama.courtflow.core.designsystem.component.OfflineBanner
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
@@ -71,6 +72,7 @@ import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val TEAM_DETAIL_LIST_TEST_TAG = "team_detail_list"
 internal const val TEAM_ROSTER_PULL_TO_REFRESH_TEST_TAG = "team_roster_pull_to_refresh"
+internal const val TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG = "team_roster_offline_banner"
 
 /**
  * Detail of a single team with all information available from the API and
@@ -211,7 +213,9 @@ internal fun TeamDetailContent(
 /**
  * Scrollable body: the team header followed by the player roster, wrapped in
  * pull-to-refresh. The pull indicator only shows while refreshing an already
- * populated roster; the very first roster load keeps the inline spinner.
+ * populated roster; the very first roster load keeps the inline spinner. A
+ * refresh failure with cached roster rows keeps them visible behind an
+ * [OfflineBanner] instead of replacing them with the full-width error.
  */
 @Composable
 private fun TeamDetailBody(
@@ -242,7 +246,7 @@ private fun TeamDetailBody(
             recentGamesSection(recentGames)
 
             when {
-                refreshState is LoadState.Error ->
+                refreshState is LoadState.Error && players.itemCount == 0 ->
                     item {
                         RosterRefreshError(
                             error = refreshState,
@@ -250,6 +254,17 @@ private fun TeamDetailBody(
                         )
                     }
                 else -> {
+                    if (refreshState is LoadState.Error) {
+                        // Refresh failed but cached roster rows are available: keep
+                        // them on screen and surface the failure as an inline banner.
+                        item {
+                            OfflineBanner(
+                                message = stringResource(R.string.team_roster_offline_banner),
+                                onRetry = { players.retry() },
+                                modifier = Modifier.testTag(TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG),
+                            )
+                        }
+                    }
                     rosterItems(team = team, players = players, onPlayerClick = onPlayerClick)
                     if (refreshState is LoadState.Loading && players.itemCount == 0) {
                         item { RosterLoading() }
