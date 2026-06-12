@@ -114,6 +114,28 @@ class CourtFlowNavGraphTest {
     }
 
     @Test
+    @Config(sdk = [35], qualifiers = "w1024dp-h800dp")
+    fun `wide window keeps the list visible next to the detail`() {
+        composeRule.setContent { CourtFlowNavGraph() }
+        awaitPlayerRow()
+
+        composeRule.onNodeWithText("Stephen Curry").performClick()
+
+        composeRule.onNodeWithText("Player Details").assertExists()
+        // The list pane stays composed next to the detail pane.
+        composeRule.onNodeWithText("NBA Players").assertExists()
+    }
+
+    @Test
+    @Config(sdk = [35], qualifiers = "w1024dp-h800dp")
+    fun `wide window shows a placeholder detail pane before selection`() {
+        composeRule.setContent { CourtFlowNavGraph() }
+        awaitPlayerRow()
+
+        composeRule.onNodeWithText("Select a player to see the details").assertExists()
+    }
+
+    @Test
     fun `teams action opens the team list and back returns`() {
         composeRule.setContent { CourtFlowNavGraph() }
         awaitPlayerRow()
