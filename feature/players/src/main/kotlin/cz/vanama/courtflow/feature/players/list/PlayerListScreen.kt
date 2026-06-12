@@ -48,6 +48,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
+import cz.vanama.courtflow.core.designsystem.component.OfflineBanner
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.PlayerCardSkeleton
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
@@ -61,6 +62,7 @@ import org.koin.androidx.compose.koinViewModel
 import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val SEARCH_FIELD_TEST_TAG = "player_search_field"
+internal const val OFFLINE_BANNER_TEST_TAG = "player_offline_banner"
 internal const val REFRESH_ERROR_TEST_TAG = "refresh_error"
 internal const val EMPTY_STATE_TEST_TAG = "player_list_empty_state"
 internal const val PULL_TO_REFRESH_TEST_TAG = "player_pull_to_refresh"
@@ -265,7 +267,11 @@ private fun PlayerListItems(
                     if (refreshState is LoadState.Error) {
                         // Refresh failed but cached items are available: keep the
                         // list on screen and surface the failure as an inline banner.
-                        OfflineBanner(onRetry = { players.retry() })
+                        OfflineBanner(
+                            message = stringResource(R.string.player_list_offline_banner),
+                            onRetry = { players.retry() },
+                            modifier = Modifier.testTag(OFFLINE_BANNER_TEST_TAG),
+                        )
                     }
                     PlayerLazyList(
                         players = players,
