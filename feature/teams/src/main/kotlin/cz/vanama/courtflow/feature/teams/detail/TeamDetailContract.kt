@@ -19,6 +19,7 @@ data class TeamDetailState(
     val players: Flow<PagingData<Player>> = emptyFlow(),
     val recentGames: List<Game> = emptyList(),
     val error: DataErrorKind? = null,
+    val retryInSeconds: Int? = null,
 )
 
 /** User actions of the team detail screen; the initial load happens in the ViewModel's `init`. */

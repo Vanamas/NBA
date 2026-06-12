@@ -196,6 +196,7 @@ internal fun TeamDetailContent(
             ErrorState(
                 message = errorMessage(state.error),
                 onRetry = onRetry,
+                retryInSeconds = state.retryInSeconds,
             )
         } else {
             state.team?.let { team ->
