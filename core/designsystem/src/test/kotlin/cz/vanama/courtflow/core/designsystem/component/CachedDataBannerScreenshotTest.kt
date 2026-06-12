@@ -13,7 +13,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Visual regression tests of [OfflineBanner].
+ * Visual regression tests of [CachedDataBanner].
  *
  * Golden images live in `src/test/screenshots`; re-record with
  * `./gradlew :core:designsystem:recordRoborazziDebug` and verify with
@@ -22,23 +22,23 @@ import org.robolectric.annotation.GraphicsMode
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35])
-class OfflineBannerScreenshotTest {
+class CachedDataBannerScreenshotTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
     @Composable
-    private fun SampleOfflineBanner() {
-        OfflineBanner(
+    private fun SampleCachedDataBanner() {
+        CachedDataBanner(
             message = "Couldn’t refresh — showing cached data",
             onRetry = {},
         )
     }
 
     @Test
-    fun offlineBannerLight() {
+    fun cachedDataBannerLight() {
         composeTestRule.setContent {
             CourtFlowTheme(darkTheme = false) {
-                SampleOfflineBanner()
+                SampleCachedDataBanner()
             }
         }
 
@@ -46,10 +46,10 @@ class OfflineBannerScreenshotTest {
     }
 
     @Test
-    fun offlineBannerDark() {
+    fun cachedDataBannerDark() {
         composeTestRule.setContent {
             CourtFlowTheme(darkTheme = true) {
-                SampleOfflineBanner()
+                SampleCachedDataBanner()
             }
         }
 

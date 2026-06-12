@@ -25,7 +25,7 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
  * @param onRetry called when the user taps the retry button.
  */
 @Composable
-fun OfflineBanner(
+fun CachedDataBanner(
     message: String,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
@@ -52,9 +52,9 @@ fun OfflineBanner(
 
 @PreviewLightDark
 @Composable
-private fun OfflineBannerPreview() {
+private fun CachedDataBannerPreview() {
     CourtFlowTheme {
-        OfflineBanner(
+        CachedDataBanner(
             message = "Couldn’t refresh — showing cached data",
             onRetry = {},
         )
