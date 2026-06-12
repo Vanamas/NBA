@@ -54,4 +54,33 @@ class DeepLinkTest {
         assertNull(DeepLink.parse(Uri.parse("courtflow://player")))
         assertNull(DeepLink.parse(Uri.parse("courtflow://unknown/1")))
     }
+
+    @Test
+    fun `initial back stack for a detail uri keeps the player list beneath`() {
+        assertEquals(
+            listOf(Destination.PlayerList, Destination.TeamDetail(10)),
+            DeepLink.initialBackStack(Uri.parse("courtflow://team/10")),
+        )
+    }
+
+    @Test
+    fun `initial back stack for the teams uri keeps the player list beneath`() {
+        assertEquals(
+            listOf(Destination.PlayerList, Destination.TeamList),
+            DeepLink.initialBackStack(Uri.parse("courtflow://teams")),
+        )
+    }
+
+    @Test
+    fun `initial back stack for the players uri does not duplicate the root`() {
+        assertEquals(
+            listOf(Destination.PlayerList),
+            DeepLink.initialBackStack(Uri.parse("courtflow://players")),
+        )
+    }
+
+    @Test
+    fun `initial back stack without a deep link is just the player list`() {
+        assertEquals(listOf(Destination.PlayerList), DeepLink.initialBackStack(null))
+    }
 }

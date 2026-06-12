@@ -27,4 +27,15 @@ internal object DeepLink {
             else -> null
         }
     }
+
+    /**
+     * Initial Navigation 3 back stack for [uri]: the player list root plus the
+     * deep-linked destination on top, so system back from a deep-linked screen
+     * lands on the list. A `courtflow://players` link resolves to the root
+     * itself and must not duplicate it.
+     */
+    fun initialBackStack(uri: Uri?): List<Destination> {
+        val target = parse(uri)
+        return listOfNotNull(Destination.PlayerList, target.takeUnless { it == Destination.PlayerList })
+    }
 }
