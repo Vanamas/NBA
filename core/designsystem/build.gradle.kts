@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("courtflow.android.library")
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.roborazzi)
@@ -11,13 +11,6 @@ roborazzi {
 
 android {
     namespace = "cz.vanama.courtflow.core.designsystem"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
 
     buildFeatures {
         compose = true

@@ -1,18 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
+    id("courtflow.android.library")
     alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
     namespace = "cz.vanama.courtflow.data"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
     testOptions {
         unitTests {
             isIncludeAndroidResources = true

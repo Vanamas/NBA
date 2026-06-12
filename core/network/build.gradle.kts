@@ -2,7 +2,7 @@ import java.net.URI
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.library)
+    id("courtflow.android.library")
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.openapi.generator)
 }
@@ -17,13 +17,8 @@ val localProperties =
 
 android {
     namespace = "cz.vanama.courtflow.core.network"
-    compileSdk = 37
 
     defaultConfig {
-        minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-
         buildConfigField(
             "String",
             "BALLDONTLIE_API_KEY",
