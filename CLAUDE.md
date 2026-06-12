@@ -21,9 +21,7 @@ The API requires an Authorization header. The key is read from `local.properties
 ./gradlew :core:designsystem:recordRoborazziDebug   # re-record goldens after intended visual changes
 ```
 
-detekt and ktlint are applied to **all modules** via `subprojects {}` in the root `build.gradle.kts`; config lives in `config/detekt/detekt.yml` (maxIssues: 0, LongMethod max 60 lines, MatchingDeclarationName enforced). Fix ktlint findings with `./gradlew ktlintFormat`.
-
-**Before every commit/push, run the same checks as CI (`.github/workflows/ci.yml`): `./gradlew detekt ktlintCheck test assembleDebug`** — plus `:core:designsystem:verifyRoborazziDebug` when UI in the design system changed. Never rely on tests alone; detekt failures break CI.
+detekt and ktlint are applied to **all modules** via `subprojects {}` in the root `build.gradle.kts`; config lives in `config/detekt/detekt.yml` (maxIssues: 0). The mandatory pre-push check sequence is defined in `.claude/rules/ci-checks.md`.
 
 ## Architecture
 
