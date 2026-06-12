@@ -30,8 +30,10 @@ class TeamDetailViewModelTest {
     private lateinit var getTeamPlayersUseCase: GetTeamPlayersUseCase
     private val testDispatcher = StandardTestDispatcher()
 
-    private val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
-    private val player = Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team)
+    private val team =
+        Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+    private val player =
+        Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team)
 
     @Before
     fun setup() {
