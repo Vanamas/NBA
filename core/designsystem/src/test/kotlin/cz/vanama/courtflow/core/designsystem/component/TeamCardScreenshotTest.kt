@@ -32,6 +32,7 @@ class TeamCardScreenshotTest {
             fullName = "Golden State Warriors",
             conference = "West",
             division = "Pacific",
+            abbreviation = "GSW",
             onClick = {},
         )
     }
