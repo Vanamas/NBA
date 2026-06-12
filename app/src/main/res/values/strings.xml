@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">CourtFlow</string>
+
+    <!-- Static launcher shortcuts (res/xml/shortcuts.xml). Short labels: keep under ~10 characters. -->
+    <string name="shortcut_teams_short">Teams</string>
+    <string name="shortcut_teams_long">Browse NBA teams</string>
+    <string name="shortcut_players_short">Players</string>
+    <string name="shortcut_players_long">Search NBA players</string>
 </resources>
