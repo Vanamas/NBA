@@ -25,3 +25,14 @@ sealed class TeamListEffect {
         val teamId: Int,
     ) : TeamListEffect()
 }
+
+/**
+ * One group of teams sharing a conference and division. [conference] and
+ * [division] hold the raw API strings (both blank for the fallback section
+ * of historical teams) — mapping to display text happens in the UI layer.
+ */
+data class TeamSection(
+    val conference: String,
+    val division: String,
+    val teams: List<Team>,
+)

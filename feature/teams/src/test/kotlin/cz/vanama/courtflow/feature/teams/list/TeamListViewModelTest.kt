@@ -27,6 +27,12 @@ class TeamListViewModelTest {
 
     private val teams = listOf(Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers"))
 
+    private val celtics = Team(1, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")
+    private val nets = Team(2, "BKN", "Brooklyn", "East", "Atlantic", "Brooklyn Nets", "Nets")
+    private val bucks = Team(3, "MIL", "Milwaukee", "East", "Central", "Milwaukee Bucks", "Bucks")
+    private val lakers = Team(4, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
+    private val bullets = Team(5, "BAL", "Baltimore", "", "", "Baltimore Bullets", "Bullets")
+
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
@@ -78,6 +84,40 @@ class TeamListViewModelTest {
             assertEquals(teams, viewModel.uiState.value.teams)
             assertEquals(null, viewModel.uiState.value.error)
         }
+
+    @Test
+    fun `groupIntoSections groups by conference then division and sorts deterministically`() {
+        val sections = listOf(lakers, bucks, nets, celtics).groupIntoSections()
+
+        assertEquals(
+            listOf(
+                TeamSection("East", "Atlantic", listOf(celtics, nets)),
+                TeamSection("East", "Central", listOf(bucks)),
+                TeamSection("West", "Pacific", listOf(lakers)),
+            ),
+            sections,
+        )
+    }
+
+    @Test
+    fun `groupIntoSections puts blank-conference teams into a trailing fallback section`() {
+        val sections = listOf(bullets, lakers).groupIntoSections()
+
+        assertEquals(
+            listOf(
+                TeamSection("West", "Pacific", listOf(lakers)),
+                TeamSection("", "", listOf(bullets)),
+            ),
+            sections,
+        )
+    }
+
+    @Test
+    fun `groupIntoSections returns no fallback section when all conferences are present`() {
+        val sections = listOf(lakers).groupIntoSections()
+
+        assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), sections)
+    }
 
     @Test
     fun `OnTeamClicked intent emits NavigateToTeamDetail effect`() =
