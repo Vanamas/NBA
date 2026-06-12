@@ -67,6 +67,10 @@ import cz.vanama.courtflow.core.designsystem.R as DesignR
 /**
  * Detail of a single player with all known attributes and a button
  * navigating to the player's team via [onNavigateToTeamDetail].
+ *
+ * @param showBackButton whether the top bar shows a back arrow; `false` when
+ *   the detail renders in a pane next to its list, where the list itself is
+ *   the way back.
  */
 @Composable
 fun PlayerDetailScreen(
@@ -74,6 +78,7 @@ fun PlayerDetailScreen(
     onNavigateToTeamDetail: (Int) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     viewModel: PlayerDetailViewModel = koinViewModel { parametersOf(playerId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,6 +117,7 @@ fun PlayerDetailScreen(
         onShare = { viewModel.onIntent(PlayerDetailIntent.OnShareClicked) },
         onNavigateBack = onNavigateBack,
         modifier = modifier,
+        showBackButton = showBackButton,
     )
 }
 
@@ -128,17 +134,20 @@ internal fun PlayerDetailScreen(
     onShare: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.player_detail_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(DesignR.string.navigate_back),
-                        )
+                    if (showBackButton) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(DesignR.string.navigate_back),
+                            )
+                        }
                     }
                 },
                 actions = {

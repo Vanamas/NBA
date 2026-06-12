@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.players.list
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,12 +28,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -71,14 +76,17 @@ internal const val PULL_TO_REFRESH_TEST_TAG = "player_pull_to_refresh"
 
 private const val SKELETON_ITEM_COUNT = 7
 
+/** Minimum width of one grid column; [GridCells.Adaptive] derives the column count from it. */
+private val PLAYER_CARD_MIN_WIDTH = 300.dp
+
 /**
- * Endlessly scrolling list of NBA players; tapping a row navigates to the
- * player detail via [onNavigateToPlayerDetail].
+ * Endlessly scrolling grid of NBA players — the column count adapts to the
+ * window width; tapping a card navigates to the player detail via
+ * [onNavigateToPlayerDetail].
  */
 @Composable
 fun PlayerListScreen(
     onNavigateToPlayerDetail: (Int) -> Unit,
-    onNavigateToTeams: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerListViewModel = koinViewModel(),
 ) {
@@ -108,7 +116,6 @@ fun PlayerListScreen(
         isOffline = uiState.isOffline,
         onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
         onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
-        onNavigateToTeams = onNavigateToTeams,
         modifier = modifier,
     )
 }
@@ -125,21 +132,22 @@ internal fun PlayerListScreen(
     isOffline: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
-    onNavigateToTeams: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Hides on scroll down and reappears immediately on scroll up, freeing
+    // vertical space for the list while the user is consuming content.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.player_list_title)) },
-                actions = {
-                    TextButton(onClick = onNavigateToTeams) {
-                        Text(stringResource(R.string.player_list_teams_action))
-                    }
-                },
+                scrollBehavior = scrollBehavior,
             )
         },
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
         PlayerListContent(
             players = players,
@@ -341,15 +349,23 @@ private fun EmptyPlayersState(
     }
 }
 
-/** The lazy list of player cards followed by the append loading/error row. */
+/**
+ * The lazy grid of player cards followed by the append loading/error row.
+ * [GridCells.Adaptive] fits as many [PLAYER_CARD_MIN_WIDTH]-wide columns as
+ * the window allows: one on phones, two or more on tablets and desktops.
+ * The append rows span the full line width.
+ */
 @Composable
 private fun PlayerLazyList(
     players: LazyPagingItems<Player>,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = PLAYER_CARD_MIN_WIDTH),
         contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier.fillMaxSize(),
     ) {
         items(count = players.itemCount) { index ->
@@ -362,17 +378,16 @@ private fun PlayerLazyList(
                     teamName = player.team.fullName,
                     imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
                     onClick = { onPlayerClick(player.id) },
-                    modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
         }
 
         when (val loadState = players.loadState.append) {
             is LoadState.Loading -> {
-                item { AppendLoading() }
+                item(span = { GridItemSpan(maxLineSpan) }) { AppendLoading() }
             }
             is LoadState.Error -> {
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     AppendError(
                         error = loadState,
                         onRetry = { players.retry() },
@@ -436,7 +451,6 @@ private fun PlayerListScreenPreview() {
             isOffline = false,
             onSearchQueryChanged = {},
             onPlayerClick = {},
-            onNavigateToTeams = {},
         )
     }
 }

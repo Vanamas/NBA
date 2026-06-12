@@ -9,6 +9,7 @@
     <string name="navigate_back">Back</string>
     <string name="connectivity_banner">You\'re offline. Content may be out of date.</string>
     <string name="select_player_placeholder">Select a player to see the details</string>
+    <string name="select_team_placeholder">Select a team to see the details</string>
     <string name="team_card_conference_division">%1$s · %2$s</string>
 
     <string name="position_guard">Guard</string>

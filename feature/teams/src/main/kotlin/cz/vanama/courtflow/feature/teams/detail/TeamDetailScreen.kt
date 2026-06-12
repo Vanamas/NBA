@@ -78,6 +78,10 @@ internal const val TEAM_ROSTER_OFFLINE_BANNER_TEST_TAG = "team_roster_offline_ba
  * Detail of a single team with all information available from the API and
  * the team's paginated player roster; tapping a roster row navigates to the
  * player detail via [onNavigateToPlayerDetail].
+ *
+ * @param showBackButton whether the top bar shows a back arrow; `false` when
+ *   the detail renders in a pane next to its list, where the list itself is
+ *   the way back.
  */
 @Composable
 fun TeamDetailScreen(
@@ -85,6 +89,7 @@ fun TeamDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPlayerDetail: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
     viewModel: TeamDetailViewModel = koinViewModel { parametersOf(teamId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -119,6 +124,7 @@ fun TeamDetailScreen(
         onShare = { viewModel.onIntent(TeamDetailIntent.OnShareClicked) },
         onNavigateBack = onNavigateBack,
         modifier = modifier,
+        showBackButton = showBackButton,
     )
 }
 
@@ -136,17 +142,20 @@ internal fun TeamDetailScreen(
     onShare: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.team_detail_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(DesignR.string.navigate_back),
-                        )
+                    if (showBackButton) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(DesignR.string.navigate_back),
+                            )
+                        }
                     }
                 },
                 actions = {

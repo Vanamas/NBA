@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.paging.PagingData
@@ -13,6 +14,8 @@ import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import cz.vanama.courtflow.feature.players.di.playersFeatureModule
 import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
@@ -64,6 +67,10 @@ class CourtFlowNavGraphTest {
                     single<GetTeamsUseCase> { mockk { every { this@mockk.invoke() } returns flowOf(listOf(team)) } }
                     single<GetTeamDetailUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns team } }
                     single<ConnectivityObserver> { mockk { every { isOnline } returns MutableStateFlow(true) } }
+                    single<GetTeamGamesUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns emptyList() } }
+                    single<GetTeamPlayersUseCase> {
+                        mockk { every { this@mockk.invoke(any()) } returns flowOf(PagingData.from(listOf(player))) }
+                    }
                 },
                 playersFeatureModule,
                 teamsFeatureModule,
@@ -137,6 +144,45 @@ class CourtFlowNavGraphTest {
         awaitPlayerRow()
 
         composeRule.onNodeWithText("Select a player to see the details").assertExists()
+    }
+
+    @Test
+    @Config(sdk = [35], qualifiers = "w1024dp-h800dp")
+    fun `wide window keeps the team list visible next to the team detail`() {
+        composeRule.setContent { CourtFlowNavGraph() }
+        awaitPlayerRow()
+
+        composeRule.onNodeWithText("Teams").performClick()
+        composeRule.onNodeWithText("Select a team to see the details").assertExists()
+
+        composeRule.onNodeWithText("Golden State Warriors").performClick()
+
+        composeRule.onNodeWithText("Team Details").assertExists()
+        // The list pane stays composed next to the detail pane.
+        composeRule.onNodeWithText("NBA Teams").assertExists()
+    }
+
+    @Test
+    @Config(sdk = [35], qualifiers = "w1024dp-h800dp")
+    fun `wide window hides the back arrow of the detail pane`() {
+        composeRule.setContent { CourtFlowNavGraph() }
+        awaitPlayerRow()
+
+        composeRule.onNodeWithText("Stephen Curry").performClick()
+
+        composeRule.onNodeWithText("Player Details").assertExists()
+        composeRule.onNodeWithContentDescription("Back").assertDoesNotExist()
+    }
+
+    @Test
+    fun `compact window shows the back arrow of the detail screen`() {
+        composeRule.setContent { CourtFlowNavGraph() }
+        awaitPlayerRow()
+
+        composeRule.onNodeWithText("Stephen Curry").performClick()
+
+        composeRule.onNodeWithText("Player Details").assertExists()
+        composeRule.onNodeWithContentDescription("Back").assertExists()
     }
 
     @Test

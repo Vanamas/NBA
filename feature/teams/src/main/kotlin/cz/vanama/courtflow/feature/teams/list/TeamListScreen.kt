@@ -1,31 +1,30 @@
 package cz.vanama.courtflow.feature.teams.list
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,16 +45,19 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
 import org.koin.androidx.compose.koinViewModel
-import cz.vanama.courtflow.core.designsystem.R as DesignR
+
+/** Minimum width of one grid column; [GridCells.Adaptive] derives the column count from it. */
+private val TEAM_CARD_MIN_WIDTH = 300.dp
 
 /**
- * List of all NBA teams; tapping a row navigates to the team detail via
- * [onNavigateToTeamDetail].
+ * Grid of all NBA teams grouped by conference and division — the column
+ * count adapts to the window width; tapping a card navigates to the team
+ * detail via [onNavigateToTeamDetail]. A top-level destination reached from
+ * the navigation suite, hence no back arrow of its own.
  */
 @Composable
 fun TeamListScreen(
     onNavigateToTeamDetail: (Int) -> Unit,
-    onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TeamListViewModel = koinViewModel(),
 ) {
@@ -76,7 +78,6 @@ fun TeamListScreen(
         state = uiState,
         onTeamClick = { teamId -> viewModel.onIntent(TeamListIntent.OnTeamClicked(teamId)) },
         onRetry = { viewModel.onIntent(TeamListIntent.Retry) },
-        onNavigateBack = onNavigateBack,
         modifier = modifier,
     )
 }
@@ -91,24 +92,22 @@ internal fun TeamListScreen(
     state: TeamListState,
     onTeamClick: (Int) -> Unit,
     onRetry: () -> Unit,
-    onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Hides on scroll down and reappears immediately on scroll up, freeing
+    // vertical space for the grid while the user is consuming content.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.team_list_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(DesignR.string.navigate_back),
-                        )
-                    }
-                },
+                scrollBehavior = scrollBehavior,
             )
         },
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
         TeamListContent(
             state = state,
@@ -121,9 +120,10 @@ internal fun TeamListScreen(
 
 /**
  * Stateless content of the team list screen rendered purely from [state];
- * [onRetry] is invoked when the user retries after a load failure.
+ * [onRetry] is invoked when the user retries after a load failure. The grid
+ * fits as many [TEAM_CARD_MIN_WIDTH]-wide columns as the window allows; the
+ * section headers span the full line width.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun TeamListContent(
     state: TeamListState,
@@ -154,8 +154,10 @@ internal fun TeamListContent(
                     )
                 }
                 else -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
+                    LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
+                        contentPadding = PaddingValues(16.dp),horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         state.sections.forEach { section -> teamSection(section, onTeamClick) }
@@ -166,13 +168,15 @@ internal fun TeamListContent(
     }
 }
 
-/** One sticky header plus the team rows of a single [TeamSection]. */
-@OptIn(ExperimentalFoundationApi::class)
-private fun LazyListScope.teamSection(
+/** One full-width section header plus the team cards of a single [TeamSection]. */
+private fun LazyGridScope.teamSection(
     section: TeamSection,
     onTeamClick: (Int) -> Unit,
 ) {
-    stickyHeader(key = "header:${section.conference}:${section.division}") {
+    item(
+        key = "header:${section.conference}:${section.division}",
+        span = { GridItemSpan(maxLineSpan) },
+    ) {
         TeamSectionHeader(section)
     }
     items(section.teams, key = { it.id }) { team ->
@@ -181,12 +185,11 @@ private fun LazyListScope.teamSection(
             conference = team.conference,
             division = team.division,
             onClick = { onTeamClick(team.id) },
-            modifier = Modifier.padding(bottom = 8.dp),
         )
     }
 }
 
-/** Section title styled like RosterHeader; opaque so rows scroll underneath. */
+/** Section title styled like RosterHeader. */
 @Composable
 private fun TeamSectionHeader(
     section: TeamSection,
@@ -199,7 +202,6 @@ private fun TeamSectionHeader(
         modifier =
             modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(vertical = 8.dp),
     )
 }
@@ -241,7 +243,6 @@ private fun TeamListScreenPreview() {
                 ),
             onTeamClick = {},
             onRetry = {},
-            onNavigateBack = {},
         )
     }
 }
@@ -254,7 +255,6 @@ private fun TeamListScreenErrorPreview() {
             state = TeamListState(error = DataErrorKind.SERVER),
             onTeamClick = {},
             onRetry = {},
-            onNavigateBack = {},
         )
     }
 }

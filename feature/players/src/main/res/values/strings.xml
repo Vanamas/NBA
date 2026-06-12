@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="player_list_title">NBA Players</string>
-    <string name="player_list_teams_action">Teams</string>
     <string name="player_list_search_hint">Search players</string>
     <string name="player_list_refresh_error">Failed to load players: %1$s</string>
     <string name="player_list_append_error">Error loading more players: %1$s</string>
