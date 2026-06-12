@@ -5,6 +5,7 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.data.local.CourtFlowDatabase
 import cz.vanama.courtflow.data.local.entity.PlayerEntity
@@ -12,7 +13,6 @@ import cz.vanama.courtflow.data.local.entity.RemoteKeyEntity
 import cz.vanama.courtflow.data.mapper.toDomain
 import cz.vanama.courtflow.data.mapper.toEntity
 import cz.vanama.courtflow.data.repository.safeApiCall
-import cz.vanama.courtflow.domain.error.DataException
 
 /**
  * Streams the unfiltered player list from the balldontlie API into

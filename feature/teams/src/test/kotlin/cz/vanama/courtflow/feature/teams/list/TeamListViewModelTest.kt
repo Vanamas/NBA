@@ -56,7 +56,6 @@ class TeamListViewModelTest {
             every { getTeamsUseCase() } returns flowOf(listOf(lakers, celtics))
 
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
-            testDispatcher.scheduler.advanceUntilIdle()
 
             viewModel.uiState.test {
                 awaitItem() // initial state
@@ -178,7 +177,7 @@ class TeamListViewModelTest {
         runTest {
             every { getTeamsUseCase() } returns
                 flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
-                flowOf(teams)
+                flowOf(listOf(lakers))
             val viewModel = TeamListViewModel(getTeamsUseCase, FakeConnectivityObserver())
             runCurrent()
 
@@ -189,7 +188,7 @@ class TeamListViewModelTest {
             runCurrent()
 
             verify(exactly = 2) { getTeamsUseCase() }
-            assertEquals(teams, viewModel.uiState.value.teams)
+            assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
             assertEquals(null, viewModel.uiState.value.retryInSeconds)
         }
 
@@ -198,7 +197,7 @@ class TeamListViewModelTest {
         runTest {
             every { getTeamsUseCase() } returns
                 flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
-                flowOf(teams)
+                flowOf(listOf(lakers))
 
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
             runCurrent()
@@ -211,7 +210,7 @@ class TeamListViewModelTest {
             runCurrent()
 
             verify(exactly = 2) { getTeamsUseCase() }
-            assertEquals(teams, viewModel.uiState.value.teams)
+            assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
 
             advanceTimeBy(20_000)
             runCurrent()
@@ -226,7 +225,7 @@ class TeamListViewModelTest {
         runTest {
             every { getTeamsUseCase() } returns
                 flow { throw DataException(DataErrorKind.NETWORK) } andThen
-                flowOf(teams)
+                flowOf(listOf(lakers))
             val connectivity = FakeConnectivityObserver(initiallyOnline = true)
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivity)
             runCurrent()
@@ -240,7 +239,7 @@ class TeamListViewModelTest {
             runCurrent()
 
             verify(exactly = 2) { getTeamsUseCase() }
-            assertEquals(teams, viewModel.uiState.value.teams)
+            assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
         }
 }
 
