@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_list_title">Hráči NBA</string>
+    <string name="player_list_search_hint">Hledat hráče</string>
+    <string name="player_list_refresh_error">Načtení hráčů selhalo: %1$s</string>
+    <string name="player_list_append_error">Chyba při načítání dalších hráčů: %1$s</string>
+    <string name="player_list_empty">Žádní hráči k dispozici</string>
+    <string name="player_list_empty_search">Pro „%1$s“ nebyli nalezeni žádní hráči</string>
+    <string name="player_list_clear_search">Vymazat hledání</string>
+    <string name="player_list_offline_banner">Nepodařilo se obnovit — zobrazena uložená data</string>
+
+    <string name="player_detail_title">Detail hráče</string>
+    <string name="share_player">Sdílet hráče</string>
+    <string name="share_player_text">Podívej se na %1$s %2$s v CourtFlow: courtflow://player/%3$d</string>
+    <string name="player_detail_view_team">Zobrazit tým: %1$s</string>
+    <string name="player_attribute_height">Výška</string>
+    <string name="player_attribute_weight">Váha</string>
+    <string name="player_attribute_weight_lbs">%1$s lbs</string>
+    <string name="player_attribute_jersey_number">Číslo dresu</string>
+    <string name="player_attribute_college">Univerzita</string>
+    <string name="player_attribute_country">Země</string>
+    <string name="player_attribute_draft">Draft</string>
+    <string name="player_attribute_draft_round">kolo %1$d</string>
+    <string name="player_attribute_draft_pick">volba %1$d</string>
+</resources>

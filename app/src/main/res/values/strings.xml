@@ -4,6 +4,7 @@
     <!-- Top-level navigation suite items (bottom bar / navigation rail). -->
     <string name="nav_players">Players</string>
     <string name="nav_teams">Teams</string>
+    <string name="nav_settings">Settings</string>
 
     <!-- Static launcher shortcuts (res/xml/shortcuts.xml). Short labels: keep under ~10 characters. -->
     <string name="shortcut_teams_short">Teams</string>

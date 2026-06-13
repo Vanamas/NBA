@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -29,6 +30,7 @@ import androidx.window.core.layout.WindowSizeClass
 import cz.vanama.courtflow.R
 import cz.vanama.courtflow.feature.players.detail.PlayerDetailScreen
 import cz.vanama.courtflow.feature.players.list.PlayerListScreen
+import cz.vanama.courtflow.feature.settings.SettingsScreen
 import cz.vanama.courtflow.feature.teams.detail.TeamDetailScreen
 import cz.vanama.courtflow.feature.teams.list.TeamListScreen
 import cz.vanama.courtflow.core.designsystem.R as DesignR
@@ -71,10 +73,11 @@ fun CourtFlowNavGraph(
 private fun CourtFlowNavigationItems(backStack: NavBackStack<NavKey>) {
     val topDestination = backStack.lastOrNull()
     val teamsSelected = topDestination is Destination.TeamList || topDestination is Destination.TeamDetail
+    val settingsSelected = topDestination is Destination.Settings
     val popToRoot: () -> Unit = { while (backStack.size > 1) backStack.removeLastOrNull() }
 
     NavigationSuiteItem(
-        selected = !teamsSelected,
+        selected = !teamsSelected && !settingsSelected,
         onClick = popToRoot,
         icon = { Icon(imageVector = Icons.Filled.Person, contentDescription = null) },
         label = { Text(stringResource(R.string.nav_players)) },
@@ -89,6 +92,17 @@ private fun CourtFlowNavigationItems(backStack: NavBackStack<NavKey>) {
         },
         icon = { Icon(imageVector = Icons.Filled.Groups, contentDescription = null) },
         label = { Text(stringResource(R.string.nav_teams)) },
+    )
+    NavigationSuiteItem(
+        selected = settingsSelected,
+        onClick = {
+            if (topDestination !is Destination.Settings) {
+                popToRoot()
+                backStack.add(Destination.Settings)
+            }
+        },
+        icon = { Icon(imageVector = Icons.Filled.Settings, contentDescription = null) },
+        label = { Text(stringResource(R.string.nav_settings)) },
     )
 }
 
@@ -191,6 +205,9 @@ private fun courtFlowEntryProvider(
                 onNavigateToPlayerDetail = { playerId -> backStack.add(Destination.PlayerDetail(playerId)) },
                 showBackButton = showBackButton || standaloneDetail,
             )
+        }
+        entry<Destination.Settings> {
+            SettingsScreen()
         }
     }
 
