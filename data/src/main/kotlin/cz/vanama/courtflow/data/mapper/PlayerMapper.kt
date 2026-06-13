@@ -9,7 +9,8 @@ import cz.vanama.courtflow.domain.model.Player
  * The official OpenAPI definition marks every attribute as optional, so the
  * mapper enforces the invariants the app relies on: [NBAPlayer.id] and
  * [NBAPlayer.team] must be present (the API always sends them), text
- * attributes fall back to empty strings.
+ * attributes fall back to empty strings. The artwork URL is derived here
+ * (the API provides no photos), so the UI receives a ready-to-load URL.
  */
 fun NBAPlayer.toDomain(): Player =
     Player(
@@ -26,4 +27,5 @@ fun NBAPlayer.toDomain(): Player =
         draftRound = draftRound,
         draftNumber = draftNumber,
         team = requireNotNull(team) { "Player $id is missing a team" }.toDomain(),
+        imageUrl = PlaceholderImages.playerPortrait(requireNotNull(id)),
     )

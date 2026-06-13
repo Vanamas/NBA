@@ -21,7 +21,7 @@ fun Player.toEntity(): PlayerEntity =
         team = team.toEntity(),
     )
 
-/** Maps the Room cache row back to the domain [Player]. */
+/** Maps the Room cache row back to the domain [Player]; the artwork URL is re-derived from the id. */
 fun PlayerEntity.toDomain(): Player =
     Player(
         id = id,
@@ -37,4 +37,5 @@ fun PlayerEntity.toDomain(): Player =
         draftRound = draftRound,
         draftNumber = draftNumber,
         team = team.toDomain(),
+        imageUrl = PlaceholderImages.playerPortrait(id),
     )

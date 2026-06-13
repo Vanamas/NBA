@@ -1,5 +1,8 @@
 package cz.vanama.courtflow.feature.players.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -19,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,21 +53,21 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
-import cz.vanama.courtflow.core.designsystem.component.OfflineBanner
+import cz.vanama.courtflow.core.designsystem.component.PagingAppendError
+import cz.vanama.courtflow.core.designsystem.component.PagingAppendLoading
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.PlayerCardSkeleton
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
-import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.players.R
 import kotlinx.coroutines.flow.flowOf
 import org.koin.androidx.compose.koinViewModel
-import cz.vanama.courtflow.core.designsystem.R as DesignR
 
 internal const val SEARCH_FIELD_TEST_TAG = "player_search_field"
 internal const val OFFLINE_BANNER_TEST_TAG = "player_offline_banner"
@@ -179,7 +180,11 @@ internal fun PlayerListContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        if (isOffline) {
+        AnimatedVisibility(
+            visible = isOffline,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
             ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
         PlayerSearchField(
@@ -239,7 +244,7 @@ private fun PlayerSearchField(
  * first-load failure state, or — when the refresh finished with zero items —
  * the empty state. The pull indicator only shows while refreshing an already
  * populated list; the very first load renders the skeleton column. A refresh
- * failure with cached items keeps the list visible behind an [OfflineBanner]
+ * failure with cached items keeps the list visible behind a [CachedDataBanner]
  * instead of replacing it with the full-screen error.
  */
 @Composable
@@ -288,10 +293,14 @@ private fun PlayerListItems(
             }
             else -> {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    if (refreshState is LoadState.Error) {
-                        // Refresh failed but cached items are available: keep the
-                        // list on screen and surface the failure as an inline banner.
-                        OfflineBanner(
+                    // Refresh failed but cached items are available: keep the
+                    // list on screen and surface the failure as an inline banner.
+                    AnimatedVisibility(
+                        visible = refreshState is LoadState.Error,
+                        enter = expandVertically(),
+                        exit = shrinkVertically(),
+                    ) {
+                        CachedDataBanner(
                             message = stringResource(R.string.player_list_offline_banner),
                             onRetry = { players.retry() },
                             modifier = Modifier.testTag(OFFLINE_BANNER_TEST_TAG),
@@ -376,7 +385,7 @@ private fun PlayerLazyList(
                     lastName = player.lastName,
                     position = player.position,
                     teamName = player.team.fullName,
-                    imageUrl = PlaceholderImages.playerPortrait(player.id, size = 128),
+                    imageUrl = player.imageUrl,
                     onClick = { onPlayerClick(player.id) },
                 )
             }
@@ -384,50 +393,17 @@ private fun PlayerLazyList(
 
         when (val loadState = players.loadState.append) {
             is LoadState.Loading -> {
-                item(span = { GridItemSpan(maxLineSpan) }) { AppendLoading() }
+                item(span = { GridItemSpan(maxLineSpan) }) { PagingAppendLoading() }
             }
             is LoadState.Error -> {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    AppendError(
-                        error = loadState,
+                    PagingAppendError(
+                        message = stringResource(R.string.player_list_append_error, errorMessage(loadState.error)),
                         onRetry = { players.retry() },
                     )
                 }
             }
             else -> {}
-        }
-    }
-}
-
-/** Inline next-page loading row. */
-@Composable
-private fun AppendLoading(modifier: Modifier = Modifier) {
-    CircularProgressIndicator(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .wrapContentWidth(Alignment.CenterHorizontally),
-    )
-}
-
-/** Inline next-page failure row with a retry button. */
-@Composable
-private fun AppendError(
-    error: LoadState.Error,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Text(
-            text = stringResource(R.string.player_list_append_error, errorMessage(error.error)),
-            modifier = Modifier.padding(16.dp),
-        )
-        TextButton(onClick = onRetry) {
-            Text(stringResource(DesignR.string.retry))
         }
     }
 }

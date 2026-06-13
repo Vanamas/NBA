@@ -13,7 +13,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Visual regression tests of [TeamCard].
+ * Visual regression tests of [CachedDataBanner].
  *
  * Golden images live in `src/test/screenshots`; re-record with
  * `./gradlew :core:designsystem:recordRoborazziDebug` and verify with
@@ -22,26 +22,23 @@ import org.robolectric.annotation.GraphicsMode
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35])
-class TeamCardScreenshotTest {
+class CachedDataBannerScreenshotTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
     @Composable
-    private fun SampleTeamCard() {
-        TeamCard(
-            fullName = "Golden State Warriors",
-            conference = "West",
-            division = "Pacific",
-            abbreviation = "GSW",
-            onClick = {},
+    private fun SampleCachedDataBanner() {
+        CachedDataBanner(
+            message = "Couldn’t refresh — showing cached data",
+            onRetry = {},
         )
     }
 
     @Test
-    fun teamCardLight() {
+    fun cachedDataBannerLight() {
         composeTestRule.setContent {
             CourtFlowTheme(darkTheme = false) {
-                SampleTeamCard()
+                SampleCachedDataBanner()
             }
         }
 
@@ -49,10 +46,10 @@ class TeamCardScreenshotTest {
     }
 
     @Test
-    fun teamCardDark() {
+    fun cachedDataBannerDark() {
         composeTestRule.setContent {
             CourtFlowTheme(darkTheme = true) {
-                SampleTeamCard()
+                SampleCachedDataBanner()
             }
         }
 

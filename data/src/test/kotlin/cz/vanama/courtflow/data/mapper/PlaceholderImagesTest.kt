@@ -1,4 +1,4 @@
-package cz.vanama.courtflow.core.designsystem.util
+package cz.vanama.courtflow.data.mapper
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

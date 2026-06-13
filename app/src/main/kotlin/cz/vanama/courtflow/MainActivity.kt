@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CourtFlowTheme {
+            CourtFlowTheme(dynamicColor = true) {
                 CourtFlowNavGraph(initialBackStack = DeepLink.initialBackStack(intent?.data))
             }
         }

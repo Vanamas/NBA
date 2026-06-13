@@ -1,48 +1,47 @@
 package cz.vanama.courtflow.core.designsystem.component
 
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import cz.vanama.courtflow.core.designsystem.R
+import androidx.compose.ui.test.performClick
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
+import io.kotest.matchers.shouldBe
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
-class ConnectivityBannerTest {
+class PagingAppendErrorTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
     @Test
-    fun `shows the offline message`() {
+    fun `shows the message and a retry button`() {
         composeTestRule.setContent {
             CourtFlowTheme {
-                ConnectivityBanner()
+                PagingAppendError(message = "Loading failed", onRetry = {})
             }
         }
 
-        val expected = RuntimeEnvironment.getApplication().getString(R.string.connectivity_banner)
-        composeTestRule.onNodeWithText(expected).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Loading failed").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 
     @Test
-    fun `announces itself as a polite live region`() {
+    fun `clicking retry invokes onRetry`() {
+        var retries = 0
+
         composeTestRule.setContent {
             CourtFlowTheme {
-                ConnectivityBanner()
+                PagingAppendError(message = "Loading failed", onRetry = { retries++ })
             }
         }
 
-        composeTestRule
-            .onNode(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
-            .assertExists()
+        composeTestRule.onNodeWithText("Retry").performClick()
+
+        retries shouldBe 1
     }
 }

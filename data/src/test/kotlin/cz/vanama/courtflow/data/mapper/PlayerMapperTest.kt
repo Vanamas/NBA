@@ -53,6 +53,8 @@ class PlayerMapperTest {
         assertEquals(1, player.draftRound)
         assertEquals(7, player.draftNumber)
         assertEquals("Golden State Warriors", player.team.fullName)
+        assertEquals("https://api.dicebear.com/9.x/avataaars/png?seed=19&size=512", player.imageUrl)
+        assertEquals("https://api.dicebear.com/9.x/shapes/png?seed=10&size=512", player.team.imageUrl)
     }
 
     @Test

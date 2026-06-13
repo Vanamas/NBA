@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -52,10 +50,9 @@ import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
-import cz.vanama.courtflow.core.designsystem.component.TestTags
+import cz.vanama.courtflow.core.designsystem.component.LoadingIndicator
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
-import cz.vanama.courtflow.core.designsystem.util.PlaceholderImages
 import cz.vanama.courtflow.core.designsystem.util.positionLabel
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -190,7 +187,7 @@ internal fun PlayerDetailContent(
         contentAlignment = Alignment.Center,
     ) {
         if (state.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.testTag(TestTags.LOADING_INDICATOR))
+            LoadingIndicator()
         } else if (state.error != null) {
             ErrorState(
                 message = errorMessage(state.error),
@@ -221,7 +218,7 @@ private fun PlayerDetailBody(
                 .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 28.dp),
     ) {
         AvatarImage(
-            model = PlaceholderImages.playerPortrait(player.id),
+            model = player.imageUrl,
             contentDescription = "${player.firstName} ${player.lastName}",
             loadingIcon = Icons.Filled.Person,
             modifier = Modifier.size(160.dp),

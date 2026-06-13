@@ -20,4 +20,5 @@ fun NBATeam.toDomain(): Team =
         division = division?.value.orEmpty(),
         fullName = fullName.orEmpty(),
         name = name.orEmpty(),
+        imageUrl = PlaceholderImages.teamEmblem(requireNotNull(id)),
     )

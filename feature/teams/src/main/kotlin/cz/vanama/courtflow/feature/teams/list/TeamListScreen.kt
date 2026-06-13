@@ -1,5 +1,8 @@
 package cz.vanama.courtflow.feature.teams.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,6 +41,7 @@ import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.TeamCard
+import cz.vanama.courtflow.core.designsystem.component.TeamCardSkeleton
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
@@ -48,6 +51,8 @@ import org.koin.androidx.compose.koinViewModel
 
 /** Minimum width of one grid column; [GridCells.Adaptive] derives the column count from it. */
 private val TEAM_CARD_MIN_WIDTH = 300.dp
+
+private const val SKELETON_ITEM_COUNT = 8
 
 /**
  * Grid of all NBA teams grouped by conference and division — the column
@@ -132,18 +137,23 @@ internal fun TeamListContent(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        if (state.isOffline) {
+        AnimatedVisibility(
+            visible = state.isOffline,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
             ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
         Box(modifier = Modifier.fillMaxSize()) {
             when {
                 state.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier =
-                            Modifier
-                                .align(Alignment.Center)
-                                .testTag(TestTags.LOADING_INDICATOR),
-                    )
+                    // First-load placeholder: a static column of shimmering
+                    // skeletons matching the grid's content padding.
+                    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                        repeat(SKELETON_ITEM_COUNT) {
+                            TeamCardSkeleton(modifier = Modifier.padding(bottom = 8.dp))
+                        }
+                    }
                 }
                 state.error != null -> {
                     ErrorState(
@@ -155,9 +165,10 @@ internal fun TeamListContent(
                 }
                 else -> {
                     LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
-                        contentPadding = PaddingValues(16.dp),horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                        columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         state.sections.forEach { section -> teamSection(section, onTeamClick) }
@@ -184,6 +195,7 @@ private fun LazyGridScope.teamSection(
             fullName = team.fullName,
             conference = team.conference,
             division = team.division,
+            abbreviation = team.abbreviation,
             onClick = { onTeamClick(team.id) },
         )
     }

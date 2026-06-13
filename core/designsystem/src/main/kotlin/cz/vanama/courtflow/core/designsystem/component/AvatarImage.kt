@@ -3,9 +3,11 @@ package cz.vanama.courtflow.core.designsystem.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -16,9 +18,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
+import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 
 /**
  * Avatar image loaded by Glide on a tonal container, with a [loadingIcon]
@@ -81,6 +86,21 @@ private fun PlaceholderIcon(
             imageVector = icon,
             contentDescription = null,
             tint = tint,
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun AvatarImagePreview() {
+    CourtFlowTheme {
+        // An empty model keeps the preview deterministic: Glide renders the
+        // loading placeholder icon instead of fetching a remote image.
+        AvatarImage(
+            model = "",
+            contentDescription = null,
+            loadingIcon = Icons.Filled.Person,
+            modifier = Modifier.size(64.dp),
         )
     }
 }

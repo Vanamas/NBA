@@ -24,6 +24,7 @@ class TeamCardTest {
                 fullName = "Golden State Warriors",
                 conference = "West",
                 division = "Pacific",
+                abbreviation = "GSW",
                 onClick = {},
             )
         }
@@ -41,6 +42,7 @@ class TeamCardTest {
                 fullName = "Golden State Warriors",
                 conference = "West",
                 division = "Pacific",
+                abbreviation = "GSW",
                 onClick = { clicks++ },
             )
         }
@@ -48,5 +50,35 @@ class TeamCardTest {
         composeTestRule.onNodeWithText("Golden State Warriors").performClick()
 
         clicks shouldBe 1
+    }
+
+    @Test
+    fun `card shows the abbreviation badge`() {
+        composeTestRule.setContent {
+            TeamCard(
+                fullName = "Golden State Warriors",
+                conference = "West",
+                division = "Pacific",
+                abbreviation = "GSW",
+                onClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("GSW").assertIsDisplayed()
+    }
+
+    @Test
+    fun `blank abbreviation renders no badge`() {
+        composeTestRule.setContent {
+            TeamCard(
+                fullName = "Golden State Warriors",
+                conference = "West",
+                division = "Pacific",
+                abbreviation = "",
+                onClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Golden State Warriors").assertIsDisplayed()
     }
 }

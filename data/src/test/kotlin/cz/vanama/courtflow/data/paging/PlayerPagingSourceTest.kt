@@ -65,7 +65,9 @@ class PlayerPagingSourceTest {
                     division = "Southeast",
                     fullName = "Atlanta Hawks",
                     name = "Hawks",
+                    imageUrl = "https://api.dicebear.com/9.x/shapes/png?seed=1&size=512",
                 ),
+            imageUrl = "https://api.dicebear.com/9.x/avataaars/png?seed=237&size=512",
         )
 
     @Test
