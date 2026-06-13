@@ -59,3 +59,44 @@ val BackgroundDark = Color(0xFF1A1C1E)
 val OnBackgroundDark = Color(0xFFE2E2E6)
 val SurfaceDark = Color(0xFF1A1C1E)
 val OnSurfaceDark = Color(0xFFE2E2E6)
+
+/**
+ * Pure-black surfaces for the optional AMOLED dark theme; only the
+ * background/surface roles differ from [BackgroundDark]/[SurfaceDark].
+ */
+val BackgroundAmoled = Color(0xFF000000)
+val SurfaceAmoled = Color(0xFF000000)
+
+/*
+ * Medium- and high-contrast brand variants used when the Android 14+ system
+ * "Increase contrast" setting is on. Directionally hand-tuned from the base
+ * brand palette (deeper primaries + pushed on-colors); replace with a Material
+ * Theme Builder export (seed #0061A4) for pixel-accurate Material tones.
+ */
+val PrimaryLightMediumContrast = Color(0xFF004B80)
+val OnPrimaryLightMediumContrast = Color(0xFFFFFFFF)
+val BackgroundLightMediumContrast = Color(0xFFFDFCFF)
+val OnBackgroundLightMediumContrast = Color(0xFF0F1115)
+val SurfaceLightMediumContrast = Color(0xFFFDFCFF)
+val OnSurfaceLightMediumContrast = Color(0xFF0F1115)
+
+val PrimaryLightHighContrast = Color(0xFF00294A)
+val OnPrimaryLightHighContrast = Color(0xFFFFFFFF)
+val BackgroundLightHighContrast = Color(0xFFFDFCFF)
+val OnBackgroundLightHighContrast = Color(0xFF000000)
+val SurfaceLightHighContrast = Color(0xFFFDFCFF)
+val OnSurfaceLightHighContrast = Color(0xFF000000)
+
+val PrimaryDarkMediumContrast = Color(0xFFC3DDFF)
+val OnPrimaryDarkMediumContrast = Color(0xFF00264A)
+val BackgroundDarkMediumContrast = Color(0xFF1A1C1E)
+val OnBackgroundDarkMediumContrast = Color(0xFFFAFAFD)
+val SurfaceDarkMediumContrast = Color(0xFF1A1C1E)
+val OnSurfaceDarkMediumContrast = Color(0xFFFAFAFD)
+
+val PrimaryDarkHighContrast = Color(0xFFEBF1FF)
+val OnPrimaryDarkHighContrast = Color(0xFF000000)
+val BackgroundDarkHighContrast = Color(0xFF1A1C1E)
+val OnBackgroundDarkHighContrast = Color(0xFFFFFFFF)
+val SurfaceDarkHighContrast = Color(0xFF1A1C1E)
+val OnSurfaceDarkHighContrast = Color(0xFFFFFFFF)
