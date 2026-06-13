@@ -44,6 +44,7 @@ android {
 dependencies {
     implementation(project(":feature:players"))
     implementation(project(":feature:teams"))
+    implementation(project(":feature:settings"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:network"))
     implementation(project(":data"))
@@ -64,6 +65,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)

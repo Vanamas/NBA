@@ -17,6 +17,9 @@ sealed interface Destination : NavKey {
     data object TeamList : Destination
 
     @Serializable
+    data object Settings : Destination
+
+    @Serializable
     data class PlayerDetail(
         val playerId: Int,
     ) : Destination
