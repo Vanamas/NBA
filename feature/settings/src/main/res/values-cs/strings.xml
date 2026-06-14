@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Nastavení</string>
+
+    <!-- Appearance -->
+    <string name="settings_dynamic_color">Barvy podle tapety</string>
+    <string name="settings_dynamic_color_summary">Paleta Material You na Androidu 12+</string>
+    <string name="settings_true_black">Čistě černý tmavý motiv</string>
+    <string name="settings_true_black_summary">Šetří baterii na OLED displejích</string>
+
+    <!-- Theme -->
+    <string name="settings_theme_section">Motiv</string>
+    <string name="settings_theme_light">Světlý</string>
+    <string name="settings_theme_dark">Tmavý</string>
+    <string name="settings_theme_system">Podle systému</string>
+
+    <!-- Language -->
+    <string name="settings_language_section">Jazyk</string>
+    <string name="settings_language_system">Podle systému</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_cs">Čeština</string>
+</resources>

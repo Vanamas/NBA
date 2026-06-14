@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CourtFlow</string>
+
+    <!-- Top-level navigation suite items (bottom bar / navigation rail). -->
+    <string name="nav_players">Hráči</string>
+    <string name="nav_teams">Týmy</string>
+    <string name="nav_settings">Nastavení</string>
+
+    <!-- Static launcher shortcuts (res/xml/shortcuts.xml). Short labels: keep under ~10 characters. -->
+    <string name="shortcut_teams_short">Týmy</string>
+    <string name="shortcut_teams_long">Procházet týmy NBA</string>
+    <string name="shortcut_players_short">Hráči</string>
+    <string name="shortcut_players_long">Hledat hráče NBA</string>
+</resources>

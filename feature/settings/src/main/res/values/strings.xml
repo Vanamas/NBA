@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+
+    <!-- Appearance -->
+    <string name="settings_dynamic_color">Use wallpaper colors</string>
+    <string name="settings_dynamic_color_summary">Material You palette on Android 12+</string>
+    <string name="settings_true_black">Pure black dark theme</string>
+    <string name="settings_true_black_summary">Saves battery on OLED screens</string>
+
+    <!-- Theme -->
+    <string name="settings_theme_section">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">Follow system</string>
+
+    <!-- Language -->
+    <string name="settings_language_section">Language</string>
+    <string name="settings_language_system">Follow system</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_cs">Čeština</string>
+</resources>

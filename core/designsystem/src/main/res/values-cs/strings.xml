@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="retry">Zkusit znovu</string>
+    <string name="error_unknown">Něco se pokazilo. Zkuste to prosím znovu.</string>
+    <string name="error_network">Žádné připojení k internetu. Zkontrolujte síť a zkuste to znovu.</string>
+    <string name="error_rate_limited">Příliš mnoho požadavků. Chvíli počkejte a zkuste to znovu.</string>
+    <string name="error_not_found">Požadovaná data nebyla nalezena.</string>
+    <string name="error_server">Server má potíže. Zkuste to později.</string>
+    <string name="navigate_back">Zpět</string>
+    <string name="connectivity_banner">Jste offline. Obsah může být zastaralý.</string>
+    <string name="select_player_placeholder">Vyberte hráče pro zobrazení detailů</string>
+    <string name="select_team_placeholder">Vyberte tým pro zobrazení detailů</string>
+    <string name="team_card_conference_division">%1$s · %2$s</string>
+
+    <string name="position_guard">Rozehrávač</string>
+    <string name="position_forward">Křídlo</string>
+    <string name="position_center">Pivot</string>
+    <string name="position_guard_forward">Rozehrávač / Křídlo</string>
+    <string name="position_forward_center">Křídlo / Pivot</string>
+
+    <string name="retrying_in">Další pokus za %1$d s</string>
+</resources>

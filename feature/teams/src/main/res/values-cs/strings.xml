@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="team_list_title">Týmy NBA</string>
+    <string name="team_list_section_header">%1$s — %2$s</string>
+    <string name="team_list_section_other">Ostatní týmy</string>
+
+    <string name="team_detail_title">Detail týmu</string>
+    <string name="share_team">Sdílet tým</string>
+    <string name="share_team_text">Podívej se na %1$s v CourtFlow: courtflow://team/%2$d</string>
+    <string name="team_attribute_city">Město</string>
+    <string name="team_attribute_conference">Konference</string>
+    <string name="team_attribute_division">Divize</string>
+    <string name="team_detail_roster">Soupiska</string>
+    <string name="team_detail_recent_games">Poslední zápasy</string>
+    <string name="game_score">%1$d – %2$d</string>
+    <string name="team_roster_refresh_error">Načtení soupisky selhalo: %1$s</string>
+    <string name="team_roster_offline_banner">Nepodařilo se obnovit soupisku — zobrazena uložená data</string>
+    <string name="team_roster_append_error">Chyba při načítání dalších hráčů: %1$s</string>
+</resources>

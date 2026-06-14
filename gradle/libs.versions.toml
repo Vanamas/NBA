@@ -45,6 +45,8 @@ detekt = "1.23.8"
 ktlint = "14.2.0"
 konsist = "0.17.3"
 koin = "4.2.1"
+datastore = "1.1.7"
+appcompat = "1.7.1"
 robolectric = "4.16.1"
 kotest = "6.1.11"
 roborazzi = "1.63.0"
@@ -54,6 +56,8 @@ openapiGenerator = "7.23.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
