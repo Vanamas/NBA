@@ -9,6 +9,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.paging.PagingData
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
+import cz.vanama.courtflow.core.common.settings.ThemePreferences
+import cz.vanama.courtflow.core.common.settings.ThemePreferencesStore
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
@@ -18,6 +20,8 @@ import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import cz.vanama.courtflow.feature.players.di.playersFeatureModule
+import cz.vanama.courtflow.feature.settings.AppLocaleController
+import cz.vanama.courtflow.feature.settings.di.settingsFeatureModule
 import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
 import io.mockk.coEvery
 import io.mockk.every
@@ -71,9 +75,19 @@ class CourtFlowNavGraphTest {
                     single<GetTeamPlayersUseCase> {
                         mockk { every { this@mockk.invoke(any()) } returns flowOf(PagingData.from(listOf(player))) }
                     }
+                    single<ThemePreferencesStore> {
+                        mockk { every { themePreferences } returns flowOf(ThemePreferences()) }
+                    }
+                    single<AppLocaleController> {
+                        mockk(relaxed = true) {
+                            every { currentLanguageTag() } returns ""
+                            every { supportedLanguageTags() } returns listOf("en", "cs")
+                        }
+                    }
                 },
                 playersFeatureModule,
                 teamsFeatureModule,
+                settingsFeatureModule,
             )
         }
     }
@@ -205,6 +219,20 @@ class CourtFlowNavGraphTest {
 
         composeRule.onNodeWithText("Teams").performClick()
         composeRule.onNodeWithText("NBA Teams").assertExists()
+
+        composeRule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("NBA Players").assertExists()
+    }
+
+    @Test
+    fun `settings action opens the settings screen and back returns`() {
+        composeRule.setContent { CourtFlowNavGraph() }
+        awaitPlayerRow()
+
+        composeRule.onNodeWithText("Settings").performClick()
+        // A settings-only string proves the screen rendered (the nav label also reads "Settings").
+        composeRule.onNodeWithText("Use wallpaper colors").assertExists()
 
         composeRule.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
         composeRule.waitForIdle()
