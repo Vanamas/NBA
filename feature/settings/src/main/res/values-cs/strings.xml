@@ -2,6 +2,10 @@
 <resources>
     <string name="settings_title">Nastavení</string>
 
+    <!-- Preview -->
+    <string name="settings_preview_section">Náhled</string>
+    <string name="settings_preview_description">Náhled barev motivu</string>
+
     <!-- Appearance -->
     <string name="settings_dynamic_color">Barvy podle tapety</string>
     <string name="settings_dynamic_color_summary">Paleta Material You na Androidu 12+</string>
@@ -14,9 +18,10 @@
     <string name="settings_theme_dark">Tmavý</string>
     <string name="settings_theme_system">Podle systému</string>
 
-    <!-- Language -->
+    <!-- Language. Názvy jazyků se odvozují z vlastního názvu každé lokalizace. -->
     <string name="settings_language_section">Jazyk</string>
     <string name="settings_language_system">Podle systému</string>
-    <string name="settings_language_en">English</string>
-    <string name="settings_language_cs">Čeština</string>
+
+    <!-- Feedback -->
+    <string name="settings_write_error">Nastavení se nepodařilo uložit</string>
 </resources>

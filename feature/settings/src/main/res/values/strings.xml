@@ -2,6 +2,10 @@
 <resources>
     <string name="settings_title">Settings</string>
 
+    <!-- Preview -->
+    <string name="settings_preview_section">Preview</string>
+    <string name="settings_preview_description">Theme color preview</string>
+
     <!-- Appearance -->
     <string name="settings_dynamic_color">Use wallpaper colors</string>
     <string name="settings_dynamic_color_summary">Material You palette on Android 12+</string>
@@ -14,9 +18,10 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_system">Follow system</string>
 
-    <!-- Language -->
+    <!-- Language. Per-language labels are derived from each locale's own name. -->
     <string name="settings_language_section">Language</string>
     <string name="settings_language_system">Follow system</string>
-    <string name="settings_language_en">English</string>
-    <string name="settings_language_cs">Čeština</string>
+
+    <!-- Feedback -->
+    <string name="settings_write_error">Couldn\'t save your setting</string>
 </resources>
