@@ -12,4 +12,6 @@
     <string name="shortcut_teams_long">Procházet týmy NBA</string>
     <string name="shortcut_players_short">Hráči</string>
     <string name="shortcut_players_long">Hledat hráče NBA</string>
+    <string name="shortcut_settings_short">Nastavení</string>
+    <string name="shortcut_settings_long">Otevřít nastavení</string>
 </resources>
