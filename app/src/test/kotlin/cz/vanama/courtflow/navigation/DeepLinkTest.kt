@@ -41,9 +41,15 @@ class DeepLinkTest {
     }
 
     @Test
+    fun `settings uri maps to Settings`() {
+        assertEquals(Destination.Settings, DeepLink.parse(Uri.parse("courtflow://settings")))
+    }
+
+    @Test
     fun `list uris with extra path segments are rejected`() {
         assertNull(DeepLink.parse(Uri.parse("courtflow://players/19")))
         assertNull(DeepLink.parse(Uri.parse("courtflow://teams/extra")))
+        assertNull(DeepLink.parse(Uri.parse("courtflow://settings/extra")))
     }
 
     @Test
@@ -68,6 +74,14 @@ class DeepLinkTest {
         assertEquals(
             listOf(Destination.PlayerList, Destination.TeamList),
             DeepLink.initialBackStack(Uri.parse("courtflow://teams")),
+        )
+    }
+
+    @Test
+    fun `initial back stack for the settings uri keeps the player list beneath`() {
+        assertEquals(
+            listOf(Destination.PlayerList, Destination.Settings),
+            DeepLink.initialBackStack(Uri.parse("courtflow://settings")),
         )
     }
 

@@ -6,8 +6,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import cz.vanama.courtflow.core.common.connectivity.AndroidConnectivityObserver
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
-import cz.vanama.courtflow.core.common.settings.DataStoreThemePreferencesRepository
-import cz.vanama.courtflow.core.common.settings.ThemePreferencesRepository
+import cz.vanama.courtflow.core.common.settings.DataStoreThemePreferencesStore
+import cz.vanama.courtflow.core.common.settings.ThemePreferencesStore
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -18,5 +18,5 @@ val coreCommonModule =
     module {
         single<ConnectivityObserver> { AndroidConnectivityObserver(androidContext()) }
         single<DataStore<Preferences>> { androidContext().themeDataStore }
-        single<ThemePreferencesRepository> { DataStoreThemePreferencesRepository(get()) }
+        single<ThemePreferencesStore> { DataStoreThemePreferencesStore(get()) }
     }

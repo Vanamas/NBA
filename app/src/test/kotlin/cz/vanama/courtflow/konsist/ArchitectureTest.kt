@@ -60,4 +60,16 @@ class ArchitectureTest {
             .withNameEndingWith("RepositoryImpl")
             .assertTrue { it.resideInPackage("..data.repository..") }
     }
+
+    @Test
+    fun `repository interfaces reside in the domain repository package`() {
+        // Guards against the "RepositoryImpl"-suffix dodge: a repository abstraction must
+        // be a domain interface, not a class living elsewhere (e.g. a settings store named
+        // "...Repository" hiding in core:common). Local preference stores are named *Store.
+        Konsist
+            .scopeFromProject()
+            .interfaces()
+            .withNameEndingWith("Repository")
+            .assertTrue { it.resideInPackage("..domain.repository..") }
+    }
 }

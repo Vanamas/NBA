@@ -4,6 +4,7 @@ import android.app.Application
 import cz.vanama.courtflow.core.common.di.coreCommonModule
 import cz.vanama.courtflow.core.network.di.coreNetworkModule
 import cz.vanama.courtflow.data.di.dataModule
+import cz.vanama.courtflow.di.appModule
 import cz.vanama.courtflow.domain.di.domainModule
 import cz.vanama.courtflow.feature.players.di.playersFeatureModule
 import cz.vanama.courtflow.feature.settings.di.settingsFeatureModule
@@ -29,6 +30,7 @@ class CourtFlowApplication : Application() {
             androidLogger()
             androidContext(this@CourtFlowApplication)
             modules(
+                appModule,
                 coreCommonModule,
                 coreNetworkModule,
                 dataModule,
