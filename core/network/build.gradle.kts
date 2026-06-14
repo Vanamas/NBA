@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.moshi.kotlin)
+    implementation(libs.moshi.adapters)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.koin.android)
     implementation(libs.timber)
