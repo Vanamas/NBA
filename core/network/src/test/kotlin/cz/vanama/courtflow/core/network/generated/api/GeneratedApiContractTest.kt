@@ -1,12 +1,12 @@
 package cz.vanama.courtflow.core.network.generated.api
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import cz.vanama.courtflow.core.network.di.NetworkMoshi
 import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Retrofit
@@ -24,11 +24,7 @@ class GeneratedApiContractTest {
     @Before
     fun setup() {
         server = MockWebServer()
-        val moshi =
-            Moshi
-                .Builder()
-                .add(KotlinJsonAdapterFactory())
-                .build()
+        val moshi = NetworkMoshi.create()
         api =
             Retrofit
                 .Builder()
@@ -174,6 +170,40 @@ class GeneratedApiContractTest {
 
             assertEquals(1, response.data?.size)
             assertEquals("LAL", response.data?.first()?.abbreviation)
+        }
+
+    @Test
+    fun `getTeams tolerates historical teams with blank conference and division`() =
+        runTest {
+            // balldontlie's /teams returns BAA-era teams whose conference is "    "
+            // (whitespace) and division is "" — neither a valid enum value. The whole
+            // page must still parse, with those fields falling back to null.
+            val json =
+                """
+                {
+                  "data": [
+                    {
+                      "id": 1, "abbreviation": "ATL", "city": "Atlanta",
+                      "conference": "East", "division": "Southeast",
+                      "full_name": "Atlanta Hawks", "name": "Hawks"
+                    },
+                    {
+                      "id": 37, "abbreviation": "CHS", "city": "",
+                      "conference": "    ", "division": "",
+                      "full_name": "Chicago Stags", "name": "Chicago Stags"
+                    }
+                  ]
+                }
+                """.trimIndent()
+            server.enqueue(MockResponse().setBody(json))
+
+            val response = api.nbaV1TeamsGet()
+
+            assertEquals(2, response.data?.size)
+            val historical = response.data?.last()
+            assertEquals("Chicago Stags", historical?.fullName)
+            assertNull(historical?.conference)
+            assertNull(historical?.division)
         }
 
     private companion object {

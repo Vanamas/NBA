@@ -1,7 +1,5 @@
 package cz.vanama.courtflow.core.network.di
 
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import cz.vanama.courtflow.core.network.BuildConfig
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import okhttp3.OkHttpClient
@@ -23,12 +21,7 @@ private const val HEADER_AUTHORIZATION = "Authorization"
  */
 val coreNetworkModule =
     module {
-        single {
-            Moshi
-                .Builder()
-                .add(KotlinJsonAdapterFactory())
-                .build()
-        }
+        single { NetworkMoshi.create() }
 
         single {
             HttpLoggingInterceptor { message ->
