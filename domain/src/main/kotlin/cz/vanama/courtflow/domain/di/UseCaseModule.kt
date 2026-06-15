@@ -5,6 +5,7 @@ import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamStandingUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
 import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
@@ -18,6 +19,7 @@ val domainModule =
         factory { GetPlayerDetailUseCase(get()) }
         factory { GetTeamDetailUseCase(get()) }
         factory { GetTeamGamesUseCase(get()) }
+        factory { GetTeamStandingUseCase(get()) }
         factory { GetTeamPlayersUseCase(get()) }
         factory { GetTeamsUseCase(get()) }
         factory { IsFavoriteUseCase(get()) }
