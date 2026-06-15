@@ -53,6 +53,8 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
@@ -100,7 +102,7 @@ fun PlayerListScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     is PlayerListEffect.NavigateToPlayerDetail -> onNavigateToPlayerDetail(effect.playerId)
-                    is PlayerListEffect.RetryPaging -> Unit
+                    is PlayerListEffect.RetryPaging -> players.retry()
                 }
             }
         }
@@ -112,10 +114,20 @@ fun PlayerListScreen(
         }
     }
 
+    LaunchedEffect(players.loadState.refresh) {
+        val error = (players.loadState.refresh as? LoadState.Error)?.error
+        if (error is DataException && error.kind == DataErrorKind.RATE_LIMITED) {
+            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(error.rateLimitResetEpochSeconds))
+        } else {
+            viewModel.onIntent(PlayerListIntent.OnRefreshResolved)
+        }
+    }
+
     PlayerListScreen(
         players = players,
         searchQuery = uiState.searchQuery,
         isOffline = uiState.isOffline,
+        retryInSeconds = uiState.retryInSeconds,
         onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
         onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
         modifier = modifier,
@@ -134,6 +146,7 @@ internal fun PlayerListScreen(
     isOffline: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
+    retryInSeconds: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     // Hides on scroll down and reappears immediately on scroll up, freeing
@@ -157,6 +170,7 @@ internal fun PlayerListScreen(
             isOffline = isOffline,
             onSearchQueryChanged = onSearchQueryChanged,
             onPlayerClick = onPlayerClick,
+            retryInSeconds = retryInSeconds,
             modifier = Modifier.padding(padding),
         )
     }
@@ -178,6 +192,7 @@ internal fun PlayerListContent(
     isOffline: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
+    retryInSeconds: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -198,6 +213,7 @@ internal fun PlayerListContent(
             searchQuery = searchQuery,
             onClearSearch = { onSearchQueryChanged("") },
             onPlayerClick = onPlayerClick,
+            retryInSeconds = retryInSeconds,
         )
     }
 }
@@ -254,6 +270,7 @@ private fun PlayerListItems(
     searchQuery: String,
     onClearSearch: () -> Unit,
     onPlayerClick: (Int) -> Unit,
+    retryInSeconds: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     val refreshState = players.loadState.refresh
@@ -270,6 +287,7 @@ private fun PlayerListItems(
                 ErrorState(
                     message = stringResource(R.string.player_list_refresh_error, errorMessage(refreshState.error)),
                     onRetry = { players.retry() },
+                    retryInSeconds = retryInSeconds,
                     modifier =
                         Modifier
                             .align(Alignment.Center)

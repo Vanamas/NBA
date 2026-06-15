@@ -521,6 +521,31 @@ class PlayerListContentTest {
 
         composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
     }
+
+    @Test
+    fun `refresh error shows the rate-limit countdown when retryInSeconds is set`() {
+        val errorStates =
+            LoadStates(
+                refresh = LoadState.Error(RuntimeException("rate limited")),
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.NotLoading(endOfPaginationReached = false),
+            )
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.empty<Player>(sourceLoadStates = errorStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                isOffline = false,
+                retryInSeconds = 7,
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Retrying in 7 s").assertIsDisplayed()
+    }
 }
 
 /** Single static page; each refresh makes the Pager factory build a new instance. */
