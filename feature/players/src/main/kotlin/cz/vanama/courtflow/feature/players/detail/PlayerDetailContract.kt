@@ -7,6 +7,7 @@ import cz.vanama.courtflow.domain.model.Player
 data class PlayerDetailState(
     val isLoading: Boolean = false,
     val player: Player? = null,
+    val isFavorite: Boolean = false,
     val error: DataErrorKind? = null,
     val retryInSeconds: Int? = null,
 )
@@ -16,6 +17,8 @@ sealed class PlayerDetailIntent {
     data object Retry : PlayerDetailIntent()
 
     data object OnShareClicked : PlayerDetailIntent()
+
+    data object OnFavoriteToggled : PlayerDetailIntent()
 
     data class OnTeamClicked(
         val teamId: Int,

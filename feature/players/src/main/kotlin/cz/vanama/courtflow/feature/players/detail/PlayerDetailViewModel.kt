@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.common.time.RateLimitRetryController
+import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
+import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
+import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -17,12 +20,14 @@ import kotlinx.coroutines.launch
  * MVI ViewModel of the player detail screen.
  *
  * Loads the player with [playerId] in `init` (and again on
- * [PlayerDetailIntent.Retry]) and emits a navigation effect when the
- * user taps the team button.
+ * [PlayerDetailIntent.Retry]), mirrors the persisted favorite flag into
+ * [uiState], and emits a navigation effect when the user taps the team button.
  */
 class PlayerDetailViewModel(
     private val playerId: Int,
     private val getPlayerDetailUseCase: GetPlayerDetailUseCase,
+    isFavoriteUseCase: IsFavoriteUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
 ) : ViewModel() {
     val uiState: StateFlow<PlayerDetailState>
         field = MutableStateFlow(PlayerDetailState())
@@ -34,6 +39,7 @@ class PlayerDetailViewModel(
 
     init {
         loadPlayer()
+        observeFavorite(isFavoriteUseCase)
     }
 
     fun onIntent(intent: PlayerDetailIntent) {
@@ -41,6 +47,21 @@ class PlayerDetailViewModel(
             is PlayerDetailIntent.Retry -> loadPlayer()
             is PlayerDetailIntent.OnTeamClicked -> onTeamClicked(intent.teamId)
             is PlayerDetailIntent.OnShareClicked -> sharePlayer()
+            is PlayerDetailIntent.OnFavoriteToggled -> toggleFavorite()
+        }
+    }
+
+    private fun observeFavorite(isFavoriteUseCase: IsFavoriteUseCase) {
+        viewModelScope.launch {
+            isFavoriteUseCase(playerId, FavoriteType.PLAYER).collect { favorite ->
+                uiState.update { it.copy(isFavorite = favorite) }
+            }
+        }
+    }
+
+    private fun toggleFavorite() {
+        viewModelScope.launch {
+            toggleFavoriteUseCase(playerId, FavoriteType.PLAYER)
         }
     }
 
