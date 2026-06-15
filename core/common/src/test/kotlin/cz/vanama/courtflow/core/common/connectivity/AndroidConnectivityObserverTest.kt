@@ -2,7 +2,6 @@ package cz.vanama.courtflow.core.common.connectivity
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.Network
 import android.net.NetworkCapabilities
 import app.cash.turbine.test
 import io.kotest.matchers.shouldBe
