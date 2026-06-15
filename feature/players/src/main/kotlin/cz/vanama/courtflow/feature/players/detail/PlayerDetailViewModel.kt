@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
+import cz.vanama.courtflow.core.common.settings.RecentlyViewedStore
 import cz.vanama.courtflow.core.common.time.RateLimitRetryController
 import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
@@ -28,6 +29,7 @@ class PlayerDetailViewModel(
     private val getPlayerDetailUseCase: GetPlayerDetailUseCase,
     isFavoriteUseCase: IsFavoriteUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val recentlyViewedStore: RecentlyViewedStore,
 ) : ViewModel() {
     val uiState: StateFlow<PlayerDetailState>
         field = MutableStateFlow(PlayerDetailState())
@@ -72,6 +74,7 @@ class PlayerDetailViewModel(
             try {
                 val player = getPlayerDetailUseCase(playerId)
                 uiState.update { it.copy(isLoading = false, player = player) }
+                recentlyViewedStore.recordView(playerId)
             } catch (e: DataException) {
                 uiState.update { it.copy(isLoading = false, error = e.kind) }
                 if (e.kind == DataErrorKind.RATE_LIMITED) scheduleRateLimitRetry()

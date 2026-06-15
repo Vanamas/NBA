@@ -3,6 +3,7 @@ package cz.vanama.courtflow.feature.players.detail
 import app.cash.turbine.test
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
+import cz.vanama.courtflow.core.common.settings.RecentlyViewedStore
 import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
@@ -32,16 +33,21 @@ class PlayerDetailViewModelTest {
     private lateinit var getPlayerDetailUseCase: GetPlayerDetailUseCase
     private lateinit var isFavoriteUseCase: IsFavoriteUseCase
     private lateinit var toggleFavoriteUseCase: ToggleFavoriteUseCase
+    private lateinit var recentlyViewedStore: RecentlyViewedStore
     private val favoriteFlow = MutableStateFlow(false)
     private val testDispatcher = StandardTestDispatcher()
 
     private val team = Team(1, "LAL", "Los Angeles", "West", "Pacific", "Los Angeles Lakers", "Lakers")
     private val player = Player(id = 1, firstName = "LeBron", lastName = "James", position = "F", team = team)
 
+    private fun createViewModel() =
+        PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase, recentlyViewedStore)
+
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getPlayerDetailUseCase = mockk()
+        recentlyViewedStore = mockk(relaxed = true)
         isFavoriteUseCase = mockk()
         toggleFavoriteUseCase = mockk(relaxed = true)
         every { isFavoriteUseCase(any(), FavoriteType.PLAYER) } returns favoriteFlow
@@ -57,7 +63,7 @@ class PlayerDetailViewModelTest {
         runTest {
             coEvery { getPlayerDetailUseCase(1) } returns player
 
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(player, viewModel.uiState.value.player)
@@ -70,7 +76,7 @@ class PlayerDetailViewModelTest {
         runTest {
             coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER)
 
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(DataErrorKind.SERVER, viewModel.uiState.value.error)
@@ -82,7 +88,7 @@ class PlayerDetailViewModelTest {
         runTest {
             coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER) andThen player
 
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             testDispatcher.scheduler.advanceUntilIdle()
             assertEquals(DataErrorKind.SERVER, viewModel.uiState.value.error)
 
@@ -98,7 +104,7 @@ class PlayerDetailViewModelTest {
         runTest {
             coEvery { getPlayerDetailUseCase(1) } returns player
 
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
 
             viewModel.uiEffect.test {
                 viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(14))
@@ -110,7 +116,7 @@ class PlayerDetailViewModelTest {
     fun `OnShareClicked emits Share with the loaded player`() =
         runTest {
             coEvery { getPlayerDetailUseCase(1) } returns player
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             testDispatcher.scheduler.advanceUntilIdle()
 
             viewModel.uiEffect.test {
@@ -125,7 +131,7 @@ class PlayerDetailViewModelTest {
         runTest {
             coEvery { getPlayerDetailUseCase(1) } throws
                 DataException(DataErrorKind.RATE_LIMITED) andThen player
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             runCurrent()
 
             assertEquals(DataErrorKind.RATE_LIMITED, viewModel.uiState.value.error)
@@ -147,7 +153,7 @@ class PlayerDetailViewModelTest {
                 DataException(DataErrorKind.RATE_LIMITED) andThen
                 player
 
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             runCurrent()
 
             assertEquals(15, viewModel.uiState.value.retryInSeconds)
@@ -172,7 +178,7 @@ class PlayerDetailViewModelTest {
     fun `OnShareClicked is ignored while no player is loaded`() =
         runTest {
             coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER)
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             testDispatcher.scheduler.advanceUntilIdle()
 
             viewModel.uiEffect.test {
@@ -188,7 +194,7 @@ class PlayerDetailViewModelTest {
             coEvery { getPlayerDetailUseCase(1) } returns player
             favoriteFlow.value = true
 
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(true, viewModel.uiState.value.isFavorite)
@@ -198,12 +204,35 @@ class PlayerDetailViewModelTest {
     fun `OnFavoriteToggled delegates to the toggle use case`() =
         runTest {
             coEvery { getPlayerDetailUseCase(1) } returns player
-            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase, isFavoriteUseCase, toggleFavoriteUseCase)
+            val viewModel = createViewModel()
             testDispatcher.scheduler.advanceUntilIdle()
 
             viewModel.onIntent(PlayerDetailIntent.OnFavoriteToggled)
             testDispatcher.scheduler.advanceUntilIdle()
 
             coVerify(exactly = 1) { toggleFavoriteUseCase(1, FavoriteType.PLAYER) }
+        }
+
+    @Test
+    fun `records the player as recently viewed on successful load`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } returns player
+
+            val viewModel = createViewModel()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 1) { recentlyViewedStore.recordView(1) }
+            assertEquals(player, viewModel.uiState.value.player)
+        }
+
+    @Test
+    fun `does not record the player when the load fails`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws DataException(DataErrorKind.SERVER)
+
+            val viewModel = createViewModel()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 0) { recentlyViewedStore.recordView(any()) }
         }
 }
