@@ -24,4 +24,10 @@
 
     <!-- Feedback -->
     <string name="settings_write_error">Couldn\'t save your setting</string>
+
+    <!-- About -->
+    <string name="settings_about_section">About</string>
+    <string name="settings_about_version">Version</string>
+    <string name="settings_about_licenses">Open-source licenses</string>
+    <string name="settings_about_licenses_summary">Libraries that make CourtFlow possible</string>
 </resources>
