@@ -41,6 +41,11 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <activity
+            android:name=".about.OssLicensesActivity"
+            android:exported="false"
+            android:label="@string/oss_licenses_title" />
+
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
