@@ -162,21 +162,11 @@ internal fun TeamDetailScreen(
                 },
                 actions = {
                     if (state.team != null) {
-                        IconButton(onClick = onFavoriteToggled) {
-                            Icon(
-                                imageVector = if (state.isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                                contentDescription =
-                                    stringResource(
-                                        if (state.isFavorite) R.string.favorite_team_remove else R.string.favorite_team_add,
-                                    ),
-                            )
-                        }
-                        IconButton(onClick = onShare) {
-                            Icon(
-                                imageVector = Icons.Filled.Share,
-                                contentDescription = stringResource(R.string.share_team),
-                            )
-                        }
+                        TeamDetailTopBarActions(
+                            isFavorite = state.isFavorite,
+                            onFavoriteToggled = onFavoriteToggled,
+                            onShare = onShare,
+                        )
                     }
                 },
             )
@@ -189,6 +179,28 @@ internal fun TeamDetailScreen(
             onRetry = onRetry,
             onPlayerClick = onPlayerClick,
             modifier = Modifier.padding(padding),
+        )
+    }
+}
+
+/** The favorite (toggle) and share actions shown in the team detail top bar. */
+@Composable
+private fun TeamDetailTopBarActions(
+    isFavorite: Boolean,
+    onFavoriteToggled: () -> Unit,
+    onShare: () -> Unit,
+) {
+    val favoriteDescription = if (isFavorite) R.string.favorite_team_remove else R.string.favorite_team_add
+    IconButton(onClick = onFavoriteToggled) {
+        Icon(
+            imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+            contentDescription = stringResource(favoriteDescription),
+        )
+    }
+    IconButton(onClick = onShare) {
+        Icon(
+            imageVector = Icons.Filled.Share,
+            contentDescription = stringResource(R.string.share_team),
         )
     }
 }

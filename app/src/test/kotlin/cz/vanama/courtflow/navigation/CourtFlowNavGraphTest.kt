@@ -19,6 +19,9 @@ import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
+import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
+import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
+import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import cz.vanama.courtflow.feature.players.di.playersFeatureModule
 import cz.vanama.courtflow.feature.settings.AppInfoProvider
 import cz.vanama.courtflow.feature.settings.AppLocaleController
@@ -75,6 +78,13 @@ class CourtFlowNavGraphTest {
                     single<GetTeamGamesUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns emptyList() } }
                     single<GetTeamPlayersUseCase> {
                         mockk { every { this@mockk.invoke(any()) } returns flowOf(PagingData.from(listOf(player))) }
+                    }
+                    single<IsFavoriteUseCase> {
+                        mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(false) }
+                    }
+                    single<ToggleFavoriteUseCase> { mockk(relaxed = true) }
+                    single<ObserveFavoritesUseCase> {
+                        mockk { every { this@mockk.invoke(any()) } returns flowOf(emptyList()) }
                     }
                     single<ThemePreferencesStore> {
                         mockk { every { themePreferences } returns flowOf(ThemePreferences()) }

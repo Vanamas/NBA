@@ -163,7 +163,15 @@ internal fun TeamListContent(
         }
         Box(modifier = Modifier.fillMaxSize()) {
             when {
-                state.isLoading -> TeamListSkeletons()
+                state.isLoading -> {
+                    // First-load placeholder: a static column of shimmering
+                    // skeletons matching the grid's content padding.
+                    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                        repeat(SKELETON_ITEM_COUNT) {
+                            TeamCardSkeleton(modifier = Modifier.padding(bottom = 8.dp))
+                        }
+                    }
+                }
                 state.error != null -> {
                     ErrorState(
                         message = errorMessage(state.error),
@@ -180,18 +188,13 @@ internal fun TeamListContent(
                         modifier = Modifier.align(Alignment.Center).padding(16.dp),
                     )
                 }
-                else -> TeamGrid(sections = state.visibleSections, favoriteIds = state.favoriteIds, onTeamClick = onTeamClick)
+                else ->
+                    TeamGrid(
+                        sections = state.visibleSections,
+                        favoriteIds = state.favoriteIds,
+                        onTeamClick = onTeamClick,
+                    )
             }
-        }
-    }
-}
-
-/** First-load placeholder: a static column of shimmering skeletons matching the grid's padding. */
-@Composable
-private fun TeamListSkeletons(modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
-        repeat(SKELETON_ITEM_COUNT) {
-            TeamCardSkeleton(modifier = Modifier.padding(bottom = 8.dp))
         }
     }
 }
