@@ -201,4 +201,19 @@ class TeamDetailViewModelTest {
                 assertEquals(TeamDetailEffect.Share(team), awaitItem())
             }
         }
+
+    @Test
+    fun `rate limit reset far in the future caps the countdown at 60s`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } throws
+                DataException(DataErrorKind.RATE_LIMITED, rateLimitResetEpochSeconds = 4_000_000_000L) andThen team
+            coEvery { getTeamGamesUseCase(1) } returns emptyList()
+            every { getTeamPlayersUseCase(1) } returns flowOf(PagingData.empty())
+
+            val viewModel =
+                TeamDetailViewModel(1, getTeamDetailUseCase, getTeamGamesUseCase, getTeamPlayersUseCase)
+            runCurrent()
+
+            assertEquals(60, viewModel.uiState.value.retryInSeconds)
+        }
 }
