@@ -4,7 +4,10 @@ import androidx.paging.PagingData
 import app.cash.turbine.test
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.domain.model.Player
+import cz.vanama.courtflow.domain.model.PlayerFilter
+import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,16 +31,30 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerListViewModelTest {
     private lateinit var getPlayersUseCase: GetPlayersUseCase
+    private lateinit var getTeamsUseCase: GetTeamsUseCase
     private lateinit var viewModel: PlayerListViewModel
     private lateinit var connectivityObserver: FakeConnectivityObserver
     private val testDispatcher = StandardTestDispatcher()
+
+    private val lakers =
+        Team(
+            id = 14,
+            abbreviation = "LAL",
+            city = "Los Angeles",
+            conference = "West",
+            division = "Pacific",
+            fullName = "Los Angeles Lakers",
+            name = "Lakers",
+        )
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getPlayersUseCase = mockk()
+        getTeamsUseCase = mockk()
+        every { getTeamsUseCase() } returns flowOf(emptyList())
         connectivityObserver = FakeConnectivityObserver()
-        viewModel = PlayerListViewModel(getPlayersUseCase, connectivityObserver)
+        viewModel = PlayerListViewModel(getPlayersUseCase, getTeamsUseCase, connectivityObserver)
     }
 
     @After
@@ -46,19 +63,15 @@ class PlayerListViewModelTest {
     }
 
     @Test
-    fun `paging stream starts on first collection`() =
+    fun `paging stream starts on first collection with an empty filter`() =
         runTest {
-            every { getPlayersUseCase(null) } returns flowOf(PagingData.empty<Player>())
+            every { getPlayersUseCase(PlayerFilter()) } returns flowOf(PagingData.empty<Player>())
 
-            val job =
-                launch {
-                    viewModel.uiState.value.players
-                        .collect {}
-                }
+            val job = launch { viewModel.uiState.value.players.collect {} }
             advanceTimeBy(301)
             runCurrent()
 
-            verify { getPlayersUseCase(null) }
+            verify { getPlayersUseCase(PlayerFilter()) }
             job.cancel()
         }
 
@@ -66,24 +79,63 @@ class PlayerListViewModelTest {
     fun `search query change reloads players with the query after debounce`() =
         runTest {
             every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
-            val job =
-                launch {
-                    viewModel.uiState.value.players
-                        .collect {}
-                }
+            val job = launch { viewModel.uiState.value.players.collect {} }
 
             viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged("curry"))
             advanceTimeBy(301)
             runCurrent()
 
             assertEquals("curry", viewModel.uiState.value.searchQuery)
-            verify { getPlayersUseCase("curry") }
+            verify { getPlayersUseCase(PlayerFilter(query = "curry")) }
             job.cancel()
+        }
+
+    @Test
+    fun `selecting a team reloads players filtered by team id`() =
+        runTest {
+            every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
+            val job = launch { viewModel.uiState.value.players.collect {} }
+
+            viewModel.onIntent(PlayerListIntent.OnTeamSelected(lakers))
+            advanceTimeBy(301)
+            runCurrent()
+
+            assertEquals(lakers, viewModel.uiState.value.selectedTeam)
+            verify { getPlayersUseCase(PlayerFilter(teamId = 14)) }
+            job.cancel()
+        }
+
+    @Test
+    fun `selecting a position reloads players filtered by position`() =
+        runTest {
+            every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
+            val job = launch { viewModel.uiState.value.players.collect {} }
+
+            viewModel.onIntent(PlayerListIntent.OnPositionSelected("G"))
+            advanceTimeBy(301)
+            runCurrent()
+
+            assertEquals("G", viewModel.uiState.value.selectedPosition)
+            verify { getPlayersUseCase(PlayerFilter(position = "G")) }
+            job.cancel()
+        }
+
+    @Test
+    fun `teams are exposed in state for the picker`() =
+        runTest {
+            every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
+            every { getTeamsUseCase() } returns flowOf(listOf(lakers))
+            viewModel = PlayerListViewModel(getPlayersUseCase, getTeamsUseCase, connectivityObserver)
+
+            runCurrent()
+
+            assertEquals(listOf(lakers), viewModel.uiState.value.teams)
         }
 
     @Test
     fun `OnPlayerClicked intent emits NavigateToPlayerDetail effect`() =
         runTest {
+            every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
             viewModel.uiEffect.test {
                 viewModel.onIntent(PlayerListIntent.OnPlayerClicked(1))
                 assertEquals(PlayerListEffect.NavigateToPlayerDetail(1), awaitItem())
@@ -93,6 +145,7 @@ class PlayerListViewModelTest {
     @Test
     fun `losing connectivity sets isOffline and regaining clears it`() =
         runTest {
+            every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
             runCurrent()
 
             connectivityObserver.online.value = false
