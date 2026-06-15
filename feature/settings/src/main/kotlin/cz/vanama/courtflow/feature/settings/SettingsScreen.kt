@@ -28,6 +28,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import cz.vanama.courtflow.core.common.settings.ThemeMode
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.util.Locale
 
 /**
@@ -39,6 +40,7 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
     val viewModel: SettingsViewModel = koinViewModel()
+    val appInfoProvider: AppInfoProvider = koinInject()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val writeErrorMessage = stringResource(R.string.settings_write_error)
@@ -49,7 +51,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     SettingsEffect.PreferenceWriteFailed -> snackbarHostState.showSnackbar(writeErrorMessage)
-                    SettingsEffect.OpenOssLicenses -> Unit
+                    SettingsEffect.OpenOssLicenses -> appInfoProvider.openOssLicenses()
                 }
             }
         }
