@@ -53,6 +53,7 @@ class SettingsViewModel(
             is SettingsIntent.OnThemeModeChanged -> persist { store.setThemeMode(intent.mode) }
             is SettingsIntent.OnTrueBlackChanged -> persist { store.setTrueBlack(intent.enabled) }
             is SettingsIntent.OnLanguageSelected -> selectLanguage(intent.tag)
+            is SettingsIntent.OnOssLicensesClicked -> Unit
         }
     }
 

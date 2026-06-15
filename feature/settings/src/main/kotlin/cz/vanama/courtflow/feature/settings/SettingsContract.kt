@@ -13,6 +13,7 @@ data class SettingsState(
     val trueBlack: Boolean = false,
     val currentLanguageTag: String = "",
     val languageTags: List<String> = emptyList(),
+    val versionName: String = "",
 )
 
 /** User actions of the settings screen. */
@@ -32,10 +33,16 @@ sealed class SettingsIntent {
     data class OnLanguageSelected(
         val tag: String,
     ) : SettingsIntent()
+
+    /** The user tapped the "Open-source licenses" row. */
+    data object OnOssLicensesClicked : SettingsIntent()
 }
 
 /** One-shot events emitted by [SettingsViewModel]. */
 sealed class SettingsEffect {
     /** A preference could not be persisted (DataStore write failure); shown as a snackbar. */
     data object PreferenceWriteFailed : SettingsEffect()
+
+    /** Launch the generated open-source-licenses screen. */
+    data object OpenOssLicenses : SettingsEffect()
 }

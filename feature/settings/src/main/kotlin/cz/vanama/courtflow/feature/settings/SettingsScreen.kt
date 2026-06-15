@@ -47,6 +47,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     SettingsEffect.PreferenceWriteFailed -> snackbarHostState.showSnackbar(writeErrorMessage)
+                    SettingsEffect.OpenOssLicenses -> Unit
                 }
             }
         }
