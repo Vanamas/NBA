@@ -100,5 +100,4 @@ class TeamDetailViewModel(
             uiEffect.emit(TeamDetailEffect.Share(team))
         }
     }
-
 }
