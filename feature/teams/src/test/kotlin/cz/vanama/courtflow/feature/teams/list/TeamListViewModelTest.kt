@@ -193,6 +193,19 @@ class TeamListViewModelTest {
         }
 
     @Test
+    fun `rate limit reset far in the future caps the countdown at 60s`() =
+        runTest {
+            every { getTeamsUseCase() } returns
+                flow {
+                    throw DataException(DataErrorKind.RATE_LIMITED, rateLimitResetEpochSeconds = 4_000_000_000L)
+                } andThen flowOf(listOf(lakers))
+            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            runCurrent()
+
+            assertEquals(60, viewModel.uiState.value.retryInSeconds)
+        }
+
+    @Test
     fun `manual retry during countdown cancels the scheduled auto-retry`() =
         runTest {
             every { getTeamsUseCase() } returns
