@@ -4,12 +4,15 @@ import androidx.paging.PagingData
 import app.cash.turbine.test
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
+import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
+import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -17,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -34,6 +38,9 @@ class TeamDetailViewModelTest {
     private lateinit var getTeamDetailUseCase: GetTeamDetailUseCase
     private lateinit var getTeamGamesUseCase: GetTeamGamesUseCase
     private lateinit var getTeamPlayersUseCase: GetTeamPlayersUseCase
+    private lateinit var isFavoriteUseCase: IsFavoriteUseCase
+    private lateinit var toggleFavoriteUseCase: ToggleFavoriteUseCase
+    private val favoriteFlow = MutableStateFlow(false)
     private val testDispatcher = StandardTestDispatcher()
 
     private val team =
@@ -62,6 +69,9 @@ class TeamDetailViewModelTest {
             mockk {
                 every { this@mockk.invoke(any()) } returns flowOf(PagingData.from(listOf(player)))
             }
+        isFavoriteUseCase = mockk()
+        toggleFavoriteUseCase = mockk(relaxed = true)
+        every { isFavoriteUseCase(any(), FavoriteType.TEAM) } returns favoriteFlow
     }
 
     @After
@@ -69,7 +79,15 @@ class TeamDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = TeamDetailViewModel(1, getTeamDetailUseCase, getTeamGamesUseCase, getTeamPlayersUseCase)
+    private fun viewModel() =
+        TeamDetailViewModel(
+            1,
+            getTeamDetailUseCase,
+            getTeamGamesUseCase,
+            getTeamPlayersUseCase,
+            isFavoriteUseCase,
+            toggleFavoriteUseCase,
+        )
 
     @Test
     fun `team is loaded in init on success`() =
@@ -200,5 +218,31 @@ class TeamDetailViewModelTest {
                 testDispatcher.scheduler.advanceUntilIdle()
                 assertEquals(TeamDetailEffect.Share(team), awaitItem())
             }
+        }
+
+    @Test
+    fun `isFavorite state reflects the favorites flow`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } returns team
+            favoriteFlow.value = true
+
+            val viewModel = viewModel()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(true, viewModel.uiState.value.isFavorite)
+        }
+
+    @Test
+    fun `OnFavoriteToggled delegates to the toggle use case`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } returns team
+
+            val viewModel = viewModel()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onIntent(TeamDetailIntent.OnFavoriteToggled)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 1) { toggleFavoriteUseCase(1, FavoriteType.TEAM) }
         }
 }

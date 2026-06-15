@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.emptyFlow
 data class TeamDetailState(
     val isLoading: Boolean = false,
     val team: Team? = null,
+    val isFavorite: Boolean = false,
     val players: Flow<PagingData<Player>> = emptyFlow(),
     val recentGames: List<Game> = emptyList(),
     val error: DataErrorKind? = null,
@@ -27,6 +28,8 @@ sealed class TeamDetailIntent {
     data object Retry : TeamDetailIntent()
 
     data object OnShareClicked : TeamDetailIntent()
+
+    data object OnFavoriteToggled : TeamDetailIntent()
 
     data class OnPlayerClicked(
         val playerId: Int,

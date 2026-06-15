@@ -6,9 +6,12 @@ import androidx.paging.cachedIn
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.common.time.RateLimitRetryController
+import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
+import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -27,6 +30,8 @@ class TeamDetailViewModel(
     private val getTeamDetailUseCase: GetTeamDetailUseCase,
     private val getTeamGamesUseCase: GetTeamGamesUseCase,
     getTeamPlayersUseCase: GetTeamPlayersUseCase,
+    isFavoriteUseCase: IsFavoriteUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
 ) : ViewModel() {
     val uiState: StateFlow<TeamDetailState>
         field = MutableStateFlow(TeamDetailState(players = getTeamPlayersUseCase(teamId).cachedIn(viewModelScope)))
@@ -39,6 +44,7 @@ class TeamDetailViewModel(
     init {
         loadTeam()
         loadRecentGames()
+        observeFavorite(isFavoriteUseCase)
     }
 
     fun onIntent(intent: TeamDetailIntent) {
@@ -49,6 +55,21 @@ class TeamDetailViewModel(
             }
             is TeamDetailIntent.OnPlayerClicked -> onPlayerClicked(intent.playerId)
             is TeamDetailIntent.OnShareClicked -> shareTeam()
+            is TeamDetailIntent.OnFavoriteToggled -> toggleFavorite()
+        }
+    }
+
+    private fun observeFavorite(isFavoriteUseCase: IsFavoriteUseCase) {
+        viewModelScope.launch {
+            isFavoriteUseCase(teamId, FavoriteType.TEAM).collect { favorite ->
+                uiState.update { it.copy(isFavorite = favorite) }
+            }
+        }
+    }
+
+    private fun toggleFavorite() {
+        viewModelScope.launch {
+            toggleFavoriteUseCase(teamId, FavoriteType.TEAM)
         }
     }
 
