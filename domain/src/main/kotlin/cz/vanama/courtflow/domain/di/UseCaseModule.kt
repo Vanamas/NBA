@@ -6,6 +6,9 @@ import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
+import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
+import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
+import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import org.koin.dsl.module
 
 /** Koin module providing domain use cases. */
@@ -17,4 +20,7 @@ val domainModule =
         factory { GetTeamGamesUseCase(get()) }
         factory { GetTeamPlayersUseCase(get()) }
         factory { GetTeamsUseCase(get()) }
+        factory { IsFavoriteUseCase(get()) }
+        factory { ToggleFavoriteUseCase(get()) }
+        factory { ObserveFavoritesUseCase(get()) }
     }
