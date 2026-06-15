@@ -7,10 +7,12 @@ import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
+import cz.vanama.courtflow.domain.model.Standing
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamStandingUseCase
 import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
 import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import io.mockk.coEvery
@@ -38,6 +40,7 @@ class TeamDetailViewModelTest {
     private lateinit var getTeamDetailUseCase: GetTeamDetailUseCase
     private lateinit var getTeamGamesUseCase: GetTeamGamesUseCase
     private lateinit var getTeamPlayersUseCase: GetTeamPlayersUseCase
+    private lateinit var getTeamStandingUseCase: GetTeamStandingUseCase
     private lateinit var isFavoriteUseCase: IsFavoriteUseCase
     private lateinit var toggleFavoriteUseCase: ToggleFavoriteUseCase
     private val favoriteFlow = MutableStateFlow(false)
@@ -60,6 +63,9 @@ class TeamDetailViewModelTest {
             visitorTeamScore = 99,
         )
 
+    private val standing =
+        Standing(teamId = 1, wins = 12, losses = 4, conferenceRank = 3, conference = "West")
+
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
@@ -69,6 +75,7 @@ class TeamDetailViewModelTest {
             mockk {
                 every { this@mockk.invoke(any()) } returns flowOf(PagingData.from(listOf(player)))
             }
+        getTeamStandingUseCase = mockk { coEvery { this@mockk.invoke(any()) } returns null }
         isFavoriteUseCase = mockk()
         toggleFavoriteUseCase = mockk(relaxed = true)
         every { isFavoriteUseCase(any(), FavoriteType.TEAM) } returns favoriteFlow
@@ -84,6 +91,7 @@ class TeamDetailViewModelTest {
             1,
             getTeamDetailUseCase,
             getTeamGamesUseCase,
+            getTeamStandingUseCase,
             getTeamPlayersUseCase,
             isFavoriteUseCase,
             toggleFavoriteUseCase,
@@ -244,5 +252,38 @@ class TeamDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             coVerify(exactly = 1) { toggleFavoriteUseCase(1, FavoriteType.TEAM) }
+        }
+
+    @Test
+    fun `standing populates state on success`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } returns team
+            coEvery { getTeamStandingUseCase(1) } returns standing
+
+            val viewModel = viewModel()
+
+            viewModel.uiState.test {
+                testDispatcher.scheduler.advanceUntilIdle()
+                val state = expectMostRecentItem()
+                assertEquals(standing, state.standing)
+                assertEquals(team, state.team)
+            }
+        }
+
+    @Test
+    fun `standing failure hides the badge while the team loads fine`() =
+        runTest {
+            coEvery { getTeamDetailUseCase(1) } returns team
+            coEvery { getTeamStandingUseCase(1) } throws DataException(DataErrorKind.SERVER)
+
+            val viewModel = viewModel()
+
+            viewModel.uiState.test {
+                testDispatcher.scheduler.advanceUntilIdle()
+                val state = expectMostRecentItem()
+                assertEquals(null, state.standing)
+                assertEquals(team, state.team)
+                assertEquals(null, state.error)
+            }
         }
 }

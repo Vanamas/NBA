@@ -10,6 +10,7 @@ import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.GetTeamStandingUseCase
 import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
 import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,6 +30,7 @@ class TeamDetailViewModel(
     private val teamId: Int,
     private val getTeamDetailUseCase: GetTeamDetailUseCase,
     private val getTeamGamesUseCase: GetTeamGamesUseCase,
+    private val getTeamStandingUseCase: GetTeamStandingUseCase,
     getTeamPlayersUseCase: GetTeamPlayersUseCase,
     isFavoriteUseCase: IsFavoriteUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
@@ -44,6 +46,7 @@ class TeamDetailViewModel(
     init {
         loadTeam()
         loadRecentGames()
+        loadStanding()
         observeFavorite(isFavoriteUseCase)
     }
 
@@ -52,6 +55,7 @@ class TeamDetailViewModel(
             is TeamDetailIntent.Retry -> {
                 loadTeam()
                 loadRecentGames()
+                loadStanding()
             }
             is TeamDetailIntent.OnPlayerClicked -> onPlayerClicked(intent.playerId)
             is TeamDetailIntent.OnShareClicked -> shareTeam()
@@ -98,6 +102,20 @@ class TeamDetailViewModel(
                     emptyList()
                 }
             uiState.update { it.copy(recentGames = games) }
+        }
+    }
+
+    private fun loadStanding() {
+        viewModelScope.launch {
+            val standing =
+                try {
+                    getTeamStandingUseCase(teamId)
+                } catch (_: DataException) {
+                    // Bonus section: on failure keep the badge hidden and leave
+                    // the team info and roster untouched.
+                    null
+                }
+            uiState.update { it.copy(standing = standing) }
         }
     }
 
