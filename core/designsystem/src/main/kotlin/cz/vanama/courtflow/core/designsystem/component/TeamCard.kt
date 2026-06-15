@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +41,7 @@ fun TeamCard(
     abbreviation: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isFavorite: Boolean = false,
 ) {
     Card(
         onClick = onClick,
@@ -75,6 +78,15 @@ fun TeamCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            if (isFavorite) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = stringResource(R.string.favorite_indicator),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
@@ -93,6 +105,21 @@ private fun TeamCardPreview() {
             conference = "West",
             division = "Pacific",
             abbreviation = "GSW",
+            onClick = {},
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TeamCardFavoritePreview() {
+    CourtFlowTheme {
+        TeamCard(
+            fullName = "Golden State Warriors",
+            conference = "West",
+            division = "Pacific",
+            abbreviation = "GSW",
+            isFavorite = true,
             onClick = {},
         )
     }

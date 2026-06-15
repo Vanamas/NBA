@@ -11,6 +11,7 @@
     <string name="select_player_placeholder">Select a player to see the details</string>
     <string name="select_team_placeholder">Select a team to see the details</string>
     <string name="team_card_conference_division">%1$s · %2$s</string>
+    <string name="favorite_indicator">Favorite</string>
 
     <string name="position_guard">Guard</string>
     <string name="position_forward">Forward</string>
