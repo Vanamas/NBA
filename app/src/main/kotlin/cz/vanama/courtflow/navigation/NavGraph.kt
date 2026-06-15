@@ -179,7 +179,8 @@ private fun courtFlowEntryProvider(
         ) {
             // Bridge Navigation 3's per-entry AnimatedContentScope into the null-safe
             // local AvatarImage reads, so the card avatar can drive the shared element.
-            WithNavAnimatedScope {
+            // Single-pane only (showBackButton); see WithNavAnimatedScope.
+            WithNavAnimatedScope(enabled = showBackButton) {
                 PlayerListScreen(
                     onNavigateToPlayerDetail = { playerId -> backStack.add(Destination.PlayerDetail(playerId)) },
                 )
@@ -201,7 +202,7 @@ private fun courtFlowEntryProvider(
         entry<Destination.PlayerDetail>(
             metadata = ListDetailSceneStrategy.detailPane(sceneKey = PLAYERS_SCENE_KEY),
         ) { destination ->
-            WithNavAnimatedScope {
+            WithNavAnimatedScope(enabled = showBackButton) {
                 PlayerDetailScreen(
                     playerId = destination.playerId,
                     onNavigateToTeamDetail = { teamId -> backStack.add(Destination.TeamDetail(teamId)) },
@@ -234,13 +235,26 @@ private fun courtFlowEntryProvider(
  * [NavDisplay] through `LocalNavAnimatedContentScope`) as the design-system
  * [LocalNavAnimatedVisibilityScope] so a tagged `AvatarImage` inside [content] can drive its
  * card → detail shared element. Used only by the player entries that tag avatars.
+ *
+ * Only wires the scope when [enabled] — i.e. in single-pane mode. On an expanded window the
+ * list and detail panes are composed simultaneously, so the same avatar key would be claimed by
+ * two co-visible shared elements and the [SharedTransitionLayout] would never settle. There the
+ * scope stays null and the avatars render statically (no transition), which is the intended
+ * behavior for the side-by-side layout.
  */
 @Composable
-private fun WithNavAnimatedScope(content: @Composable () -> Unit) {
-    CompositionLocalProvider(
-        LocalNavAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current,
-        content = content,
-    )
+private fun WithNavAnimatedScope(
+    enabled: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (enabled) {
+        CompositionLocalProvider(
+            LocalNavAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current,
+            content = content,
+        )
+    } else {
+        content()
+    }
 }
 
 /** Detail-pane placeholder shown on wide windows before a list item is selected. */
