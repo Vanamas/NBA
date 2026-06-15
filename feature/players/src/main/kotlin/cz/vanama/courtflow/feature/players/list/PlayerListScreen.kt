@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -62,6 +65,7 @@ import cz.vanama.courtflow.core.designsystem.component.PagingAppendError
 import cz.vanama.courtflow.core.designsystem.component.PagingAppendLoading
 import cz.vanama.courtflow.core.designsystem.component.PlayerCard
 import cz.vanama.courtflow.core.designsystem.component.PlayerCardSkeleton
+import cz.vanama.courtflow.core.designsystem.component.RecentPlayerChip
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
@@ -76,6 +80,7 @@ internal const val OFFLINE_BANNER_TEST_TAG = "player_offline_banner"
 internal const val REFRESH_ERROR_TEST_TAG = "refresh_error"
 internal const val EMPTY_STATE_TEST_TAG = "player_list_empty_state"
 internal const val PULL_TO_REFRESH_TEST_TAG = "player_pull_to_refresh"
+internal const val RECENTLY_VIEWED_STRIP_TEST_TAG = "player_recently_viewed_strip"
 
 private const val SKELETON_ITEM_COUNT = 7
 
@@ -95,6 +100,7 @@ fun PlayerListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val players = uiState.players.collectAsLazyPagingItems()
+    val recentlyViewed by uiState.recentlyViewed.collectAsStateWithLifecycle(initialValue = emptyList())
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(viewModel.uiEffect, lifecycleOwner) {
@@ -115,6 +121,7 @@ fun PlayerListScreen(
 
     PlayerListScreen(
         players = players,
+        recentlyViewed = recentlyViewed,
         searchQuery = uiState.searchQuery,
         isOffline = uiState.isOffline,
         favoriteIds = uiState.favoriteIds,
@@ -142,6 +149,7 @@ internal fun PlayerListScreen(
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    recentlyViewed: List<Player> = emptyList(),
     favoriteIds: Set<Int> = emptySet(),
     teams: List<Team> = emptyList(),
     selectedTeam: Team? = null,
@@ -166,6 +174,7 @@ internal fun PlayerListScreen(
     ) { padding ->
         PlayerListContent(
             players = players,
+            recentlyViewed = recentlyViewed,
             searchQuery = searchQuery,
             isOffline = isOffline,
             favoriteIds = favoriteIds,
@@ -198,6 +207,7 @@ internal fun PlayerListContent(
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    recentlyViewed: List<Player> = emptyList(),
     favoriteIds: Set<Int> = emptySet(),
     teams: List<Team> = emptyList(),
     selectedTeam: Team? = null,
@@ -213,6 +223,10 @@ internal fun PlayerListContent(
         ) {
             ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
+        RecentlyViewedStrip(
+            players = recentlyViewed,
+            onPlayerClick = onPlayerClick,
+        )
         PlayerFilterBar(
             teams = teams,
             selectedTeam = selectedTeam,
@@ -232,6 +246,46 @@ internal fun PlayerListContent(
             onClearSearch = { onSearchQueryChanged("") },
             onPlayerClick = onPlayerClick,
         )
+    }
+}
+
+/**
+ * Horizontal "recently viewed" strip rendered as the list header — a labelled
+ * [LazyRow] of compact [RecentPlayerChip]s. Hidden entirely when [players] is
+ * empty so a first-run user never sees a stray header. Chips are keyed by the
+ * stable player id.
+ */
+@Composable
+private fun RecentlyViewedStrip(
+    players: List<Player>,
+    onPlayerClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (players.isEmpty()) return
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .testTag(RECENTLY_VIEWED_STRIP_TEST_TAG),
+    ) {
+        Text(
+            text = stringResource(R.string.player_list_recently_viewed),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            items(items = players, key = { it.id }) { player ->
+                RecentPlayerChip(
+                    name = "${player.firstName} ${player.lastName}",
+                    imageUrl = player.imageUrl,
+                    onClick = { onPlayerClick(player.id) },
+                )
+            }
+        }
     }
 }
 
@@ -465,6 +519,7 @@ private fun PlayerListScreenPreview() {
     CourtFlowTheme {
         PlayerListScreen(
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
+            recentlyViewed = players,
             searchQuery = "",
             isOffline = false,
             teams = listOf(team),

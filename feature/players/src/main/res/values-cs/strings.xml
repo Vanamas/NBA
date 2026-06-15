@@ -2,6 +2,7 @@
 <resources>
     <string name="player_list_title">Hráči NBA</string>
     <string name="player_list_search_hint">Hledat hráče</string>
+    <string name="player_list_recently_viewed">Naposledy zobrazené</string>
     <string name="player_list_refresh_error">Načtení hráčů selhalo: %1$s</string>
     <string name="player_list_append_error">Chyba při načítání dalších hráčů: %1$s</string>
     <string name="player_list_empty">Žádní hráči k dispozici</string>

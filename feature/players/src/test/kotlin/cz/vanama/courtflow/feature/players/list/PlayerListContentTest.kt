@@ -606,6 +606,65 @@ class PlayerListContentTest {
 
         composeTestRule.onNodeWithText("Guards").assertIsDisplayed()
     }
+
+    @Test
+    fun `recently viewed strip is shown when the list is non-empty`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                PlayerListContent(
+                    players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                    recentlyViewed = listOf(player),
+                    searchQuery = "",
+                    isOffline = false,
+                    onSearchQueryChanged = {},
+                    onPlayerClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(RECENTLY_VIEWED_STRIP_TEST_TAG).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Recently viewed").assertIsDisplayed()
+    }
+
+    @Test
+    fun `recently viewed strip is absent when empty`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                PlayerListContent(
+                    players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                    recentlyViewed = emptyList(),
+                    searchQuery = "",
+                    isOffline = false,
+                    onSearchQueryChanged = {},
+                    onPlayerClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(RECENTLY_VIEWED_STRIP_TEST_TAG).assertDoesNotExist()
+        composeTestRule.onNodeWithText("Recently viewed").assertDoesNotExist()
+    }
+
+    @Test
+    fun `tapping a recently viewed chip invokes the player click callback`() {
+        var clickedId: Int? = null
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                PlayerListContent(
+                    players = flowOf(PagingData.from(emptyList<Player>())).collectAsLazyPagingItems(),
+                    recentlyViewed = listOf(player),
+                    searchQuery = "",
+                    isOffline = false,
+                    onSearchQueryChanged = {},
+                    onPlayerClick = { clickedId = it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(RECENTLY_VIEWED_STRIP_TEST_TAG).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Stephen Curry").performClick()
+        clickedId shouldBe 19
+    }
 }
 
 /** Single static page; each refresh makes the Pager factory build a new instance. */
