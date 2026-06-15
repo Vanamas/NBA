@@ -6,6 +6,7 @@ import cz.vanama.courtflow.data.di.dataModule
 import cz.vanama.courtflow.domain.di.domainModule
 import cz.vanama.courtflow.feature.players.di.playersFeatureModule
 import cz.vanama.courtflow.feature.settings.di.settingsFeatureModule
+import cz.vanama.courtflow.feature.teams.detail.TeamDetailUseCases
 import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
 import org.junit.Test
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -34,8 +35,9 @@ class KoinModulesTest {
             )
         }.verify(
             // Detail ViewModels take the player/team id as a runtime Koin parameter;
-            // GameRepositoryImpl takes a defaulted clock lambda.
-            extraTypes = listOf(Int::class, Function0::class),
+            // GameRepositoryImpl takes a defaulted clock lambda; TeamDetailUseCases is
+            // assembled inline in the teams module rather than bound as a definition.
+            extraTypes = listOf(Int::class, Function0::class, TeamDetailUseCases::class),
         )
     }
 }

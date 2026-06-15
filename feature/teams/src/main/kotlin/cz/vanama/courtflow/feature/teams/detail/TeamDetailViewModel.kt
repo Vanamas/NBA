@@ -7,10 +7,7 @@ import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.common.time.RateLimitRetryController
 import cz.vanama.courtflow.domain.model.FavoriteType
-import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
-import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
-import cz.vanama.courtflow.domain.usecase.GetTeamStandingUseCase
 import cz.vanama.courtflow.domain.usecase.IsFavoriteUseCase
 import cz.vanama.courtflow.domain.usecase.ToggleFavoriteUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,9 +25,7 @@ import kotlinx.coroutines.launch
  */
 class TeamDetailViewModel(
     private val teamId: Int,
-    private val getTeamDetailUseCase: GetTeamDetailUseCase,
-    private val getTeamGamesUseCase: GetTeamGamesUseCase,
-    private val getTeamStandingUseCase: GetTeamStandingUseCase,
+    private val useCases: TeamDetailUseCases,
     getTeamPlayersUseCase: GetTeamPlayersUseCase,
     isFavoriteUseCase: IsFavoriteUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
@@ -82,7 +77,7 @@ class TeamDetailViewModel(
         viewModelScope.launch {
             uiState.update { it.copy(isLoading = true, error = null, retryInSeconds = null) }
             try {
-                val team = getTeamDetailUseCase(teamId)
+                val team = useCases.getTeamDetail(teamId)
                 uiState.update { it.copy(isLoading = false, team = team) }
             } catch (e: DataException) {
                 uiState.update { it.copy(isLoading = false, error = e.kind) }
@@ -95,7 +90,7 @@ class TeamDetailViewModel(
         viewModelScope.launch {
             val games =
                 try {
-                    getTeamGamesUseCase(teamId)
+                    useCases.getTeamGames(teamId)
                 } catch (_: DataException) {
                     // Bonus section: on failure keep it hidden and leave the
                     // team info and roster untouched.
@@ -109,7 +104,7 @@ class TeamDetailViewModel(
         viewModelScope.launch {
             val standing =
                 try {
-                    getTeamStandingUseCase(teamId)
+                    useCases.getTeamStanding(teamId)
                 } catch (_: DataException) {
                     // Bonus section: on failure keep the badge hidden and leave
                     // the team info and roster untouched.

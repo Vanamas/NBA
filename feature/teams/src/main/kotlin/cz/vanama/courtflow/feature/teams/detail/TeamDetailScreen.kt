@@ -2,10 +2,8 @@ package cz.vanama.courtflow.feature.teams.detail
 
 import android.content.ClipDescription
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -308,52 +304,6 @@ private fun TeamDetailBody(
                 }
             }
         }
-    }
-}
-
-/** The "Recent games" block; renders nothing when [games] is empty (off-season or failed load). */
-private fun LazyListScope.recentGamesSection(games: List<Game>) {
-    if (games.isEmpty()) return
-    item { SectionHeader(text = stringResource(R.string.team_detail_recent_games)) }
-    items(games, key = { it.id }) { game ->
-        RecentGameRow(game = game)
-    }
-}
-
-/** One compact score line: game date, home abbreviation, score, visitor abbreviation. */
-@Composable
-private fun RecentGameRow(
-    game: Game,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier =
-            modifier
-                .widthIn(max = 360.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 6.dp),
-    ) {
-        Text(
-            text = game.date,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = game.homeTeam.abbreviation,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = stringResource(R.string.game_score, game.homeTeamScore, game.visitorTeamScore),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Text(
-            text = game.visitorTeam.abbreviation,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-        )
     }
 }
 

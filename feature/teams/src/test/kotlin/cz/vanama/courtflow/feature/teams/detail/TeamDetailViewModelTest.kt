@@ -89,9 +89,7 @@ class TeamDetailViewModelTest {
     private fun viewModel() =
         TeamDetailViewModel(
             1,
-            getTeamDetailUseCase,
-            getTeamGamesUseCase,
-            getTeamStandingUseCase,
+            TeamDetailUseCases(getTeamDetailUseCase, getTeamGamesUseCase, getTeamStandingUseCase),
             getTeamPlayersUseCase,
             isFavoriteUseCase,
             toggleFavoriteUseCase,
