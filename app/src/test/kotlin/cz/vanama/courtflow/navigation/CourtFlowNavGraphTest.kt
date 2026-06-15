@@ -9,12 +9,14 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.paging.PagingData
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
+import cz.vanama.courtflow.core.common.settings.RecentlyViewedStore
 import cz.vanama.courtflow.core.common.settings.ThemePreferences
 import cz.vanama.courtflow.core.common.settings.ThemePreferencesStore
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.GetRecentlyViewedPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
@@ -72,6 +74,10 @@ class CourtFlowNavGraphTest {
                         }
                     }
                     single<GetPlayerDetailUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns player } }
+                    single<GetRecentlyViewedPlayersUseCase> {
+                        mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) }
+                    }
+                    single<RecentlyViewedStore> { mockk(relaxed = true) }
                     single<GetTeamsUseCase> { mockk { every { this@mockk.invoke() } returns flowOf(listOf(team)) } }
                     single<GetTeamDetailUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns team } }
                     single<ConnectivityObserver> { mockk { every { isOnline } returns MutableStateFlow(true) } }
