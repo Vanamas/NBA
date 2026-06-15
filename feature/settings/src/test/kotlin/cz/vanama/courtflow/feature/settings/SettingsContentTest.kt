@@ -24,7 +24,7 @@ class SettingsContentTest {
     private val languages = listOf("en", "cs")
 
     private fun setContent(
-        state: SettingsState = SettingsState(languageTags = languages),
+        state: SettingsState = SettingsState(languageTags = languages, versionName = "1.0"),
         onIntent: (SettingsIntent) -> Unit = {},
     ) {
         rule.setContent { SettingsContent(state = state, onIntent = onIntent) }
@@ -82,6 +82,26 @@ class SettingsContentTest {
         setContent(onIntent = { if (it is SettingsIntent.OnLanguageSelected) picked = it.tag })
         rule.onNodeWithText("Čeština").performScrollTo().performClick()
         picked shouldBe "cs"
+    }
+
+    @Test
+    fun `renders the About header`() {
+        setContent()
+        rule.onNodeWithText("About").performScrollTo().assertExists()
+    }
+
+    @Test
+    fun `shows the app version name`() {
+        setContent(state = SettingsState(languageTags = languages, versionName = "1.0"))
+        rule.onNodeWithText("1.0").performScrollTo().assertExists()
+    }
+
+    @Test
+    fun `tapping open-source licenses emits its intent`() {
+        var emitted: SettingsIntent? = null
+        setContent(onIntent = { emitted = it })
+        rule.onNodeWithText("Open-source licenses").performScrollTo().performClick()
+        (emitted shouldBe SettingsIntent.OnOssLicensesClicked)
     }
 
     @Test
