@@ -68,7 +68,6 @@ class CourtFlowNavGraphTest {
                     single<GetPlayersUseCase> {
                         mockk {
                             every { this@mockk.invoke(any()) } returns flowOf(PagingData.from(listOf(player)))
-                            every { this@mockk.invoke(null) } returns flowOf(PagingData.from(listOf(player)))
                         }
                     }
                     single<GetPlayerDetailUseCase> { mockk { coEvery { this@mockk.invoke(any()) } returns player } }

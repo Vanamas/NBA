@@ -74,7 +74,11 @@ class PlayerListViewModelTest {
         runTest {
             every { getPlayersUseCase(PlayerFilter()) } returns flowOf(PagingData.empty<Player>())
 
-            val job = launch { viewModel.uiState.value.players.collect {} }
+            val job =
+                launch {
+                    viewModel.uiState.value.players
+                        .collect {}
+                }
             advanceTimeBy(301)
             runCurrent()
 
@@ -86,7 +90,11 @@ class PlayerListViewModelTest {
     fun `search query change reloads players with the query after debounce`() =
         runTest {
             every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
-            val job = launch { viewModel.uiState.value.players.collect {} }
+            val job =
+                launch {
+                    viewModel.uiState.value.players
+                        .collect {}
+                }
 
             viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged("curry"))
             advanceTimeBy(301)
@@ -101,7 +109,11 @@ class PlayerListViewModelTest {
     fun `selecting a team reloads players filtered by team id`() =
         runTest {
             every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
-            val job = launch { viewModel.uiState.value.players.collect {} }
+            val job =
+                launch {
+                    viewModel.uiState.value.players
+                        .collect {}
+                }
 
             viewModel.onIntent(PlayerListIntent.OnTeamSelected(lakers))
             advanceTimeBy(301)
@@ -116,7 +128,11 @@ class PlayerListViewModelTest {
     fun `selecting a position reloads players filtered by position`() =
         runTest {
             every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
-            val job = launch { viewModel.uiState.value.players.collect {} }
+            val job =
+                launch {
+                    viewModel.uiState.value.players
+                        .collect {}
+                }
 
             viewModel.onIntent(PlayerListIntent.OnPositionSelected("G"))
             advanceTimeBy(301)
