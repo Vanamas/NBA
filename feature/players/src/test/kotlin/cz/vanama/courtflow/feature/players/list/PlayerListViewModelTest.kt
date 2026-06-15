@@ -103,6 +103,54 @@ class PlayerListViewModelTest {
             runCurrent()
             assertEquals(false, viewModel.uiState.value.isOffline)
         }
+
+    @Test
+    fun `OnRefreshRateLimited with null epoch starts the fallback countdown`() =
+        runTest {
+            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(null))
+            runCurrent()
+
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+        }
+
+    @Test
+    fun `OnRefreshRateLimited with a future reset caps the countdown at 60s`() =
+        runTest {
+            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(4_000_000_000L))
+            runCurrent()
+
+            assertEquals(60, viewModel.uiState.value.retryInSeconds)
+        }
+
+    @Test
+    fun `countdown elapsing emits RetryPaging and clears retryInSeconds`() =
+        runTest {
+            viewModel.uiEffect.test {
+                viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(null))
+                advanceTimeBy(15_000)
+                runCurrent()
+                assertEquals(PlayerListEffect.RetryPaging, awaitItem())
+            }
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
+        }
+
+    @Test
+    fun `OnRefreshResolved cancels the countdown and clears retryInSeconds`() =
+        runTest {
+            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(null))
+            runCurrent()
+            assertEquals(15, viewModel.uiState.value.retryInSeconds)
+
+            viewModel.onIntent(PlayerListIntent.OnRefreshResolved)
+            runCurrent()
+            assertEquals(null, viewModel.uiState.value.retryInSeconds)
+
+            viewModel.uiEffect.test {
+                advanceTimeBy(15_000)
+                runCurrent()
+                expectNoEvents()
+            }
+        }
 }
 
 private class FakeConnectivityObserver(

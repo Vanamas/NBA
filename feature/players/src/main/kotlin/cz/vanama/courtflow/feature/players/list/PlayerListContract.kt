@@ -9,6 +9,7 @@ data class PlayerListState(
     val players: Flow<PagingData<Player>>,
     val searchQuery: String = "",
     val isOffline: Boolean = false,
+    val retryInSeconds: Int? = null,
 )
 
 /** User actions of the player list screen. */
@@ -20,6 +21,12 @@ sealed class PlayerListIntent {
     data class OnPlayerClicked(
         val playerId: Int,
     ) : PlayerListIntent()
+
+    data class OnRefreshRateLimited(
+        val resetEpochSeconds: Long?,
+    ) : PlayerListIntent()
+
+    data object OnRefreshResolved : PlayerListIntent()
 }
 
 /** One-shot events emitted by [PlayerListViewModel]. */
@@ -27,4 +34,6 @@ sealed class PlayerListEffect {
     data class NavigateToPlayerDetail(
         val playerId: Int,
     ) : PlayerListEffect()
+
+    data object RetryPaging : PlayerListEffect()
 }

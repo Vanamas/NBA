@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
+import cz.vanama.courtflow.core.common.time.RateLimitRetryController
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -31,6 +32,7 @@ class PlayerListViewModel(
     getPlayersUseCase: GetPlayersUseCase,
     connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
+    private val rateLimitRetry = RateLimitRetryController()
     private val searchQuery = MutableStateFlow("")
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -59,6 +61,8 @@ class PlayerListViewModel(
         when (intent) {
             is PlayerListIntent.OnSearchQueryChanged -> onSearchQueryChanged(intent.query)
             is PlayerListIntent.OnPlayerClicked -> onPlayerClicked(intent.playerId)
+            is PlayerListIntent.OnRefreshRateLimited -> onRefreshRateLimited(intent.resetEpochSeconds)
+            is PlayerListIntent.OnRefreshResolved -> onRefreshResolved()
         }
     }
 
@@ -71,6 +75,23 @@ class PlayerListViewModel(
         viewModelScope.launch {
             uiEffect.emit(PlayerListEffect.NavigateToPlayerDetail(playerId))
         }
+    }
+
+    private fun onRefreshRateLimited(resetEpochSeconds: Long?) {
+        rateLimitRetry.schedule(
+            resetEpochSeconds = resetEpochSeconds,
+            scope = viewModelScope,
+            onTick = { remaining -> uiState.update { it.copy(retryInSeconds = remaining) } },
+            onElapsed = {
+                uiState.update { it.copy(retryInSeconds = null) }
+                viewModelScope.launch { uiEffect.emit(PlayerListEffect.RetryPaging) }
+            },
+        )
+    }
+
+    private fun onRefreshResolved() {
+        rateLimitRetry.cancel()
+        uiState.update { it.copy(retryInSeconds = null) }
     }
 
     private companion object {

@@ -100,6 +100,7 @@ fun PlayerListScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     is PlayerListEffect.NavigateToPlayerDetail -> onNavigateToPlayerDetail(effect.playerId)
+                    is PlayerListEffect.RetryPaging -> Unit
                 }
             }
         }
