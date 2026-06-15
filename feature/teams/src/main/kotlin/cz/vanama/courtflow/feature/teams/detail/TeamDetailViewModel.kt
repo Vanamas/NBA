@@ -5,11 +5,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
-import cz.vanama.courtflow.core.common.time.countdownSeconds
+import cz.vanama.courtflow.core.common.time.RateLimitRetryController
 import cz.vanama.courtflow.domain.usecase.GetTeamDetailUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,7 +34,7 @@ class TeamDetailViewModel(
     val uiEffect: SharedFlow<TeamDetailEffect>
         field = MutableSharedFlow<TeamDetailEffect>()
 
-    private var rateLimitRetryJob: Job? = null
+    private val rateLimitRetry = RateLimitRetryController()
 
     init {
         loadTeam()
@@ -54,7 +53,7 @@ class TeamDetailViewModel(
     }
 
     private fun loadTeam() {
-        rateLimitRetryJob?.cancel()
+        rateLimitRetry.cancel()
         viewModelScope.launch {
             uiState.update { it.copy(isLoading = true, error = null, retryInSeconds = null) }
             try {
@@ -82,13 +81,11 @@ class TeamDetailViewModel(
     }
 
     private fun scheduleRateLimitRetry() {
-        rateLimitRetryJob =
-            viewModelScope.launch {
-                countdownSeconds(RATE_LIMIT_RETRY_SECONDS).collect { remaining ->
-                    uiState.update { it.copy(retryInSeconds = remaining.takeIf { s -> s > 0 }) }
-                    if (remaining == 0) loadTeam()
-                }
-            }
+        rateLimitRetry.schedule(
+            scope = viewModelScope,
+            onTick = { remaining -> uiState.update { it.copy(retryInSeconds = remaining) } },
+            onElapsed = ::loadTeam,
+        )
     }
 
     private fun onPlayerClicked(playerId: Int) {
@@ -104,8 +101,4 @@ class TeamDetailViewModel(
         }
     }
 
-    private companion object {
-        /** balldontlie's free tier limits requests per minute; 15 s is a safe wait. */
-        const val RATE_LIMIT_RETRY_SECONDS = 15
-    }
 }
