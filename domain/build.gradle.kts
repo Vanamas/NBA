@@ -12,9 +12,11 @@ dependencies {
     implementation(libs.androidx.paging.common)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.koin.android)
+    implementation(project(":core:common"))
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotest.assertions.core)
 }
