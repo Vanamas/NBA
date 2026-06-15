@@ -63,6 +63,7 @@ import cz.vanama.courtflow.core.designsystem.component.errorMessage
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
+import cz.vanama.courtflow.domain.model.Standing
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.feature.teams.R
 import kotlinx.coroutines.flow.flowOf
@@ -234,6 +235,7 @@ internal fun TeamDetailContent(
             state.team?.let { team ->
                 TeamDetailBody(
                     team = team,
+                    standing = state.standing,
                     recentGames = state.recentGames,
                     players = players,
                     onPlayerClick = onPlayerClick,
@@ -253,6 +255,7 @@ internal fun TeamDetailContent(
 @Composable
 private fun TeamDetailBody(
     team: Team,
+    standing: Standing?,
     recentGames: List<Game>,
     players: LazyPagingItems<Player>,
     onPlayerClick: (Int) -> Unit,
@@ -274,7 +277,7 @@ private fun TeamDetailBody(
                     .fillMaxSize()
                     .testTag(TEAM_DETAIL_LIST_TEST_TAG),
         ) {
-            item { TeamHeader(team = team) }
+            item { TeamHeader(team = team, standing = standing) }
 
             recentGamesSection(recentGames)
 
@@ -358,6 +361,7 @@ private fun RecentGameRow(
 @Composable
 private fun TeamHeader(
     team: Team,
+    standing: Standing?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -386,6 +390,7 @@ private fun TeamHeader(
             textStyle = MaterialTheme.typography.labelMedium,
             minHeight = 26.dp,
         )
+        StandingBadge(standing = standing)
         Spacer(modifier = Modifier.height(20.dp))
         Column(
             modifier =
@@ -407,6 +412,30 @@ private fun TeamHeader(
             )
         }
     }
+}
+
+/** Compact "12-4 · 3 in West" record + conference-rank pill; hidden when [standing] is null. */
+@Composable
+private fun StandingBadge(
+    standing: Standing?,
+    modifier: Modifier = Modifier,
+) {
+    if (standing == null) return
+    val record = stringResource(R.string.team_standing_record, standing.wins, standing.losses)
+    Spacer(modifier = Modifier.height(6.dp))
+    Badge(
+        text =
+            stringResource(
+                R.string.team_standing_summary,
+                record,
+                standing.conferenceRank,
+                standing.conference,
+            ),
+        tone = BadgeTone.Primary,
+        textStyle = MaterialTheme.typography.labelMedium,
+        minHeight = 26.dp,
+        modifier = modifier,
+    )
 }
 
 @PreviewLightDark
@@ -434,7 +463,12 @@ private fun TeamDetailScreenPreview() {
 
     CourtFlowTheme {
         TeamDetailScreen(
-            state = TeamDetailState(team = team, recentGames = games),
+            state =
+                TeamDetailState(
+                    team = team,
+                    recentGames = games,
+                    standing = Standing(teamId = 10, wins = 12, losses = 4, conferenceRank = 3, conference = "West"),
+                ),
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             onRetry = {},
             onPlayerClick = {},

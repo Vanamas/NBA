@@ -20,6 +20,7 @@ import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.model.Player
+import cz.vanama.courtflow.domain.model.Standing
 import cz.vanama.courtflow.domain.model.Team
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.flowOf
@@ -71,6 +72,9 @@ class TeamDetailContentTest {
             visitorTeam = lakers,
             visitorTeamScore = 99,
         )
+
+    private val standing =
+        Standing(teamId = 10, wins = 12, losses = 4, conferenceRank = 3, conference = "West")
 
     @Composable
     private fun pagingItems(
@@ -381,6 +385,34 @@ class TeamDetailContentTest {
             .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
             .performScrollToNode(hasTestTag(ROSTER_LOADING_TEST_TAG))
         composeTestRule.onNodeWithTag(ROSTER_LOADING_TEST_TAG).assertIsDisplayed()
+    }
+
+    @Test
+    fun `standing badge shows the record and conference rank`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team, standing = standing),
+                players = pagingItems(roster),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("12-4 · 3 in West").assertIsDisplayed()
+    }
+
+    @Test
+    fun `standing badge is hidden when there is no standing`() {
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team, standing = null),
+                players = pagingItems(roster),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("·", substring = true).assertDoesNotExist()
     }
 
     @Test
