@@ -46,6 +46,7 @@ fun PlayerCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isFavorite: Boolean = false,
+    sharedElementKey: Any? = null,
 ) {
     Card(
         onClick = onClick,
@@ -63,6 +64,7 @@ fun PlayerCard(
                 contentDescription = "$firstName $lastName",
                 loadingIcon = Icons.Filled.Person,
                 modifier = Modifier.size(64.dp),
+                sharedElementKey = sharedElementKey,
             )
             Spacer(modifier = Modifier.width(16.dp))
             PlayerInfo(
