@@ -22,4 +22,5 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.robolectric)
+    testImplementation(libs.mockk)
 }
