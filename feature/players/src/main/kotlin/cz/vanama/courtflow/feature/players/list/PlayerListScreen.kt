@@ -58,6 +58,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import cz.vanama.courtflow.core.designsystem.animation.playerAvatarSharedKey
 import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
@@ -483,6 +484,7 @@ private fun PlayerLazyList(
                     imageUrl = player.imageUrl,
                     isFavorite = player.id in favoriteIds,
                     onClick = { onPlayerClick(player.id) },
+                    sharedElementKey = playerAvatarSharedKey(player.id),
                 )
             }
         }

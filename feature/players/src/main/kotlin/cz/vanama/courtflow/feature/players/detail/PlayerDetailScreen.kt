@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.designsystem.animation.playerAvatarSharedKey
 import cz.vanama.courtflow.core.designsystem.component.AttributeRow
 import cz.vanama.courtflow.core.designsystem.component.AvatarImage
 import cz.vanama.courtflow.core.designsystem.component.Badge
@@ -247,6 +248,7 @@ private fun PlayerDetailBody(
             contentDescription = "${player.firstName} ${player.lastName}",
             loadingIcon = Icons.Filled.Person,
             modifier = Modifier.size(160.dp),
+            sharedElementKey = playerAvatarSharedKey(player.id),
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
