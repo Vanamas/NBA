@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.di
 
+import android.content.Context
 import cz.vanama.courtflow.core.common.di.coreCommonModule
 import cz.vanama.courtflow.core.network.di.coreNetworkModule
 import cz.vanama.courtflow.data.di.dataModule
@@ -33,9 +34,13 @@ class KoinModulesTest {
                 settingsFeatureModule,
             )
         }.verify(
-            // Detail ViewModels take the player/team id as a runtime Koin parameter;
-            // GameRepositoryImpl takes a defaulted clock lambda.
-            extraTypes = listOf(Int::class, Function0::class),
+            // Types the constructor DSL exposes to verify() but that aren't graph
+            // definitions: Int — detail ViewModels take the player/team id as a
+            // runtime parameter (parametersOf); Function0 — GameRepositoryImpl's
+            // defaulted clock lambda; Context — supplied by androidContext() at
+            // startup and injected into AndroidConnectivityObserver and
+            // DefaultAppLocaleController.
+            extraTypes = listOf(Int::class, Function0::class, Context::class),
         )
     }
 }

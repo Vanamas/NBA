@@ -9,6 +9,8 @@ import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.core.common.settings.DataStoreThemePreferencesStore
 import cz.vanama.courtflow.core.common.settings.ThemePreferencesStore
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 private val Context.themeDataStore: DataStore<Preferences> by preferencesDataStore(name = "theme_prefs")
@@ -16,7 +18,9 @@ private val Context.themeDataStore: DataStore<Preferences> by preferencesDataSto
 /** Koin module providing the cross-cutting services of core:common. */
 val coreCommonModule =
     module {
-        single<ConnectivityObserver> { AndroidConnectivityObserver(androidContext()) }
+        singleOf(::AndroidConnectivityObserver) { bind<ConnectivityObserver>() }
+        // Kept manual: the DataStore is produced by a Context extension property,
+        // not a constructor.
         single<DataStore<Preferences>> { androidContext().themeDataStore }
-        single<ThemePreferencesStore> { DataStoreThemePreferencesStore(get()) }
+        singleOf(::DataStoreThemePreferencesStore) { bind<ThemePreferencesStore>() }
     }
