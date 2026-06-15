@@ -554,6 +554,38 @@ class PlayerListContentTest {
 
         composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
     }
+
+    @Test
+    fun `favorited player row shows the favorite indicator`() {
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "",
+                isOffline = false,
+                favoriteIds = setOf(19),
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithContentDescription("Favorite").assertIsDisplayed()
+    }
+
+    @Test
+    fun `non-favorited player row hides the favorite indicator`() {
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "",
+                isOffline = false,
+                favoriteIds = emptySet(),
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithContentDescription("Favorite").assertDoesNotExist()
+    }
 }
 
 /** Single static page; each refresh makes the Pager factory build a new instance. */

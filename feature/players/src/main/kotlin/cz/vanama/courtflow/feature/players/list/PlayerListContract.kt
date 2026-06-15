@@ -9,6 +9,7 @@ data class PlayerListState(
     val players: Flow<PagingData<Player>>,
     val searchQuery: String = "",
     val isOffline: Boolean = false,
+    val favoriteIds: Set<Int> = emptySet(),
 )
 
 /** User actions of the player list screen. */

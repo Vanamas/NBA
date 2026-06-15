@@ -3,8 +3,10 @@ package cz.vanama.courtflow.feature.players.list
 import androidx.paging.PagingData
 import app.cash.turbine.test
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
+import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,16 +30,20 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerListViewModelTest {
     private lateinit var getPlayersUseCase: GetPlayersUseCase
+    private lateinit var observeFavoritesUseCase: ObserveFavoritesUseCase
     private lateinit var viewModel: PlayerListViewModel
     private lateinit var connectivityObserver: FakeConnectivityObserver
+    private val favoriteIds = MutableStateFlow<List<Int>>(emptyList())
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getPlayersUseCase = mockk()
+        observeFavoritesUseCase = mockk()
+        every { observeFavoritesUseCase(FavoriteType.PLAYER) } returns favoriteIds
         connectivityObserver = FakeConnectivityObserver()
-        viewModel = PlayerListViewModel(getPlayersUseCase, connectivityObserver)
+        viewModel = PlayerListViewModel(getPlayersUseCase, observeFavoritesUseCase, connectivityObserver)
     }
 
     @After
@@ -88,6 +94,18 @@ class PlayerListViewModelTest {
                 viewModel.onIntent(PlayerListIntent.OnPlayerClicked(1))
                 assertEquals(PlayerListEffect.NavigateToPlayerDetail(1), awaitItem())
             }
+        }
+
+    @Test
+    fun `favoriteIds reflects the observed favorites flow`() =
+        runTest {
+            runCurrent()
+            assertEquals(emptySet<Int>(), viewModel.uiState.value.favoriteIds)
+
+            favoriteIds.value = listOf(19, 21)
+            runCurrent()
+
+            assertEquals(setOf(19, 21), viewModel.uiState.value.favoriteIds)
         }
 
     @Test

@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
+import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,6 +31,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 class PlayerListViewModel(
     getPlayersUseCase: GetPlayersUseCase,
+    observeFavoritesUseCase: ObserveFavoritesUseCase,
     connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
     private val searchQuery = MutableStateFlow("")
@@ -51,6 +54,11 @@ class PlayerListViewModel(
         viewModelScope.launch {
             connectivityObserver.isOnline.collect { online ->
                 uiState.update { it.copy(isOffline = !online) }
+            }
+        }
+        viewModelScope.launch {
+            observeFavoritesUseCase(FavoriteType.PLAYER).collect { ids ->
+                uiState.update { it.copy(favoriteIds = ids.toSet()) }
             }
         }
     }

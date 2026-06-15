@@ -117,6 +117,7 @@ fun PlayerListScreen(
         players = players,
         searchQuery = uiState.searchQuery,
         isOffline = uiState.isOffline,
+        favoriteIds = uiState.favoriteIds,
         onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
         onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
         modifier = modifier,
@@ -136,6 +137,7 @@ internal fun PlayerListScreen(
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    favoriteIds: Set<Int> = emptySet(),
 ) {
     // Hides on scroll down and reappears immediately on scroll up, freeing
     // vertical space for the list while the user is consuming content.
@@ -156,6 +158,7 @@ internal fun PlayerListScreen(
             players = players,
             searchQuery = searchQuery,
             isOffline = isOffline,
+            favoriteIds = favoriteIds,
             onSearchQueryChanged = onSearchQueryChanged,
             onPlayerClick = onPlayerClick,
             modifier = Modifier.padding(padding),
@@ -180,6 +183,7 @@ internal fun PlayerListContent(
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    favoriteIds: Set<Int> = emptySet(),
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -197,6 +201,7 @@ internal fun PlayerListContent(
         PlayerListItems(
             players = players,
             searchQuery = searchQuery,
+            favoriteIds = favoriteIds,
             onClearSearch = { onSearchQueryChanged("") },
             onPlayerClick = onPlayerClick,
         )
@@ -253,6 +258,7 @@ private fun PlayerSearchField(
 private fun PlayerListItems(
     players: LazyPagingItems<Player>,
     searchQuery: String,
+    favoriteIds: Set<Int>,
     onClearSearch: () -> Unit,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -310,6 +316,7 @@ private fun PlayerListItems(
                     }
                     PlayerLazyList(
                         players = players,
+                        favoriteIds = favoriteIds,
                         onPlayerClick = onPlayerClick,
                     )
                 }
@@ -369,6 +376,7 @@ private fun EmptyPlayersState(
 @Composable
 private fun PlayerLazyList(
     players: LazyPagingItems<Player>,
+    favoriteIds: Set<Int>,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -392,6 +400,7 @@ private fun PlayerLazyList(
                     position = player.position,
                     teamName = player.team.fullName,
                     imageUrl = player.imageUrl,
+                    isFavorite = player.id in favoriteIds,
                     onClick = { onPlayerClick(player.id) },
                 )
             }
