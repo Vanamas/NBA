@@ -13,6 +13,7 @@ import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersGet200Respon
 import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersIdGet200Response
 import cz.vanama.courtflow.core.network.generated.model.Pagination
 import cz.vanama.courtflow.data.local.CourtFlowDatabase
+import cz.vanama.courtflow.domain.model.PlayerFilter
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -66,6 +67,75 @@ class PlayerRepositoryImplTest {
     fun tearDown() {
         database.close()
     }
+
+    @Test
+    fun `team filter hits the network with team_ids and bypasses the cache`() =
+        runTest(testDispatcher) {
+            coEvery {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = listOf(14))
+            } returns
+                NbaV1PlayersGet200Response(
+                    data = listOf(lebronDto),
+                    meta = Pagination(nextCursor = null),
+                )
+
+            val players = repository.getPlayers(PlayerFilter(teamId = 14)).asSnapshot()
+
+            assertEquals(listOf("LeBron"), players.map { it.firstName })
+            assertTrue(database.playerDao().getAll().isEmpty())
+            coVerify(exactly = 1) {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = listOf(14))
+            }
+        }
+
+    @Test
+    fun `position filter keeps only matching players from the page`() =
+        runTest(testDispatcher) {
+            coEvery {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = null)
+            } returns
+                NbaV1PlayersGet200Response(
+                    // lebronDto.position = "F", curryDto.position = "G"
+                    data = listOf(lebronDto, curryDto),
+                    meta = Pagination(nextCursor = null),
+                )
+
+            val players = repository.getPlayers(PlayerFilter(position = "G")).asSnapshot()
+
+            assertEquals(listOf("Stephen"), players.map { it.firstName })
+        }
+
+    @Test
+    fun `combined team and position filter sends team_ids and filters position client-side`() =
+        runTest(testDispatcher) {
+            coEvery {
+                api.nbaV1PlayersGet(cursor = null, perPage = 35, search = null, teamIds = listOf(10))
+            } returns
+                NbaV1PlayersGet200Response(
+                    data = listOf(curryDto, lebronDto),
+                    meta = Pagination(nextCursor = null),
+                )
+
+            val players =
+                repository.getPlayers(PlayerFilter(teamId = 10, position = "G")).asSnapshot()
+
+            assertEquals(listOf("Stephen"), players.map { it.firstName })
+        }
+
+    @Test
+    fun `empty filter is served offline-first from Room`() =
+        runTest(testDispatcher) {
+            coEvery { api.nbaV1PlayersGet(cursor = null, perPage = 35) } returns
+                NbaV1PlayersGet200Response(
+                    data = listOf(lebronDto),
+                    meta = Pagination(nextCursor = null),
+                )
+
+            val players = repository.getPlayers(PlayerFilter()).asSnapshot()
+
+            assertEquals(listOf("LeBron"), players.map { it.firstName })
+            assertEquals(listOf(1), database.playerDao().getAll().map { it.id })
+        }
 
     @Test
     fun `getPlayerById returns the mapped player`() =
