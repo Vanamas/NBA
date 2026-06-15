@@ -46,6 +46,12 @@ internal fun Exception.toDataException(): DataException =
                     },
                 message = "HTTP ${code()}",
                 cause = this,
+                rateLimitResetEpochSeconds =
+                    if (code() == HTTP_TOO_MANY_REQUESTS) {
+                        response()?.headers()?.get(HEADER_RATE_LIMIT_RESET)?.toLongOrNull()
+                    } else {
+                        null
+                    },
             )
         is IOException -> DataException(DataErrorKind.NETWORK, "Network error", this)
         else -> DataException(DataErrorKind.UNKNOWN, message, this)
@@ -53,3 +59,6 @@ internal fun Exception.toDataException(): DataException =
 
 /** Not among [HttpURLConnection]'s status-code constants. */
 private const val HTTP_TOO_MANY_REQUESTS = 429
+
+/** balldontlie returns the quota-reset instant as an absolute Unix epoch (seconds). */
+private const val HEADER_RATE_LIMIT_RESET = "x-ratelimit-reset"

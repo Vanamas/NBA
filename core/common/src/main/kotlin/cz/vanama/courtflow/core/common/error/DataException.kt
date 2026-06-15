@@ -10,4 +10,5 @@ class DataException(
     val kind: DataErrorKind,
     message: String? = null,
     cause: Throwable? = null,
+    val rateLimitResetEpochSeconds: Long? = null,
 ) : Exception(message, cause)
