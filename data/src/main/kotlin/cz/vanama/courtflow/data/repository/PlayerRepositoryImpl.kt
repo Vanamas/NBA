@@ -4,6 +4,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.filter
 import androidx.paging.map
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
@@ -16,6 +17,7 @@ import cz.vanama.courtflow.data.mapper.toEntity
 import cz.vanama.courtflow.data.paging.PlayerPagingSource
 import cz.vanama.courtflow.data.paging.PlayerRemoteMediator
 import cz.vanama.courtflow.domain.model.Player
+import cz.vanama.courtflow.domain.model.PlayerFilter
 import cz.vanama.courtflow.domain.repository.PlayerRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -51,6 +53,31 @@ class PlayerRepositoryImpl(
                 pagingSourceFactory = { PlayerPagingSource(api, search = query) },
             ).flow
         }
+
+    override fun getPlayers(filter: PlayerFilter): Flow<PagingData<Player>> {
+        if (filter.isEmpty()) {
+            return getPlayers(query = null)
+        }
+        val teamIds = filter.teamId?.let { listOf(it) }
+        val search = filter.query.ifBlank { null }
+        val stream =
+            Pager(
+                config = playerPagingConfig(),
+                pagingSourceFactory = {
+                    PlayerPagingSource(api, search = search, teamIds = teamIds)
+                },
+            ).flow
+        // /players has no position parameter, so it is enforced client-side
+        // over each loaded page. This filters within the loaded pages only;
+        // a page can therefore yield fewer than 35 visible items, but Paging
+        // keeps appending pages as the user scrolls, so the stream stays whole.
+        val position = filter.position
+        return if (position == null) {
+            stream
+        } else {
+            stream.map { pagingData -> pagingData.filter { it.position == position } }
+        }
+    }
 
     override fun getTeamPlayers(teamId: Int): Flow<PagingData<Player>> =
         Pager(
