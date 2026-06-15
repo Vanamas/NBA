@@ -6,8 +6,10 @@ import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.common.time.RateLimitRetryController
+import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
+import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -23,6 +25,7 @@ import kotlinx.coroutines.launch
  */
 class TeamListViewModel(
     private val getTeamsUseCase: GetTeamsUseCase,
+    private val observeFavoritesUseCase: ObserveFavoritesUseCase,
     private val connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
     val uiState: StateFlow<TeamListState>
@@ -36,6 +39,15 @@ class TeamListViewModel(
     init {
         loadTeams()
         observeConnectivity()
+        observeFavorites()
+    }
+
+    private fun observeFavorites() {
+        viewModelScope.launch {
+            observeFavoritesUseCase(FavoriteType.TEAM).collect { ids ->
+                uiState.update { it.copy(favoriteIds = ids.toSet()) }
+            }
+        }
     }
 
     fun onIntent(intent: TeamListIntent) {

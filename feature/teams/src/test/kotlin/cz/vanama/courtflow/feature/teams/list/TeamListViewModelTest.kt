@@ -4,8 +4,10 @@ import app.cash.turbine.test
 import cz.vanama.courtflow.core.common.connectivity.ConnectivityObserver
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
+import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
+import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -29,7 +31,9 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class TeamListViewModelTest {
     private lateinit var getTeamsUseCase: GetTeamsUseCase
+    private lateinit var observeFavoritesUseCase: ObserveFavoritesUseCase
     private lateinit var connectivityObserver: FakeConnectivityObserver
+    private val favoriteIds = MutableStateFlow<List<Int>>(emptyList())
     private val testDispatcher = StandardTestDispatcher()
 
     private val celtics = Team(1, "BOS", "Boston", "East", "Atlantic", "Boston Celtics", "Celtics")
@@ -42,6 +46,8 @@ class TeamListViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         getTeamsUseCase = mockk()
+        observeFavoritesUseCase = mockk()
+        every { observeFavoritesUseCase(FavoriteType.TEAM) } returns favoriteIds
         connectivityObserver = FakeConnectivityObserver()
     }
 
@@ -55,7 +61,7 @@ class TeamListViewModelTest {
         runTest {
             every { getTeamsUseCase() } returns flowOf(listOf(lakers, celtics))
 
-            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
 
             viewModel.uiState.test {
                 awaitItem() // initial state
@@ -79,7 +85,7 @@ class TeamListViewModelTest {
         runTest {
             every { getTeamsUseCase() } returns flowOf(listOf(bullets, lakers))
 
-            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
 
             viewModel.uiState.test {
                 awaitItem() // initial state
@@ -101,7 +107,7 @@ class TeamListViewModelTest {
         runTest {
             every { getTeamsUseCase() } returns flow { throw DataException(DataErrorKind.SERVER) }
 
-            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(DataErrorKind.SERVER, viewModel.uiState.value.error)
@@ -114,7 +120,7 @@ class TeamListViewModelTest {
             every { getTeamsUseCase() } returns
                 flow { throw DataException(DataErrorKind.SERVER) } andThen flowOf(listOf(lakers))
 
-            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
             testDispatcher.scheduler.advanceUntilIdle()
             assertEquals(DataErrorKind.SERVER, viewModel.uiState.value.error)
 
@@ -164,7 +170,7 @@ class TeamListViewModelTest {
         runTest {
             every { getTeamsUseCase() } returns flowOf(listOf(lakers))
 
-            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
 
             viewModel.uiEffect.test {
                 viewModel.onIntent(TeamListIntent.OnTeamClicked(7))
@@ -178,7 +184,7 @@ class TeamListViewModelTest {
             every { getTeamsUseCase() } returns
                 flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
                 flowOf(listOf(lakers))
-            val viewModel = TeamListViewModel(getTeamsUseCase, FakeConnectivityObserver())
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, FakeConnectivityObserver())
             runCurrent()
 
             assertEquals(DataErrorKind.RATE_LIMITED, viewModel.uiState.value.error)
@@ -199,7 +205,7 @@ class TeamListViewModelTest {
                 flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
                 flowOf(listOf(lakers))
 
-            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
             runCurrent()
 
             assertEquals(15, viewModel.uiState.value.retryInSeconds)
@@ -227,7 +233,7 @@ class TeamListViewModelTest {
                 flow { throw DataException(DataErrorKind.NETWORK) } andThen
                 flowOf(listOf(lakers))
             val connectivity = FakeConnectivityObserver(initiallyOnline = true)
-            val viewModel = TeamListViewModel(getTeamsUseCase, connectivity)
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivity)
             runCurrent()
             assertEquals(DataErrorKind.NETWORK, viewModel.uiState.value.error)
 
@@ -240,6 +246,20 @@ class TeamListViewModelTest {
 
             verify(exactly = 2) { getTeamsUseCase() }
             assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
+        }
+
+    @Test
+    fun `favoriteIds reflects the observed favorites flow`() =
+        runTest {
+            every { getTeamsUseCase() } returns flowOf(emptyList())
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
+            runCurrent()
+            assertEquals(emptySet<Int>(), viewModel.uiState.value.favoriteIds)
+
+            favoriteIds.value = listOf(1, 4)
+            runCurrent()
+
+            assertEquals(setOf(1, 4), viewModel.uiState.value.favoriteIds)
         }
 }
 

@@ -10,6 +10,7 @@ data class TeamListState(
     val error: DataErrorKind? = null,
     val isOffline: Boolean = false,
     val retryInSeconds: Int? = null,
+    val favoriteIds: Set<Int> = emptySet(),
 )
 
 /** User actions of the team list screen; the initial load happens in the ViewModel's `init`. */

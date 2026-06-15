@@ -171,7 +171,9 @@ internal fun TeamListContent(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        state.sections.forEach { section -> teamSection(section, onTeamClick) }
+                        state.sections.forEach { section ->
+                            teamSection(section, state.favoriteIds, onTeamClick)
+                        }
                     }
                 }
             }
@@ -182,6 +184,7 @@ internal fun TeamListContent(
 /** One full-width section header plus the team cards of a single [TeamSection]. */
 private fun LazyGridScope.teamSection(
     section: TeamSection,
+    favoriteIds: Set<Int>,
     onTeamClick: (Int) -> Unit,
 ) {
     item(
@@ -196,6 +199,7 @@ private fun LazyGridScope.teamSection(
             conference = team.conference,
             division = team.division,
             abbreviation = team.abbreviation,
+            isFavorite = team.id in favoriteIds,
             onClick = { onTeamClick(team.id) },
         )
     }

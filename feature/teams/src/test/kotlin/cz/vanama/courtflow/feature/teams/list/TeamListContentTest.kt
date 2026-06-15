@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -181,5 +182,39 @@ class TeamListContentTest {
         }
 
         composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
+    }
+
+    @Test
+    fun `favorited team card shows the favorite indicator`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state =
+                        TeamListState(
+                            sections = listOf(TeamSection("West", "Pacific", listOf(team))),
+                            favoriteIds = setOf(10),
+                        ),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("Favorite").assertIsDisplayed()
+    }
+
+    @Test
+    fun `non-favorited team card hides the favorite indicator`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state = TeamListState(sections = listOf(TeamSection("West", "Pacific", listOf(team)))),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("Favorite").assertDoesNotExist()
     }
 }
