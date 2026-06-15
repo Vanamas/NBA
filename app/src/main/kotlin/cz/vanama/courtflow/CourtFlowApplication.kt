@@ -9,6 +9,7 @@ import cz.vanama.courtflow.domain.di.domainModule
 import cz.vanama.courtflow.feature.players.di.playersFeatureModule
 import cz.vanama.courtflow.feature.settings.di.settingsFeatureModule
 import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
+import cz.vanama.courtflow.widget.widgetModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -31,6 +32,7 @@ class CourtFlowApplication : Application() {
             androidContext(this@CourtFlowApplication)
             modules(
                 appModule,
+                widgetModule,
                 coreCommonModule,
                 coreNetworkModule,
                 dataModule,
