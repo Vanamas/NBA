@@ -10,12 +10,19 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -83,6 +90,7 @@ fun TeamListScreen(
         state = uiState,
         onTeamClick = { teamId -> viewModel.onIntent(TeamListIntent.OnTeamClicked(teamId)) },
         onRetry = { viewModel.onIntent(TeamListIntent.Retry) },
+        onToggleFavoritesFilter = { viewModel.onIntent(TeamListIntent.OnToggleFavoritesFilter) },
         modifier = modifier,
     )
 }
@@ -98,6 +106,7 @@ internal fun TeamListScreen(
     onTeamClick: (Int) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onToggleFavoritesFilter: () -> Unit = {},
 ) {
     // Hides on scroll down and reappears immediately on scroll up, freeing
     // vertical space for the grid while the user is consuming content.
@@ -118,6 +127,7 @@ internal fun TeamListScreen(
             state = state,
             onTeamClick = onTeamClick,
             onRetry = onRetry,
+            onToggleFavoritesFilter = onToggleFavoritesFilter,
             modifier = Modifier.padding(padding),
         )
     }
@@ -135,6 +145,7 @@ internal fun TeamListContent(
     onTeamClick: (Int) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onToggleFavoritesFilter: () -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -144,17 +155,15 @@ internal fun TeamListContent(
         ) {
             ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
+        if (!state.isLoading && state.error == null) {
+            FavoritesFilterChip(
+                selected = state.showFavoritesOnly,
+                onClick = onToggleFavoritesFilter,
+            )
+        }
         Box(modifier = Modifier.fillMaxSize()) {
             when {
-                state.isLoading -> {
-                    // First-load placeholder: a static column of shimmering
-                    // skeletons matching the grid's content padding.
-                    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                        repeat(SKELETON_ITEM_COUNT) {
-                            TeamCardSkeleton(modifier = Modifier.padding(bottom = 8.dp))
-                        }
-                    }
-                }
+                state.isLoading -> TeamListSkeletons()
                 state.error != null -> {
                     ErrorState(
                         message = errorMessage(state.error),
@@ -163,22 +172,73 @@ internal fun TeamListContent(
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
-                else -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        state.sections.forEach { section ->
-                            teamSection(section, state.favoriteIds, onTeamClick)
-                        }
-                    }
+                state.showFavoritesOnly && state.visibleSections.isEmpty() -> {
+                    Text(
+                        text = stringResource(R.string.team_list_favorites_empty),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                    )
                 }
+                else -> TeamGrid(sections = state.visibleSections, favoriteIds = state.favoriteIds, onTeamClick = onTeamClick)
             }
         }
     }
+}
+
+/** First-load placeholder: a static column of shimmering skeletons matching the grid's padding. */
+@Composable
+private fun TeamListSkeletons(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
+        repeat(SKELETON_ITEM_COUNT) {
+            TeamCardSkeleton(modifier = Modifier.padding(bottom = 8.dp))
+        }
+    }
+}
+
+/** Adaptive grid of all visible team sections. */
+@Composable
+private fun TeamGrid(
+    sections: List<TeamSection>,
+    favoriteIds: Set<Int>,
+    onTeamClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.fillMaxSize(),
+    ) {
+        sections.forEach { section -> teamSection(section, favoriteIds, onTeamClick) }
+    }
+}
+
+/** "Favorites" filter chip that toggles between all teams and favorited teams only. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FavoritesFilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(stringResource(R.string.team_list_favorites_filter)) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = null,
+                modifier = Modifier.size(FilterChipDefaults.IconSize),
+            )
+        },
+        modifier =
+            modifier
+                .wrapContentSize()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }
 
 /** One full-width section header plus the team cards of a single [TeamSection]. */

@@ -261,6 +261,40 @@ class TeamListViewModelTest {
 
             assertEquals(setOf(1, 4), viewModel.uiState.value.favoriteIds)
         }
+
+    @Test
+    fun `OnToggleFavoritesFilter flips showFavoritesOnly`() =
+        runTest {
+            every { getTeamsUseCase() } returns flowOf(emptyList())
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
+            runCurrent()
+            assertEquals(false, viewModel.uiState.value.showFavoritesOnly)
+
+            viewModel.onIntent(TeamListIntent.OnToggleFavoritesFilter)
+            runCurrent()
+            assertEquals(true, viewModel.uiState.value.showFavoritesOnly)
+
+            viewModel.onIntent(TeamListIntent.OnToggleFavoritesFilter)
+            runCurrent()
+            assertEquals(false, viewModel.uiState.value.showFavoritesOnly)
+        }
+
+    @Test
+    fun `visibleSections filters to favorited teams when the filter is on`() =
+        runTest {
+            every { getTeamsUseCase() } returns flowOf(listOf(lakers, celtics, nets))
+            val viewModel = TeamListViewModel(getTeamsUseCase, observeFavoritesUseCase, connectivityObserver)
+            favoriteIds.value = listOf(celtics.id)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onIntent(TeamListIntent.OnToggleFavoritesFilter)
+            runCurrent()
+
+            assertEquals(
+                listOf(TeamSection("East", "Atlantic", listOf(celtics))),
+                viewModel.uiState.value.visibleSections,
+            )
+        }
 }
 
 private class FakeConnectivityObserver(

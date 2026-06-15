@@ -217,4 +217,45 @@ class TeamListContentTest {
 
         composeTestRule.onNodeWithContentDescription("Favorite").assertDoesNotExist()
     }
+
+    @Test
+    fun `tapping the favorites filter chip invokes the toggle callback`() {
+        var toggles = 0
+
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state = TeamListState(sections = listOf(TeamSection("West", "Pacific", listOf(team)))),
+                    onTeamClick = {},
+                    onRetry = {},
+                    onToggleFavoritesFilter = { toggles++ },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Favorites").performClick()
+
+        toggles shouldBe 1
+    }
+
+    @Test
+    fun `favorites filter on with no favorites shows the empty message`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state =
+                        TeamListState(
+                            sections = listOf(TeamSection("West", "Pacific", listOf(team))),
+                            favoriteIds = emptySet(),
+                            showFavoritesOnly = true,
+                        ),
+                    onTeamClick = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("No favorite teams yet").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Golden State Warriors").assertDoesNotExist()
+    }
 }

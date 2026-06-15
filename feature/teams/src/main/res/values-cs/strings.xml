@@ -3,6 +3,8 @@
     <string name="team_list_title">Týmy NBA</string>
     <string name="team_list_section_header">%1$s — %2$s</string>
     <string name="team_list_section_other">Ostatní týmy</string>
+    <string name="team_list_favorites_filter">Oblíbené</string>
+    <string name="team_list_favorites_empty">Zatím žádné oblíbené týmy</string>
 
     <string name="team_detail_title">Detail týmu</string>
     <string name="favorite_team_add">Přidat do oblíbených</string>

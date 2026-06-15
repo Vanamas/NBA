@@ -53,6 +53,8 @@ class TeamListViewModel(
     fun onIntent(intent: TeamListIntent) {
         when (intent) {
             is TeamListIntent.Retry -> loadTeams()
+            is TeamListIntent.OnToggleFavoritesFilter ->
+                uiState.update { it.copy(showFavoritesOnly = !it.showFavoritesOnly) }
             is TeamListIntent.OnTeamClicked -> onTeamClicked(intent.teamId)
         }
     }

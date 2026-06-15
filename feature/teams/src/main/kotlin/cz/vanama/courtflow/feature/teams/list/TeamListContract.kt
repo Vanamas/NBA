@@ -11,11 +11,28 @@ data class TeamListState(
     val isOffline: Boolean = false,
     val retryInSeconds: Int? = null,
     val favoriteIds: Set<Int> = emptySet(),
-)
+    val showFavoritesOnly: Boolean = false,
+) {
+    /**
+     * Sections to render: the full grouping, or — when [showFavoritesOnly] is
+     * on — only the favorited teams, with empty sections dropped.
+     */
+    val visibleSections: List<TeamSection>
+        get() =
+            if (!showFavoritesOnly) {
+                sections
+            } else {
+                sections
+                    .map { section -> section.copy(teams = section.teams.filter { it.id in favoriteIds }) }
+                    .filter { it.teams.isNotEmpty() }
+            }
+}
 
 /** User actions of the team list screen; the initial load happens in the ViewModel's `init`. */
 sealed class TeamListIntent {
     data object Retry : TeamListIntent()
+
+    data object OnToggleFavoritesFilter : TeamListIntent()
 
     data class OnTeamClicked(
         val teamId: Int,
