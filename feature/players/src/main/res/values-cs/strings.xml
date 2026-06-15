@@ -10,6 +10,8 @@
     <string name="player_list_offline_banner">Nepodařilo se obnovit — zobrazena uložená data</string>
 
     <string name="player_detail_title">Detail hráče</string>
+    <string name="favorite_player_add">Přidat do oblíbených</string>
+    <string name="favorite_player_remove">Odebrat z oblíbených</string>
     <string name="share_player">Sdílet hráče</string>
     <string name="share_player_text">Podívej se na %1$s %2$s v CourtFlow: courtflow://player/%3$d</string>
     <string name="player_detail_view_team">Zobrazit tým: %1$s</string>

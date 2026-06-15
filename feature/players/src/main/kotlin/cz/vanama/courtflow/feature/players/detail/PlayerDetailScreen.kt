@@ -21,6 +21,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -112,6 +114,7 @@ fun PlayerDetailScreen(
         onTeamClick = { teamId -> viewModel.onIntent(PlayerDetailIntent.OnTeamClicked(teamId)) },
         onRetry = { viewModel.onIntent(PlayerDetailIntent.Retry) },
         onShare = { viewModel.onIntent(PlayerDetailIntent.OnShareClicked) },
+        onFavoriteToggled = { viewModel.onIntent(PlayerDetailIntent.OnFavoriteToggled) },
         onNavigateBack = onNavigateBack,
         modifier = modifier,
         showBackButton = showBackButton,
@@ -129,6 +132,7 @@ internal fun PlayerDetailScreen(
     onTeamClick: (Int) -> Unit,
     onRetry: () -> Unit,
     onShare: () -> Unit,
+    onFavoriteToggled: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = true,
@@ -149,6 +153,15 @@ internal fun PlayerDetailScreen(
                 },
                 actions = {
                     if (state.player != null) {
+                        IconButton(onClick = onFavoriteToggled) {
+                            Icon(
+                                imageVector = if (state.isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                contentDescription =
+                                    stringResource(
+                                        if (state.isFavorite) R.string.favorite_player_remove else R.string.favorite_player_add,
+                                    ),
+                            )
+                        }
                         IconButton(onClick = onShare) {
                             Icon(
                                 imageVector = Icons.Filled.Share,
@@ -363,6 +376,7 @@ private fun PlayerDetailScreenPreview() {
             onTeamClick = {},
             onRetry = {},
             onShare = {},
+            onFavoriteToggled = {},
             onNavigateBack = {},
         )
     }
@@ -377,6 +391,7 @@ private fun PlayerDetailScreenLoadingPreview() {
             onTeamClick = {},
             onRetry = {},
             onShare = {},
+            onFavoriteToggled = {},
             onNavigateBack = {},
         )
     }
@@ -391,6 +406,7 @@ private fun PlayerDetailScreenErrorPreview() {
             onTeamClick = {},
             onRetry = {},
             onShare = {},
+            onFavoriteToggled = {},
             onNavigateBack = {},
         )
     }

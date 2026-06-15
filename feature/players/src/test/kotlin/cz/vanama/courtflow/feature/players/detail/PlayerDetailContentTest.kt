@@ -1,7 +1,9 @@
 package cz.vanama.courtflow.feature.players.detail
 
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -160,5 +162,44 @@ class PlayerDetailContentTest {
             .performClick()
 
         clickedTeamId shouldBe 10
+    }
+
+    @Test
+    fun `favorite action toggles via callback and reflects state`() {
+        var toggles = 0
+
+        composeTestRule.setContent {
+            PlayerDetailScreen(
+                state = PlayerDetailState(player = player, isFavorite = false),
+                onTeamClick = {},
+                onRetry = {},
+                onShare = {},
+                onFavoriteToggled = { toggles++ },
+                onNavigateBack = {},
+            )
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription("Add to favorites")
+            .assertHasClickAction()
+            .performClick()
+
+        toggles shouldBe 1
+    }
+
+    @Test
+    fun `favorite action shows remove label when already a favorite`() {
+        composeTestRule.setContent {
+            PlayerDetailScreen(
+                state = PlayerDetailState(player = player, isFavorite = true),
+                onTeamClick = {},
+                onRetry = {},
+                onShare = {},
+                onFavoriteToggled = {},
+                onNavigateBack = {},
+            )
+        }
+
+        composeTestRule.onNodeWithContentDescription("Remove from favorites").assertIsDisplayed()
     }
 }
