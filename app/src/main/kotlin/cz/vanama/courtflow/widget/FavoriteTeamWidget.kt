@@ -30,7 +30,10 @@ import org.koin.core.context.GlobalContext
  * deep link (or just opens the app on [WidgetUiModel.Error]).
  */
 class FavoriteTeamWidget : GlanceAppWidget() {
-    override suspend fun provideGlance(context: Context, id: GlanceId) {
+    override suspend fun provideGlance(
+        context: Context,
+        id: GlanceId,
+    ) {
         val loader = GlobalContext.get().get<WidgetDataLoader>()
         val model = loader.load()
         provideContent { WidgetBody(context, model) }
@@ -38,12 +41,16 @@ class FavoriteTeamWidget : GlanceAppWidget() {
 }
 
 @Composable
-private fun WidgetBody(context: Context, model: WidgetUiModel) {
+private fun WidgetBody(
+    context: Context,
+    model: WidgetUiModel,
+) {
     Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .padding(12.dp)
-            .clickable(openIntent(context, model)),
+        modifier =
+            GlanceModifier
+                .fillMaxSize()
+                .padding(12.dp)
+                .clickable(openIntent(context, model)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.Start,
     ) {
@@ -56,7 +63,10 @@ private fun WidgetBody(context: Context, model: WidgetUiModel) {
 }
 
 @Composable
-private fun WidgetContent(context: Context, model: WidgetUiModel) {
+private fun WidgetContent(
+    context: Context,
+    model: WidgetUiModel,
+) {
     when (model) {
         is WidgetUiModel.Score -> {
             Text(text = model.scoreLine, style = TextStyle(color = ColorProvider(Color.Black)))
@@ -83,14 +93,16 @@ private fun WidgetContent(context: Context, model: WidgetUiModel) {
  * deep link for the resolved team, or the bare app launch on [WidgetUiModel.Error].
  * [MainActivity] already parses `intent.data` via `DeepLink.initialBackStack`.
  */
-private fun openIntent(context: Context, model: WidgetUiModel) =
-    actionStartActivity(
-        Intent(context, MainActivity::class.java).apply {
-            action = Intent.ACTION_VIEW
-            data = teamUri(model)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        },
-    )
+private fun openIntent(
+    context: Context,
+    model: WidgetUiModel,
+) = actionStartActivity(
+    Intent(context, MainActivity::class.java).apply {
+        action = Intent.ACTION_VIEW
+        data = teamUri(model)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    },
+)
 
 private fun teamUri(model: WidgetUiModel): Uri? =
     when (model) {

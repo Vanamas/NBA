@@ -29,12 +29,10 @@ class FavoritesFavoriteTeamProvider(
     private val observeFavorites: ObserveFavoritesUseCase,
     private val getTeams: GetTeamsUseCase,
 ) : FavoriteTeamProvider {
-    override suspend fun favoriteTeamId(): Int? =
-        firstFavoriteTeamId() ?: firstAvailableTeamId()
+    override suspend fun favoriteTeamId(): Int? = firstFavoriteTeamId() ?: firstAvailableTeamId()
 
     private suspend fun firstFavoriteTeamId(): Int? =
         runCatching { observeFavorites(FavoriteType.TEAM).first().firstOrNull() }.getOrNull()
 
-    private suspend fun firstAvailableTeamId(): Int? =
-        runCatching { getTeams().first().firstOrNull()?.id }.getOrNull()
+    private suspend fun firstAvailableTeamId(): Int? = runCatching { getTeams().first().firstOrNull()?.id }.getOrNull()
 }
