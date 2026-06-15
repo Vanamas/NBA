@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.Flow
 /** UI state of the player list screen; the paging stream starts in the ViewModel's `init`. */
 data class PlayerListState(
     val players: Flow<PagingData<Player>>,
+    /** Recently viewed players resolved from the persisted history, newest first. */
+    val recentlyViewed: Flow<List<Player>>,
     val searchQuery: String = "",
     val isOffline: Boolean = false,
     val favoriteIds: Set<Int> = emptySet(),

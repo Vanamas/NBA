@@ -8,6 +8,7 @@ import cz.vanama.courtflow.domain.model.Player
 import cz.vanama.courtflow.domain.model.PlayerFilter
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.GetRecentlyViewedPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
 import io.mockk.every
@@ -17,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -35,6 +37,7 @@ class PlayerListViewModelTest {
     private lateinit var getPlayersUseCase: GetPlayersUseCase
     private lateinit var observeFavoritesUseCase: ObserveFavoritesUseCase
     private lateinit var getTeamsUseCase: GetTeamsUseCase
+    private lateinit var getRecentlyViewedPlayersUseCase: GetRecentlyViewedPlayersUseCase
     private lateinit var viewModel: PlayerListViewModel
     private lateinit var connectivityObserver: FakeConnectivityObserver
     private val favoriteIds = MutableStateFlow<List<Int>>(emptyList())
@@ -57,12 +60,22 @@ class PlayerListViewModelTest {
         getPlayersUseCase = mockk()
         observeFavoritesUseCase = mockk()
         getTeamsUseCase = mockk()
+        getRecentlyViewedPlayersUseCase = mockk()
         every { observeFavoritesUseCase(FavoriteType.PLAYER) } returns favoriteIds
         every { getTeamsUseCase() } returns flowOf(emptyList())
+        every { getRecentlyViewedPlayersUseCase() } returns flowOf(emptyList())
         connectivityObserver = FakeConnectivityObserver()
-        viewModel =
-            PlayerListViewModel(getPlayersUseCase, observeFavoritesUseCase, getTeamsUseCase, connectivityObserver)
+        viewModel = createViewModel()
     }
+
+    private fun createViewModel() =
+        PlayerListViewModel(
+            getPlayersUseCase,
+            observeFavoritesUseCase,
+            getTeamsUseCase,
+            getRecentlyViewedPlayersUseCase,
+            connectivityObserver,
+        )
 
     @After
     fun tearDown() {
@@ -148,12 +161,25 @@ class PlayerListViewModelTest {
         runTest {
             every { getPlayersUseCase(any()) } returns flowOf(PagingData.empty<Player>())
             every { getTeamsUseCase() } returns flowOf(listOf(lakers))
-            viewModel =
-                PlayerListViewModel(getPlayersUseCase, observeFavoritesUseCase, getTeamsUseCase, connectivityObserver)
+            viewModel = createViewModel()
 
             runCurrent()
 
             assertEquals(listOf(lakers), viewModel.uiState.value.teams)
+        }
+
+    @Test
+    fun `state exposes the recently viewed players flow`() =
+        runTest {
+            val recent = Player(id = 5, firstName = "LeBron", lastName = "James", position = "F", team = lakers)
+            every { getRecentlyViewedPlayersUseCase() } returns flowOf(listOf(recent))
+            val vm = createViewModel()
+
+            assertEquals(
+                listOf(recent),
+                vm.uiState.value.recentlyViewed
+                    .first(),
+            )
         }
 
     @Test

@@ -8,6 +8,7 @@ import cz.vanama.courtflow.domain.model.FavoriteType
 import cz.vanama.courtflow.domain.model.PlayerFilter
 import cz.vanama.courtflow.domain.model.Team
 import cz.vanama.courtflow.domain.usecase.GetPlayersUseCase
+import cz.vanama.courtflow.domain.usecase.GetRecentlyViewedPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import cz.vanama.courtflow.domain.usecase.ObserveFavoritesUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,6 +38,7 @@ class PlayerListViewModel(
     getPlayersUseCase: GetPlayersUseCase,
     observeFavoritesUseCase: ObserveFavoritesUseCase,
     getTeamsUseCase: GetTeamsUseCase,
+    getRecentlyViewedPlayersUseCase: GetRecentlyViewedPlayersUseCase,
     connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
     private val filter = MutableStateFlow(PlayerFilter())
@@ -50,7 +52,13 @@ class PlayerListViewModel(
             .cachedIn(viewModelScope)
 
     val uiState: StateFlow<PlayerListState>
-        field = MutableStateFlow(PlayerListState(players = players))
+        field =
+        MutableStateFlow(
+            PlayerListState(
+                players = players,
+                recentlyViewed = getRecentlyViewedPlayersUseCase(),
+            ),
+        )
 
     val uiEffect: SharedFlow<PlayerListEffect>
         field = MutableSharedFlow<PlayerListEffect>()
