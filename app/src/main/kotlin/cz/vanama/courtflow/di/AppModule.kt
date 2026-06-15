@@ -2,7 +2,8 @@ package cz.vanama.courtflow.di
 
 import cz.vanama.courtflow.feature.settings.AppLocaleController
 import cz.vanama.courtflow.locale.DefaultAppLocaleController
-import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 /**
@@ -12,5 +13,5 @@ import org.koin.dsl.module
  */
 val appModule =
     module {
-        single<AppLocaleController> { DefaultAppLocaleController(androidContext()) }
+        singleOf(::DefaultAppLocaleController) { bind<AppLocaleController>() }
     }
