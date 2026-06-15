@@ -11,8 +11,6 @@
     <string name="player_list_offline_banner">Nepodařilo se obnovit — zobrazena uložená data</string>
     <string name="player_filter_team">Tým</string>
     <string name="player_filter_all_teams">Všechny týmy</string>
-    <string name="player_filter_clear_team">Zrušit filtr týmu</string>
-    <string name="player_filter_pick_team">Vyber tým</string>
     <string name="player_filter_position_guard">Rozehrávači</string>
     <string name="player_filter_position_forward">Křídla</string>
     <string name="player_filter_position_center">Pivoti</string>

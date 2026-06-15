@@ -11,8 +11,6 @@
     <string name="player_list_offline_banner">Couldn’t refresh — showing cached data</string>
     <string name="player_filter_team">Team</string>
     <string name="player_filter_all_teams">All teams</string>
-    <string name="player_filter_clear_team">Clear team filter</string>
-    <string name="player_filter_pick_team">Pick a team</string>
     <string name="player_filter_position_guard">Guards</string>
     <string name="player_filter_position_forward">Forwards</string>
     <string name="player_filter_position_center">Centers</string>
