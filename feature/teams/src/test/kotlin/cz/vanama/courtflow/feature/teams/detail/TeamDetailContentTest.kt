@@ -182,6 +182,35 @@ class TeamDetailContentTest {
     }
 
     @Test
+    fun `roster renders multiple players as distinct keyed cards`() {
+        val twoPlayers =
+            listOf(
+                Player(id = 19, firstName = "Stephen", lastName = "Curry", position = "G", team = team),
+                Player(id = 20, firstName = "Klay", lastName = "Thompson", position = "G", team = team),
+            )
+
+        composeTestRule.setContent {
+            TeamDetailContent(
+                state = TeamDetailState(team = team),
+                players = pagingItems(twoPlayers),
+                onRetry = {},
+                onPlayerClick = {},
+            )
+        }
+
+        // Both roster cards compose without a duplicate-key crash; itemKey { it.id }
+        // yields distinct keys 19 and 20.
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasText("Stephen Curry"))
+        composeTestRule.onNodeWithText("Stephen Curry").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
+            .performScrollToNode(hasText("Klay Thompson"))
+        composeTestRule.onNodeWithText("Klay Thompson").assertIsDisplayed()
+    }
+
+    @Test
     fun `tapping a roster row invokes onPlayerClick with the player id`() {
         var clickedId: Int? = null
 

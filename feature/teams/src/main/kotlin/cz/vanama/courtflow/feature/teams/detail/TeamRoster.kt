@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
 import cz.vanama.courtflow.core.designsystem.component.PagingAppendError
 import cz.vanama.courtflow.core.designsystem.component.PagingAppendLoading
@@ -36,7 +38,11 @@ internal fun LazyListScope.rosterItems(
         item { SectionHeader(text = stringResource(R.string.team_detail_roster)) }
     }
 
-    items(count = players.itemCount) { index ->
+    items(
+        count = players.itemCount,
+        key = players.itemKey { it.id },
+        contentType = players.itemContentType(),
+    ) { index ->
         val player = players[index]
         if (player != null) {
             PlayerCard(
