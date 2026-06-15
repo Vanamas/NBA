@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -380,5 +381,28 @@ class TeamDetailContentTest {
             .onNodeWithTag(TEAM_DETAIL_LIST_TEST_TAG)
             .performScrollToNode(hasTestTag(ROSTER_LOADING_TEST_TAG))
         composeTestRule.onNodeWithTag(ROSTER_LOADING_TEST_TAG).assertIsDisplayed()
+    }
+
+    @Test
+    fun `favorite action toggles via callback`() {
+        var toggles = 0
+
+        composeTestRule.setContent {
+            TeamDetailScreen(
+                state = TeamDetailState(team = team, isFavorite = false),
+                players = pagingItems(),
+                onRetry = {},
+                onPlayerClick = {},
+                onShare = {},
+                onFavoriteToggled = { toggles++ },
+                onNavigateBack = {},
+            )
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription("Add to favorites")
+            .performClick()
+
+        toggles shouldBe 1
     }
 }

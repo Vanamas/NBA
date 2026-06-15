@@ -5,6 +5,8 @@
     <string name="team_list_section_other">Other teams</string>
 
     <string name="team_detail_title">Team Details</string>
+    <string name="favorite_team_add">Add to favorites</string>
+    <string name="favorite_team_remove">Remove from favorites</string>
     <string name="share_team">Share team</string>
     <string name="share_team_text">Check out %1$s on CourtFlow: courtflow://team/%2$d</string>
     <string name="team_attribute_city">City</string>

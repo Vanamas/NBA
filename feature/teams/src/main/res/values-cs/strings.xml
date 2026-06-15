@@ -5,6 +5,8 @@
     <string name="team_list_section_other">Ostatní týmy</string>
 
     <string name="team_detail_title">Detail týmu</string>
+    <string name="favorite_team_add">Přidat do oblíbených</string>
+    <string name="favorite_team_remove">Odebrat z oblíbených</string>
     <string name="share_team">Sdílet tým</string>
     <string name="share_team_text">Podívej se na %1$s v CourtFlow: courtflow://team/%2$d</string>
     <string name="team_attribute_city">Město</string>
