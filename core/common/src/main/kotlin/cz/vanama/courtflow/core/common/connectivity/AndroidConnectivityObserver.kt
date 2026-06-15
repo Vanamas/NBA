@@ -33,11 +33,18 @@ class AndroidConnectivityObserver(
             val callback =
                 object : ConnectivityManager.NetworkCallback() {
                     override fun onAvailable(network: Network) {
-                        trySend(true)
+                        trySend(aggregateOnline())
                     }
 
                     override fun onLost(network: Network) {
-                        trySend(false)
+                        trySend(aggregateOnline())
+                    }
+
+                    override fun onCapabilitiesChanged(
+                        network: Network,
+                        networkCapabilities: NetworkCapabilities,
+                    ) {
+                        trySend(aggregateOnline())
                     }
                 }
             trySend(aggregateOnline())

@@ -2,6 +2,7 @@ package cz.vanama.courtflow.core.common.connectivity
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
 import app.cash.turbine.test
 import io.kotest.matchers.shouldBe
@@ -12,6 +13,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowNetwork
 import org.robolectric.shadows.ShadowNetworkCapabilities
 
 @RunWith(RobolectricTestRunner::class)
@@ -21,16 +23,39 @@ class AndroidConnectivityObserverTest {
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
+    private fun validatedCapabilities(): NetworkCapabilities {
+        val capabilities = ShadowNetworkCapabilities.newInstance()
+        shadowOf(capabilities).addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        shadowOf(capabilities).addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        return capabilities
+    }
+
+    private fun internetOnlyCapabilities(): NetworkCapabilities {
+        val capabilities = ShadowNetworkCapabilities.newInstance()
+        shadowOf(capabilities).addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        return capabilities
+    }
+
     @Test
-    fun `emits true when the active network has internet capability`() =
+    fun `emits true when the active network has validated internet`() =
         runTest {
-            val capabilities = ShadowNetworkCapabilities.newInstance()
-            shadowOf(capabilities).addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             shadowOf(connectivityManager)
-                .setNetworkCapabilities(connectivityManager.activeNetwork, capabilities)
+                .setNetworkCapabilities(connectivityManager.activeNetwork, validatedCapabilities())
 
             AndroidConnectivityObserver(context).isOnline.test {
                 awaitItem() shouldBe true
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `emits false for a captive-portal network without validation`() =
+        runTest {
+            shadowOf(connectivityManager)
+                .setNetworkCapabilities(connectivityManager.activeNetwork, internetOnlyCapabilities())
+
+            AndroidConnectivityObserver(context).isOnline.test {
+                awaitItem() shouldBe false
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -47,20 +72,50 @@ class AndroidConnectivityObserverTest {
         }
 
     @Test
-    fun `losing the network emits false`() =
+    fun `losing the only network emits false`() =
         runTest {
-            val capabilities = ShadowNetworkCapabilities.newInstance()
-            shadowOf(capabilities).addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             shadowOf(connectivityManager)
-                .setNetworkCapabilities(connectivityManager.activeNetwork, capabilities)
+                .setNetworkCapabilities(connectivityManager.activeNetwork, validatedCapabilities())
 
             AndroidConnectivityObserver(context).isOnline.test {
                 awaitItem() shouldBe true
 
                 val callback = shadowOf(connectivityManager).networkCallbacks.single()
-                callback.onLost(connectivityManager.activeNetwork!!)
+                // Drop the only network, then notify: aggregate now sees nothing.
+                shadowOf(connectivityManager).setNetworkCapabilities(connectivityManager.activeNetwork, null)
+                shadowOf(connectivityManager).setActiveNetworkInfo(null)
+                callback.onLost(ShadowNetwork.newInstance(1))
 
                 awaitItem() shouldBe false
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `wifi to cellular handover never flashes offline`() =
+        runTest {
+            val wifi = ShadowNetwork.newInstance(1)
+            val cellular = ShadowNetwork.newInstance(2)
+            // Start with Wi-Fi validated and active.
+            shadowOf(connectivityManager).setNetworkCapabilities(wifi, validatedCapabilities())
+            shadowOf(connectivityManager).setNetworkCapabilities(
+                connectivityManager.activeNetwork,
+                validatedCapabilities(),
+            )
+
+            AndroidConnectivityObserver(context).isOnline.test {
+                awaitItem() shouldBe true
+
+                val callback = shadowOf(connectivityManager).networkCallbacks.single()
+                // New network already validated and present BEFORE the old one is lost.
+                shadowOf(connectivityManager).setNetworkCapabilities(cellular, validatedCapabilities())
+                callback.onAvailable(cellular)
+                // Old network goes away; cellular is still validated, so aggregate stays true.
+                shadowOf(connectivityManager).setNetworkCapabilities(wifi, null)
+                callback.onLost(wifi)
+
+                // distinctUntilChanged collapses the repeated trues; we must NOT see a false.
+                expectNoEvents()
                 cancelAndIgnoreRemainingEvents()
             }
         }
