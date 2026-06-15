@@ -48,9 +48,10 @@ class OssLicensesActivity : ComponentActivity() {
                     },
                 ) { padding ->
                     LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding),
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .padding(padding),
                     ) {
                         items(OSS_LIBRARIES) { library ->
                             ListItem(
@@ -65,7 +66,10 @@ class OssLicensesActivity : ComponentActivity() {
     }
 
     private companion object {
-        data class OssLibrary(val name: String, val license: String)
+        data class OssLibrary(
+            val name: String,
+            val license: String,
+        )
 
         val OSS_LIBRARIES =
             listOf(

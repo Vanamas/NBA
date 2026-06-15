@@ -20,6 +20,7 @@ import cz.vanama.courtflow.domain.usecase.GetTeamGamesUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamPlayersUseCase
 import cz.vanama.courtflow.domain.usecase.GetTeamsUseCase
 import cz.vanama.courtflow.feature.players.di.playersFeatureModule
+import cz.vanama.courtflow.feature.settings.AppInfoProvider
 import cz.vanama.courtflow.feature.settings.AppLocaleController
 import cz.vanama.courtflow.feature.settings.di.settingsFeatureModule
 import cz.vanama.courtflow.feature.teams.di.teamsFeatureModule
@@ -82,6 +83,11 @@ class CourtFlowNavGraphTest {
                         mockk(relaxed = true) {
                             every { currentLanguageTag() } returns ""
                             every { supportedLanguageTags() } returns listOf("en", "cs")
+                        }
+                    }
+                    single<AppInfoProvider> {
+                        mockk(relaxed = true) {
+                            every { versionName } returns "1.0"
                         }
                     }
                 },
