@@ -29,6 +29,10 @@ class SettingsViewModelTest {
             every { currentLanguageTag() } returns ""
             every { supportedLanguageTags() } returns listOf("en", "cs")
         }
+    private val appInfoProvider: AppInfoProvider =
+        mockk(relaxed = true) {
+            every { versionName } returns "1.0"
+        }
 
     @Before
     fun setUp() {
@@ -41,14 +45,19 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = SettingsViewModel(store, localeController)
+    private fun viewModel() = SettingsViewModel(store, localeController, appInfoProvider)
 
     @Test
     fun `mirrors store preferences into state`() =
         runTest {
             val viewModel = viewModel()
             viewModel.uiState.test {
-                awaitItem() shouldBe SettingsState(currentLanguageTag = "", languageTags = listOf("en", "cs"))
+                awaitItem() shouldBe
+                    SettingsState(
+                        currentLanguageTag = "",
+                        languageTags = listOf("en", "cs"),
+                        versionName = "1.0",
+                    )
                 prefsFlow.value =
                     ThemePreferences(dynamicColor = false, themeMode = ThemeMode.DARK, trueBlack = true)
                 awaitItem() shouldBe
@@ -58,6 +67,7 @@ class SettingsViewModelTest {
                         trueBlack = true,
                         currentLanguageTag = "",
                         languageTags = listOf("en", "cs"),
+                        versionName = "1.0",
                     )
             }
         }
@@ -110,6 +120,23 @@ class SettingsViewModelTest {
             viewModel.uiEffect.test {
                 viewModel.onIntent(SettingsIntent.OnDynamicColorChanged(false))
                 awaitItem() shouldBe SettingsEffect.PreferenceWriteFailed
+            }
+        }
+
+    @Test
+    fun `seeds the app version name from the provider`() =
+        runTest {
+            every { appInfoProvider.versionName } returns "2.7"
+            viewModel().uiState.value.versionName shouldBe "2.7"
+        }
+
+    @Test
+    fun `OSS-licenses intent emits the OpenOssLicenses effect`() =
+        runTest {
+            val viewModel = viewModel()
+            viewModel.uiEffect.test {
+                viewModel.onIntent(SettingsIntent.OnOssLicensesClicked)
+                awaitItem() shouldBe SettingsEffect.OpenOssLicenses
             }
         }
 }
