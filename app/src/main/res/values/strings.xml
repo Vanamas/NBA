@@ -17,4 +17,10 @@
     <string name="shortcut_players_long">Search NBA players</string>
     <string name="shortcut_settings_short">Settings</string>
     <string name="shortcut_settings_long">Open settings</string>
+
+    <!-- Favorite team home-screen widget (Glance). -->
+    <string name="widget_favorite_team_title">Favorite team</string>
+    <string name="widget_no_recent_game">No recent game</string>
+    <string name="widget_error">Tap to open CourtFlow</string>
+    <string name="widget_score_caption">Latest result</string>
 </resources>

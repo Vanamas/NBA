@@ -14,4 +14,10 @@
     <string name="shortcut_players_long">Hledat hráče NBA</string>
     <string name="shortcut_settings_short">Nastavení</string>
     <string name="shortcut_settings_long">Otevřít nastavení</string>
+
+    <!-- Domovský widget oblíbeného týmu (Glance). -->
+    <string name="widget_favorite_team_title">Oblíbený tým</string>
+    <string name="widget_no_recent_game">Žádný nedávný zápas</string>
+    <string name="widget_error">Klepnutím otevřete CourtFlow</string>
+    <string name="widget_score_caption">Poslední výsledek</string>
 </resources>
