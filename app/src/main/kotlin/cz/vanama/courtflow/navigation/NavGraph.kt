@@ -1,5 +1,7 @@
 package cz.vanama.courtflow.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -15,6 +17,7 @@ import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneSt
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,9 +28,12 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
 import cz.vanama.courtflow.R
+import cz.vanama.courtflow.core.designsystem.animation.LocalNavAnimatedVisibilityScope
+import cz.vanama.courtflow.core.designsystem.animation.LocalSharedTransitionScope
 import cz.vanama.courtflow.feature.players.detail.PlayerDetailScreen
 import cz.vanama.courtflow.feature.players.list.PlayerListScreen
 import cz.vanama.courtflow.feature.settings.SettingsScreen
@@ -107,7 +113,7 @@ private fun CourtFlowNavigationItems(backStack: NavBackStack<NavKey>) {
 }
 
 /** The [NavDisplay] with all destination entries and the list-detail scene strategy. */
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun CourtFlowNavDisplay(
     backStack: NavBackStack<NavKey>,
@@ -122,18 +128,24 @@ private fun CourtFlowNavDisplay(
             .windowSizeClass
             .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
 
-    NavDisplay(
-        backStack = backStack,
-        onBack = navigateBack,
-        sceneStrategies = listOf(rememberListDetailSceneStrategy()),
-        entryDecorators =
-            listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator(),
-            ),
-        entryProvider = courtFlowEntryProvider(backStack, navigateBack, showBackButton),
-        modifier = modifier,
-    )
+    // One SharedTransitionLayout around the whole nav host: its scope drives the
+    // card → detail avatar shared element. Provided via a CompositionLocal so only
+    // AvatarImage (the leaf that tags itself) needs to read it.
+    SharedTransitionLayout(modifier = modifier) {
+        CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+            NavDisplay(
+                backStack = backStack,
+                onBack = navigateBack,
+                sceneStrategies = listOf(rememberListDetailSceneStrategy()),
+                entryDecorators =
+                    listOf(
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                        rememberViewModelStoreNavEntryDecorator(),
+                    ),
+                entryProvider = courtFlowEntryProvider(backStack, navigateBack, showBackButton),
+            )
+        }
+    }
 }
 
 /** Scene key grouping the player list and player detail into one list-detail scaffold. */
@@ -165,9 +177,13 @@ private fun courtFlowEntryProvider(
                     },
                 ),
         ) {
-            PlayerListScreen(
-                onNavigateToPlayerDetail = { playerId -> backStack.add(Destination.PlayerDetail(playerId)) },
-            )
+            // Bridge Navigation 3's per-entry AnimatedContentScope into the null-safe
+            // local AvatarImage reads, so the card avatar can drive the shared element.
+            WithNavAnimatedScope {
+                PlayerListScreen(
+                    onNavigateToPlayerDetail = { playerId -> backStack.add(Destination.PlayerDetail(playerId)) },
+                )
+            }
         }
         entry<Destination.TeamList>(
             metadata =
@@ -185,12 +201,14 @@ private fun courtFlowEntryProvider(
         entry<Destination.PlayerDetail>(
             metadata = ListDetailSceneStrategy.detailPane(sceneKey = PLAYERS_SCENE_KEY),
         ) { destination ->
-            PlayerDetailScreen(
-                playerId = destination.playerId,
-                onNavigateToTeamDetail = { teamId -> backStack.add(Destination.TeamDetail(teamId)) },
-                onNavigateBack = navigateBack,
-                showBackButton = showBackButton,
-            )
+            WithNavAnimatedScope {
+                PlayerDetailScreen(
+                    playerId = destination.playerId,
+                    onNavigateToTeamDetail = { teamId -> backStack.add(Destination.TeamDetail(teamId)) },
+                    onNavigateBack = navigateBack,
+                    showBackButton = showBackButton,
+                )
+            }
         }
         entry<Destination.TeamDetail>(
             metadata = ListDetailSceneStrategy.detailPane(sceneKey = TEAMS_SCENE_KEY),
@@ -210,6 +228,20 @@ private fun courtFlowEntryProvider(
             SettingsScreen()
         }
     }
+
+/**
+ * Provides the navigation entry's [androidx.compose.animation.AnimatedContentScope] (exposed by
+ * [NavDisplay] through `LocalNavAnimatedContentScope`) as the design-system
+ * [LocalNavAnimatedVisibilityScope] so a tagged `AvatarImage` inside [content] can drive its
+ * card → detail shared element. Used only by the player entries that tag avatars.
+ */
+@Composable
+private fun WithNavAnimatedScope(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalNavAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current,
+        content = content,
+    )
+}
 
 /** Detail-pane placeholder shown on wide windows before a list item is selected. */
 @Composable
