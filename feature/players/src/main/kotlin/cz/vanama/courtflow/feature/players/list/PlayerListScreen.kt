@@ -118,7 +118,12 @@ fun PlayerListScreen(
         searchQuery = uiState.searchQuery,
         isOffline = uiState.isOffline,
         favoriteIds = uiState.favoriteIds,
+        teams = uiState.teams,
+        selectedTeam = uiState.selectedTeam,
+        selectedPosition = uiState.selectedPosition,
         onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
+        onTeamSelected = { team -> viewModel.onIntent(PlayerListIntent.OnTeamSelected(team)) },
+        onPositionSelected = { position -> viewModel.onIntent(PlayerListIntent.OnPositionSelected(position)) },
         onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
         modifier = modifier,
     )
@@ -138,6 +143,11 @@ internal fun PlayerListScreen(
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     favoriteIds: Set<Int> = emptySet(),
+    teams: List<Team> = emptyList(),
+    selectedTeam: Team? = null,
+    selectedPosition: String? = null,
+    onTeamSelected: (Team?) -> Unit = {},
+    onPositionSelected: (String?) -> Unit = {},
 ) {
     // Hides on scroll down and reappears immediately on scroll up, freeing
     // vertical space for the list while the user is consuming content.
@@ -159,7 +169,12 @@ internal fun PlayerListScreen(
             searchQuery = searchQuery,
             isOffline = isOffline,
             favoriteIds = favoriteIds,
+            teams = teams,
+            selectedTeam = selectedTeam,
+            selectedPosition = selectedPosition,
             onSearchQueryChanged = onSearchQueryChanged,
+            onTeamSelected = onTeamSelected,
+            onPositionSelected = onPositionSelected,
             onPlayerClick = onPlayerClick,
             modifier = Modifier.padding(padding),
         )
@@ -184,6 +199,11 @@ internal fun PlayerListContent(
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     favoriteIds: Set<Int> = emptySet(),
+    teams: List<Team> = emptyList(),
+    selectedTeam: Team? = null,
+    selectedPosition: String? = null,
+    onTeamSelected: (Team?) -> Unit = {},
+    onPositionSelected: (String?) -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -193,6 +213,13 @@ internal fun PlayerListContent(
         ) {
             ConnectivityBanner(modifier = Modifier.testTag(TestTags.CONNECTIVITY_BANNER))
         }
+        PlayerFilterBar(
+            teams = teams,
+            selectedTeam = selectedTeam,
+            selectedPosition = selectedPosition,
+            onTeamSelected = onTeamSelected,
+            onPositionSelected = onPositionSelected,
+        )
         PlayerSearchField(
             query = searchQuery,
             onQueryChanged = onSearchQueryChanged,
@@ -440,7 +467,12 @@ private fun PlayerListScreenPreview() {
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             searchQuery = "",
             isOffline = false,
+            teams = listOf(team),
+            selectedTeam = null,
+            selectedPosition = null,
             onSearchQueryChanged = {},
+            onTeamSelected = {},
+            onPositionSelected = {},
             onPlayerClick = {},
         )
     }

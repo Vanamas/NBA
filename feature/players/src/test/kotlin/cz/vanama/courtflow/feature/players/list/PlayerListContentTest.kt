@@ -586,6 +586,26 @@ class PlayerListContentTest {
 
         composeTestRule.onNodeWithContentDescription("Favorite").assertDoesNotExist()
     }
+
+    @Test
+    fun `position filter chips are displayed in the content`() {
+        composeTestRule.setContent {
+            PlayerListContent(
+                players = flowOf(PagingData.from(listOf(player))).collectAsLazyPagingItems(),
+                searchQuery = "",
+                isOffline = false,
+                teams = emptyList(),
+                selectedTeam = null,
+                selectedPosition = null,
+                onSearchQueryChanged = {},
+                onTeamSelected = {},
+                onPositionSelected = {},
+                onPlayerClick = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Guards").assertIsDisplayed()
+    }
 }
 
 /** Single static page; each refresh makes the Pager factory build a new instance. */
