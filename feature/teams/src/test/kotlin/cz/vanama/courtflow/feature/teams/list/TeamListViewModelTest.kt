@@ -53,7 +53,7 @@ class TeamListViewModelTest {
     @Test
     fun `teams are loaded and grouped in init on success`() =
         runTest {
-            every { getTeamsUseCase() } returns flowOf(listOf(lakers, celtics))
+            every { getTeamsUseCase(any()) } returns flowOf(listOf(lakers, celtics))
 
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
 
@@ -70,6 +70,7 @@ class TeamListViewModelTest {
                 )
                 assertEquals(false, loaded.isLoading)
                 assertEquals(null, loaded.error)
+                verify { getTeamsUseCase(forceRefresh = false) }
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -77,7 +78,7 @@ class TeamListViewModelTest {
     @Test
     fun `blank-conference teams land in the fallback section of the state`() =
         runTest {
-            every { getTeamsUseCase() } returns flowOf(listOf(bullets, lakers))
+            every { getTeamsUseCase(any()) } returns flowOf(listOf(bullets, lakers))
 
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
 
@@ -99,7 +100,7 @@ class TeamListViewModelTest {
     @Test
     fun `init updates state with error on failure`() =
         runTest {
-            every { getTeamsUseCase() } returns flow { throw DataException(DataErrorKind.SERVER) }
+            every { getTeamsUseCase(any()) } returns flow { throw DataException(DataErrorKind.SERVER) }
 
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
             testDispatcher.scheduler.advanceUntilIdle()
@@ -111,7 +112,7 @@ class TeamListViewModelTest {
     @Test
     fun `Retry intent reloads the teams after a failure`() =
         runTest {
-            every { getTeamsUseCase() } returns
+            every { getTeamsUseCase(any()) } returns
                 flow { throw DataException(DataErrorKind.SERVER) } andThen flowOf(listOf(lakers))
 
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
@@ -123,6 +124,7 @@ class TeamListViewModelTest {
 
             assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
             assertEquals(null, viewModel.uiState.value.error)
+            verify(exactly = 2) { getTeamsUseCase(forceRefresh = false) }
         }
 
     @Test
@@ -162,7 +164,7 @@ class TeamListViewModelTest {
     @Test
     fun `OnTeamClicked intent emits NavigateToTeamDetail effect`() =
         runTest {
-            every { getTeamsUseCase() } returns flowOf(listOf(lakers))
+            every { getTeamsUseCase(any()) } returns flowOf(listOf(lakers))
 
             val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
 
@@ -175,7 +177,7 @@ class TeamListViewModelTest {
     @Test
     fun `rate limited load counts down and retries automatically`() =
         runTest {
-            every { getTeamsUseCase() } returns
+            every { getTeamsUseCase(any()) } returns
                 flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
                 flowOf(listOf(lakers))
             val viewModel = TeamListViewModel(getTeamsUseCase, FakeConnectivityObserver())
@@ -187,7 +189,7 @@ class TeamListViewModelTest {
             advanceTimeBy(15_000)
             runCurrent()
 
-            verify(exactly = 2) { getTeamsUseCase() }
+            verify(exactly = 2) { getTeamsUseCase(any()) }
             assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
             assertEquals(null, viewModel.uiState.value.retryInSeconds)
         }
@@ -195,7 +197,7 @@ class TeamListViewModelTest {
     @Test
     fun `rate limit reset far in the future caps the countdown at 60s`() =
         runTest {
-            every { getTeamsUseCase() } returns
+            every { getTeamsUseCase(any()) } returns
                 flow {
                     throw DataException(DataErrorKind.RATE_LIMITED, rateLimitResetEpochSeconds = 4_000_000_000L)
                 } andThen flowOf(listOf(lakers))
@@ -208,7 +210,7 @@ class TeamListViewModelTest {
     @Test
     fun `manual retry during countdown cancels the scheduled auto-retry`() =
         runTest {
-            every { getTeamsUseCase() } returns
+            every { getTeamsUseCase(any()) } returns
                 flow { throw DataException(DataErrorKind.RATE_LIMITED) } andThen
                 flowOf(listOf(lakers))
 
@@ -222,21 +224,21 @@ class TeamListViewModelTest {
             viewModel.onIntent(TeamListIntent.Retry)
             runCurrent()
 
-            verify(exactly = 2) { getTeamsUseCase() }
+            verify(exactly = 2) { getTeamsUseCase(any()) }
             assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
 
             advanceTimeBy(20_000)
             runCurrent()
 
             // Cancelled countdown never fired a third load
-            verify(exactly = 2) { getTeamsUseCase() }
+            verify(exactly = 2) { getTeamsUseCase(any()) }
             assertEquals(null, viewModel.uiState.value.retryInSeconds)
         }
 
     @Test
     fun `reconnecting after a failed load retries automatically`() =
         runTest {
-            every { getTeamsUseCase() } returns
+            every { getTeamsUseCase(any()) } returns
                 flow { throw DataException(DataErrorKind.NETWORK) } andThen
                 flowOf(listOf(lakers))
             val connectivity = FakeConnectivityObserver(initiallyOnline = true)
@@ -251,7 +253,23 @@ class TeamListViewModelTest {
             connectivity.online.value = true
             runCurrent()
 
-            verify(exactly = 2) { getTeamsUseCase() }
+            verify(exactly = 2) { getTeamsUseCase(any()) }
+            assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
+        }
+
+    @Test
+    fun `Refresh intent forces a refresh and clears the refreshing flag when done`() =
+        runTest {
+            every { getTeamsUseCase(any()) } returns flowOf(listOf(lakers))
+            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onIntent(TeamListIntent.Refresh)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            verify { getTeamsUseCase(forceRefresh = true) }
+            assertEquals(false, viewModel.uiState.value.isRefreshing)
+            assertEquals(false, viewModel.uiState.value.isLoading)
             assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
         }
 }

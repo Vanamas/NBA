@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 
 /**
  * MVI ViewModel of the team list screen; loads all teams in `init`
- * (and again on [TeamListIntent.Retry]) and emits navigation effects
- * on row taps.
+ * (and again on [TeamListIntent.Retry] or pull-to-refresh
+ * [TeamListIntent.Refresh]) and emits navigation effects on row taps.
  */
 class TeamListViewModel(
     private val getTeamsUseCase: GetTeamsUseCase,
@@ -41,21 +41,29 @@ class TeamListViewModel(
     fun onIntent(intent: TeamListIntent) {
         when (intent) {
             is TeamListIntent.Retry -> loadTeams()
+            is TeamListIntent.Refresh -> loadTeams(forceRefresh = true, asRefresh = true)
             is TeamListIntent.OnTeamClicked -> onTeamClicked(intent.teamId)
         }
     }
 
-    private fun loadTeams() {
+    private fun loadTeams(
+        forceRefresh: Boolean = false,
+        asRefresh: Boolean = false,
+    ) {
         rateLimitRetry.cancel()
         viewModelScope.launch {
-            uiState.update { it.copy(isLoading = true, error = null, retryInSeconds = null) }
-            getTeamsUseCase()
+            uiState.update {
+                it.copy(isLoading = !asRefresh, isRefreshing = asRefresh, error = null, retryInSeconds = null)
+            }
+            getTeamsUseCase(forceRefresh)
                 .catch { e ->
                     if (e !is DataException) throw e
-                    uiState.update { it.copy(isLoading = false, error = e.kind) }
+                    uiState.update { it.copy(isLoading = false, isRefreshing = false, error = e.kind) }
                     if (e.kind == DataErrorKind.RATE_LIMITED) scheduleRateLimitRetry(e.rateLimitResetEpochSeconds)
                 }.collect { teams ->
-                    uiState.update { it.copy(isLoading = false, sections = teams.groupIntoSections()) }
+                    uiState.update {
+                        it.copy(isLoading = false, isRefreshing = false, sections = teams.groupIntoSections())
+                    }
                 }
         }
     }
@@ -65,7 +73,7 @@ class TeamListViewModel(
             resetEpochSeconds = resetEpochSeconds,
             scope = viewModelScope,
             onTick = { remaining -> uiState.update { it.copy(retryInSeconds = remaining) } },
-            onElapsed = ::loadTeams,
+            onElapsed = { loadTeams() },
         )
     }
 
