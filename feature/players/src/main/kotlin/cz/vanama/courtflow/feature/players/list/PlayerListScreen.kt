@@ -19,8 +19,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +37,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -79,6 +85,7 @@ internal const val OFFLINE_BANNER_TEST_TAG = "player_offline_banner"
 internal const val REFRESH_ERROR_TEST_TAG = "refresh_error"
 internal const val EMPTY_STATE_TEST_TAG = "player_list_empty_state"
 internal const val PULL_TO_REFRESH_TEST_TAG = "player_pull_to_refresh"
+internal const val FILTER_ACTIVE_BADGE_TEST_TAG = "player_filter_active_badge"
 
 private const val SKELETON_ITEM_COUNT = 7
 
@@ -131,7 +138,12 @@ fun PlayerListScreen(
         searchQuery = uiState.searchQuery,
         isOffline = uiState.isOffline,
         retryInSeconds = uiState.retryInSeconds,
+        teams = uiState.teams,
+        selectedTeam = uiState.selectedTeam,
+        selectedPosition = uiState.selectedPosition,
         onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
+        onTeamSelected = { team -> viewModel.onIntent(PlayerListIntent.OnTeamSelected(team)) },
+        onPositionSelected = { position -> viewModel.onIntent(PlayerListIntent.OnPositionSelected(position)) },
         onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
         modifier = modifier,
     )
@@ -163,14 +175,26 @@ internal fun PlayerListScreen(
     onPlayerClick: (Int) -> Unit,
     retryInSeconds: Int? = null,
     modifier: Modifier = Modifier,
+    teams: List<Team> = emptyList(),
+    selectedTeam: Team? = null,
+    selectedPosition: String? = null,
+    onTeamSelected: (Team?) -> Unit = {},
+    onPositionSelected: (String?) -> Unit = {},
 ) {
     // Hides on scroll down and reappears immediately on scroll up, freeing
     // vertical space for the list while the user is consuming content.
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    var showFilterSheet by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.player_list_title)) },
+                actions = {
+                    PlayerFilterAction(
+                        hasActiveFilter = selectedTeam != null || selectedPosition != null,
+                        onClick = { showFilterSheet = true },
+                    )
+                },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -188,6 +212,41 @@ internal fun PlayerListScreen(
             retryInSeconds = retryInSeconds,
             modifier = Modifier.padding(padding),
         )
+    }
+    if (showFilterSheet) {
+        PlayerFilterSheet(
+            teams = teams,
+            selectedTeam = selectedTeam,
+            selectedPosition = selectedPosition,
+            onTeamSelected = onTeamSelected,
+            onPositionSelected = onPositionSelected,
+            onDismiss = { showFilterSheet = false },
+        )
+    }
+}
+
+/**
+ * Top-bar action that opens the filter [PlayerFilterSheet]; a small dot
+ * [Badge] overlays the icon while any team/position filter is active.
+ */
+@Composable
+private fun PlayerFilterAction(
+    hasActiveFilter: Boolean,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick) {
+        BadgedBox(
+            badge = {
+                if (hasActiveFilter) {
+                    Badge(modifier = Modifier.testTag(FILTER_ACTIVE_BADGE_TEST_TAG))
+                }
+            },
+        ) {
+            Icon(
+                imageVector = Icons.Filled.FilterList,
+                contentDescription = stringResource(R.string.player_filter_open),
+            )
+        }
     }
 }
 
@@ -466,7 +525,12 @@ private fun PlayerListScreenPreview() {
             players = flowOf(PagingData.from(players)).collectAsLazyPagingItems(),
             searchQuery = "",
             isOffline = false,
+            teams = listOf(team),
+            selectedTeam = null,
+            selectedPosition = null,
             onSearchQueryChanged = {},
+            onTeamSelected = {},
+            onPositionSelected = {},
             onPlayerClick = {},
         )
     }
