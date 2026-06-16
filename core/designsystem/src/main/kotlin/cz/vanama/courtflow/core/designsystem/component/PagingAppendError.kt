@@ -20,12 +20,15 @@ import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
  *
  * @param message localized description of the failure, formatted by the caller.
  * @param onRetry called when the user taps the retry button.
+ * @param retryInSeconds when non-null, the retry happens automatically in this
+ *   many seconds: the button is disabled and shows the countdown.
  */
 @Composable
 fun PagingAppendError(
     message: String,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    retryInSeconds: Int? = null,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -35,8 +38,18 @@ fun PagingAppendError(
             text = message,
             modifier = Modifier.padding(16.dp),
         )
-        TextButton(onClick = onRetry) {
-            Text(stringResource(R.string.retry))
+        TextButton(
+            onClick = onRetry,
+            enabled = retryInSeconds == null,
+        ) {
+            Text(
+                text =
+                    if (retryInSeconds == null) {
+                        stringResource(R.string.retry)
+                    } else {
+                        stringResource(R.string.retrying_in, retryInSeconds)
+                    },
+            )
         }
     }
 }

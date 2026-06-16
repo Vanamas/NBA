@@ -49,6 +49,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
@@ -114,12 +115,12 @@ fun PlayerListScreen(
         }
     }
 
-    LaunchedEffect(players.loadState.refresh) {
-        val error = (players.loadState.refresh as? LoadState.Error)?.error
-        if (error is DataException && error.kind == DataErrorKind.RATE_LIMITED) {
-            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(error.rateLimitResetEpochSeconds))
+    val rateLimitError = players.loadState.rateLimitError()
+    LaunchedEffect(rateLimitError != null, rateLimitError?.rateLimitResetEpochSeconds) {
+        if (rateLimitError != null) {
+            viewModel.onIntent(PlayerListIntent.OnRateLimited(rateLimitError.rateLimitResetEpochSeconds))
         } else {
-            viewModel.onIntent(PlayerListIntent.OnRefreshResolved)
+            viewModel.onIntent(PlayerListIntent.OnRateLimitResolved)
         }
     }
 
@@ -133,6 +134,18 @@ fun PlayerListScreen(
         modifier = modifier,
     )
 }
+
+/**
+ * The rate-limited [DataException] from a failed refresh or append load, or
+ * null when neither failed with HTTP 429. Refresh takes precedence (full-screen
+ * error) over append (the inline next-page row).
+ */
+private fun CombinedLoadStates.rateLimitError(): DataException? =
+    listOf(refresh, append)
+        .filterIsInstance<LoadState.Error>()
+        .map { it.error }
+        .filterIsInstance<DataException>()
+        .firstOrNull { it.kind == DataErrorKind.RATE_LIMITED }
 
 /**
  * Stateless player list screen with the [Scaffold] and top bar; rendered by
@@ -328,6 +341,7 @@ private fun PlayerListItems(
                     PlayerLazyList(
                         players = players,
                         onPlayerClick = onPlayerClick,
+                        retryInSeconds = retryInSeconds,
                     )
                 }
             }
@@ -388,6 +402,7 @@ private fun PlayerLazyList(
     players: LazyPagingItems<Player>,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    retryInSeconds: Int? = null,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = PLAYER_CARD_MIN_WIDTH),
@@ -419,6 +434,7 @@ private fun PlayerLazyList(
                     PagingAppendError(
                         message = stringResource(R.string.player_list_append_error, errorMessage(loadState.error)),
                         onRetry = { players.retry() },
+                        retryInSeconds = retryInSeconds,
                     )
                 }
             }

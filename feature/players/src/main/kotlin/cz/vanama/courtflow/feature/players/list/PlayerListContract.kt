@@ -22,11 +22,13 @@ sealed class PlayerListIntent {
         val playerId: Int,
     ) : PlayerListIntent()
 
-    data class OnRefreshRateLimited(
+    /** A paged load (refresh or append) failed with HTTP 429; carries the reset epoch. */
+    data class OnRateLimited(
         val resetEpochSeconds: Long?,
     ) : PlayerListIntent()
 
-    data object OnRefreshResolved : PlayerListIntent()
+    /** The rate-limited load is no longer in an error state (retried, loading, or succeeded). */
+    data object OnRateLimitResolved : PlayerListIntent()
 }
 
 /** One-shot events emitted by [PlayerListViewModel]. */

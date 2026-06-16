@@ -105,18 +105,18 @@ class PlayerListViewModelTest {
         }
 
     @Test
-    fun `OnRefreshRateLimited with null epoch starts the fallback countdown`() =
+    fun `OnRateLimited with null epoch starts the fallback countdown`() =
         runTest {
-            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(null))
+            viewModel.onIntent(PlayerListIntent.OnRateLimited(null))
             runCurrent()
 
             assertEquals(15, viewModel.uiState.value.retryInSeconds)
         }
 
     @Test
-    fun `OnRefreshRateLimited with a future reset caps the countdown at 60s`() =
+    fun `OnRateLimited with a future reset caps the countdown at 60s`() =
         runTest {
-            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(4_000_000_000L))
+            viewModel.onIntent(PlayerListIntent.OnRateLimited(4_000_000_000L))
             runCurrent()
 
             assertEquals(60, viewModel.uiState.value.retryInSeconds)
@@ -126,7 +126,7 @@ class PlayerListViewModelTest {
     fun `countdown elapsing emits RetryPaging and clears retryInSeconds`() =
         runTest {
             viewModel.uiEffect.test {
-                viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(null))
+                viewModel.onIntent(PlayerListIntent.OnRateLimited(null))
                 advanceTimeBy(15_000)
                 runCurrent()
                 assertEquals(PlayerListEffect.RetryPaging, awaitItem())
@@ -135,13 +135,13 @@ class PlayerListViewModelTest {
         }
 
     @Test
-    fun `OnRefreshResolved cancels the countdown and clears retryInSeconds`() =
+    fun `OnRateLimitResolved cancels the countdown and clears retryInSeconds`() =
         runTest {
-            viewModel.onIntent(PlayerListIntent.OnRefreshRateLimited(null))
+            viewModel.onIntent(PlayerListIntent.OnRateLimited(null))
             runCurrent()
             assertEquals(15, viewModel.uiState.value.retryInSeconds)
 
-            viewModel.onIntent(PlayerListIntent.OnRefreshResolved)
+            viewModel.onIntent(PlayerListIntent.OnRateLimitResolved)
             runCurrent()
             assertEquals(null, viewModel.uiState.value.retryInSeconds)
 

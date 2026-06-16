@@ -61,8 +61,8 @@ class PlayerListViewModel(
         when (intent) {
             is PlayerListIntent.OnSearchQueryChanged -> onSearchQueryChanged(intent.query)
             is PlayerListIntent.OnPlayerClicked -> onPlayerClicked(intent.playerId)
-            is PlayerListIntent.OnRefreshRateLimited -> onRefreshRateLimited(intent.resetEpochSeconds)
-            is PlayerListIntent.OnRefreshResolved -> onRefreshResolved()
+            is PlayerListIntent.OnRateLimited -> onRateLimited(intent.resetEpochSeconds)
+            is PlayerListIntent.OnRateLimitResolved -> onRateLimitResolved()
         }
     }
 
@@ -77,7 +77,7 @@ class PlayerListViewModel(
         }
     }
 
-    private fun onRefreshRateLimited(resetEpochSeconds: Long?) {
+    private fun onRateLimited(resetEpochSeconds: Long?) {
         rateLimitRetry.schedule(
             resetEpochSeconds = resetEpochSeconds,
             scope = viewModelScope,
@@ -89,7 +89,7 @@ class PlayerListViewModel(
         )
     }
 
-    private fun onRefreshResolved() {
+    private fun onRateLimitResolved() {
         rateLimitRetry.cancel()
         uiState.update { it.copy(retryInSeconds = null) }
     }
