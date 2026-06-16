@@ -1,45 +1,65 @@
 package cz.vanama.courtflow.data.repository
 
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBAGame
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1GamesGet200Response
+import cz.vanama.courtflow.data.cache.CachePolicy
+import cz.vanama.courtflow.data.local.CourtFlowDatabase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.io.IOException
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class GameRepositoryImplTest {
+    private lateinit var database: CourtFlowDatabase
     private val api: NBAApi = mockk()
-    private val repository = GameRepositoryImpl(api) { FIXED_NOW_MILLIS }
+    private lateinit var repository: GameRepositoryImpl
+    private var now = FIXED_NOW_MILLIS
+
+    @Before
+    fun setup() {
+        database =
+            Room
+                .inMemoryDatabaseBuilder(
+                    ApplicationProvider.getApplicationContext(),
+                    CourtFlowDatabase::class.java,
+                ).build()
+        repository = GameRepositoryImpl(api, database.gameDao(), database.cacheMetadataDao(), nowMillis = { now })
+    }
+
+    @After
+    fun tearDown() {
+        database.close()
+    }
 
     @Test
     fun `requests one page of the team's games within the recent window`() =
         runTest {
             coEvery {
-                api.nbaV1GamesGet(
-                    perPage = 50,
-                    teamIds = listOf(10),
-                    startDate = "2026-04-28",
-                    endDate = "2026-06-12",
-                )
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = "2026-04-28", endDate = "2026-06-12")
             } returns NbaV1GamesGet200Response(data = emptyList())
 
             val result = repository.getRecentGames(10)
 
             assertEquals(emptyList<Any>(), result)
             coVerify(exactly = 1) {
-                api.nbaV1GamesGet(
-                    perPage = 50,
-                    teamIds = listOf(10),
-                    startDate = "2026-04-28",
-                    endDate = "2026-06-12",
-                )
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = "2026-04-28", endDate = "2026-06-12")
             }
         }
 
@@ -50,7 +70,6 @@ class GameRepositoryImplTest {
                 listOf(
                     finalGame(id = 1, date = "2026-06-01"),
                     finalGame(id = 2, date = "2026-06-09"),
-                    // Scheduled game: the API carries the tip-off time in `status`.
                     finalGame(id = 3, date = "2026-06-12").copy(status = "2026-06-12T19:00:00Z"),
                     finalGame(id = 4, date = "2026-06-05"),
                     finalGame(id = 5, date = "2026-06-11"),
@@ -58,12 +77,7 @@ class GameRepositoryImplTest {
                     finalGame(id = 7, date = "2026-06-07"),
                 )
             coEvery {
-                api.nbaV1GamesGet(
-                    perPage = 50,
-                    teamIds = listOf(10),
-                    startDate = "2026-04-28",
-                    endDate = "2026-06-12",
-                )
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = "2026-04-28", endDate = "2026-06-12")
             } returns NbaV1GamesGet200Response(data = dtos)
 
             val result = repository.getRecentGames(10)
@@ -78,8 +92,6 @@ class GameRepositoryImplTest {
     @Test
     fun `malformed non-Final game is silently dropped — valid Final games still returned`() =
         runTest {
-            // Game 99 has a non-Final status AND is missing its homeTeam (malformed).
-            // Before the fix, toDomain() throws before the status filter can discard it.
             val malformedNonFinal =
                 NBAGame(
                     id = 99,
@@ -91,12 +103,7 @@ class GameRepositoryImplTest {
                     visitorTeam = lakersDto,
                 )
             coEvery {
-                api.nbaV1GamesGet(
-                    perPage = 50,
-                    teamIds = listOf(10),
-                    startDate = "2026-04-28",
-                    endDate = "2026-06-12",
-                )
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = "2026-04-28", endDate = "2026-06-12")
             } returns NbaV1GamesGet200Response(data = listOf(finalGame(id = 1, date = "2026-06-01"), malformedNonFinal))
 
             val result = repository.getRecentGames(10)
@@ -108,21 +115,78 @@ class GameRepositoryImplTest {
     fun `translates a malformed game payload into a DataException`() =
         runTest {
             coEvery {
-                api.nbaV1GamesGet(
-                    perPage = 50,
-                    teamIds = listOf(10),
-                    startDate = "2026-04-28",
-                    endDate = "2026-06-12",
-                )
-            } returns
-                NbaV1GamesGet200Response(
-                    data = listOf(finalGame(id = 1, date = "2026-06-01").copy(id = null)),
-                )
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = "2026-04-28", endDate = "2026-06-12")
+            } returns NbaV1GamesGet200Response(data = listOf(finalGame(id = 1, date = "2026-06-01").copy(id = null)))
 
             val thrown = runCatching { repository.getRecentGames(10) }.exceptionOrNull()
 
             assertTrue("expected DataException, was $thrown", thrown is DataException)
             assertEquals(DataErrorKind.UNKNOWN, (thrown as DataException).kind)
+        }
+
+    @Test
+    fun `serves cached games without a network call while fresh`() =
+        runTest {
+            coEvery {
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = any(), endDate = any())
+            } returns NbaV1GamesGet200Response(data = listOf(finalGame(id = 1, date = "2026-06-01")))
+            repository.getRecentGames(10)
+
+            now = FIXED_NOW_MILLIS + CachePolicy.TTL.inWholeMilliseconds - 1
+            val result = repository.getRecentGames(10)
+
+            assertEquals(listOf(1), result.map { it.id })
+            coVerify(exactly = 1) {
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = any(), endDate = any())
+            }
+        }
+
+    @Test
+    fun `serves an empty off-season result from cache without refetching while fresh`() =
+        runTest {
+            coEvery {
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = any(), endDate = any())
+            } returns NbaV1GamesGet200Response(data = emptyList())
+            repository.getRecentGames(10)
+
+            now = FIXED_NOW_MILLIS + CachePolicy.TTL.inWholeMilliseconds - 1
+            val result = repository.getRecentGames(10)
+
+            assertEquals(emptyList<Any>(), result)
+            coVerify(exactly = 1) {
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = any(), endDate = any())
+            }
+        }
+
+    @Test
+    fun `serves cached games when a stale refresh fails`() =
+        runTest {
+            coEvery {
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = any(), endDate = any())
+            } returns NbaV1GamesGet200Response(data = listOf(finalGame(id = 1, date = "2026-06-01"))) andThenThrows
+                IOException("offline")
+            repository.getRecentGames(10)
+
+            now = FIXED_NOW_MILLIS + CachePolicy.TTL.inWholeMilliseconds
+            val result = repository.getRecentGames(10)
+
+            assertEquals(listOf(1), result.map { it.id })
+            coVerify(exactly = 2) {
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = any(), endDate = any())
+            }
+        }
+
+    @Test
+    fun `throws when the fetch fails and there is no cached games`() =
+        runTest {
+            coEvery {
+                api.nbaV1GamesGet(perPage = 50, teamIds = listOf(10), startDate = any(), endDate = any())
+            } throws IOException("offline")
+
+            val thrown = runCatching { repository.getRecentGames(10) }.exceptionOrNull()
+
+            assertTrue("expected DataException, was $thrown", thrown is DataException)
+            assertEquals(DataErrorKind.NETWORK, (thrown as DataException).kind)
         }
 
     private fun finalGame(

@@ -24,10 +24,9 @@ val dataModule =
         }
         single { get<CourtFlowDatabase>().teamDao() }
         single { get<CourtFlowDatabase>().cacheMetadataDao() }
-        // Kept as a manual definition: GameRepositoryImpl's second constructor
-        // parameter is a defaulted clock lambda (`() -> Long`) that is not in the
-        // graph, and the constructor DSL would try to resolve it and fail.
-        single<GameRepository> { GameRepositoryImpl(get()) }
+        single { get<CourtFlowDatabase>().gameDao() }
+        // Manual: the defaulted `nowMillis` clock (`() -> Long`) is not in the graph.
+        single<GameRepository> { GameRepositoryImpl(get(), get(), get()) }
         // Manual for the same reason as GameRepository/TeamRepository: defaulted `nowMillis` clock.
         single<PlayerRepository> { PlayerRepositoryImpl(get(), get()) }
         // Manual for the same reason as GameRepository: defaulted `nowMillis` clock.

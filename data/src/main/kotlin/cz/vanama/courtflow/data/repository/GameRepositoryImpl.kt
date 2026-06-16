@@ -1,7 +1,14 @@
 package cz.vanama.courtflow.data.repository
 
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
+import cz.vanama.courtflow.data.cache.CacheKeys
+import cz.vanama.courtflow.data.cache.CachePolicy
+import cz.vanama.courtflow.data.local.dao.CacheMetadataDao
+import cz.vanama.courtflow.data.local.dao.GameDao
+import cz.vanama.courtflow.data.local.entity.CacheMetadataEntity
 import cz.vanama.courtflow.data.mapper.toDomain
+import cz.vanama.courtflow.data.mapper.toEntity
 import cz.vanama.courtflow.domain.model.Game
 import cz.vanama.courtflow.domain.repository.GameRepository
 import java.text.SimpleDateFormat
@@ -11,36 +18,55 @@ import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 /**
- * [GameRepository] backed by the balldontlie REST API.
+ * [GameRepository] backed by the balldontlie REST API with a Room read-through
+ * cache.
  *
- * The `/games` endpoint has no sort parameter and its cursor walks games in
- * ascending order from the first NBA season, so "recent" is implemented as a
- * single request limited to a [WINDOW_DAYS]-day `start_date`/`end_date`
- * window (one page of [PAGE_SIZE] always covers a team's games in that
- * span), filtered to completed games and sorted by date client-side. During
- * the off-season the window may be empty — the UI hides the section.
- * [nowMillis] is injectable for deterministic tests.
+ * "Recent" is a single request limited to a [WINDOW_DAYS]-day window, filtered
+ * to completed games and sorted by date client-side. The result (a team's five
+ * most recent games — possibly empty in the off-season) is cached per team and
+ * served from Room while the `games:{teamId}` timestamp is within
+ * [CachePolicy.TTL]: freshness is timestamp-based, so an empty off-season
+ * result is served from cache without refetching. A stale/missing entry
+ * triggers a refetch; if that fails but a cache exists, the stale games are
+ * served. [nowMillis] is injectable for deterministic tests.
  */
 class GameRepositoryImpl(
     private val api: NBAApi,
+    private val gameDao: GameDao,
+    private val cacheMetadataDao: CacheMetadataDao,
     private val nowMillis: () -> Long = System::currentTimeMillis,
 ) : GameRepository {
-    override suspend fun getRecentGames(teamId: Int): List<Game> =
-        safeApiCall {
-            val now = nowMillis()
-            api
-                .nbaV1GamesGet(
-                    perPage = PAGE_SIZE,
-                    teamIds = listOf(teamId),
-                    startDate = isoDate(now - TimeUnit.DAYS.toMillis(WINDOW_DAYS)),
-                    endDate = isoDate(now),
-                ).data
-                .orEmpty()
-                .filter { it.status == STATUS_FINAL }
-                .map { it.toDomain() }
-                .sortedByDescending { it.date }
-                .take(RECENT_GAMES_LIMIT)
+    override suspend fun getRecentGames(teamId: Int): List<Game> {
+        val now = nowMillis()
+        val lastFetchedAt = cacheMetadataDao.get(CacheKeys.games(teamId))?.lastFetchedAt
+        val cached = gameDao.getByTeamId(teamId)
+        if (!CachePolicy.isStale(lastFetchedAt, now)) {
+            return cached.map { it.toDomain() }
         }
+        return try {
+            val games =
+                safeApiCall {
+                    api
+                        .nbaV1GamesGet(
+                            perPage = PAGE_SIZE,
+                            teamIds = listOf(teamId),
+                            startDate = isoDate(now - TimeUnit.DAYS.toMillis(WINDOW_DAYS)),
+                            endDate = isoDate(now),
+                        ).data
+                        .orEmpty()
+                        .filter { it.status == STATUS_FINAL }
+                        .map { it.toDomain() }
+                        .sortedByDescending { it.date }
+                        .take(RECENT_GAMES_LIMIT)
+                }
+            gameDao.replaceForTeam(teamId, games.map { it.toEntity(teamId) })
+            cacheMetadataDao.upsert(CacheMetadataEntity(CacheKeys.games(teamId), now))
+            games
+        } catch (e: DataException) {
+            // Offline-first: cached games outlive a failed refresh.
+            if (cached.isNotEmpty()) cached.map { it.toDomain() } else throw e
+        }
+    }
 
     /** Formats [epochMillis] as the API's `yyyy-MM-dd`, pinned to UTC for determinism. */
     private fun isoDate(epochMillis: Long): String =
