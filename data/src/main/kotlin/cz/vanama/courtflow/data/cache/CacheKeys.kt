@@ -13,4 +13,7 @@ object CacheKeys {
 
     /** A single player's detail, by id. */
     fun player(id: Int): String = "player:$id"
+
+    /** A single team's recent games, by team id. */
+    fun games(teamId: Int): String = "games:$teamId"
 }

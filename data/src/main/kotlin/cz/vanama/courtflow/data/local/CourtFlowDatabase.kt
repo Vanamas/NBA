@@ -3,10 +3,12 @@ package cz.vanama.courtflow.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import cz.vanama.courtflow.data.local.dao.CacheMetadataDao
+import cz.vanama.courtflow.data.local.dao.GameDao
 import cz.vanama.courtflow.data.local.dao.PlayerDao
 import cz.vanama.courtflow.data.local.dao.RemoteKeyDao
 import cz.vanama.courtflow.data.local.dao.TeamDao
 import cz.vanama.courtflow.data.local.entity.CacheMetadataEntity
+import cz.vanama.courtflow.data.local.entity.GameEntity
 import cz.vanama.courtflow.data.local.entity.PlayerEntity
 import cz.vanama.courtflow.data.local.entity.RemoteKeyEntity
 import cz.vanama.courtflow.data.local.entity.TeamEntity
@@ -21,8 +23,9 @@ import cz.vanama.courtflow.data.local.entity.TeamEntity
         TeamEntity::class,
         RemoteKeyEntity::class,
         CacheMetadataEntity::class,
+        GameEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class CourtFlowDatabase : RoomDatabase() {
@@ -33,6 +36,8 @@ abstract class CourtFlowDatabase : RoomDatabase() {
     abstract fun remoteKeyDao(): RemoteKeyDao
 
     abstract fun cacheMetadataDao(): CacheMetadataDao
+
+    abstract fun gameDao(): GameDao
 
     companion object {
         /** On-device database file name. */
