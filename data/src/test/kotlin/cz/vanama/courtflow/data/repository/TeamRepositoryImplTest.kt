@@ -9,6 +9,7 @@ import cz.vanama.courtflow.core.network.generated.api.NBAApi
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1TeamsGet200Response
 import cz.vanama.courtflow.core.network.generated.model.NbaV1TeamsIdGet200Response
+import cz.vanama.courtflow.data.cache.CachePolicy
 import cz.vanama.courtflow.data.local.CourtFlowDatabase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -22,6 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -29,6 +31,7 @@ class TeamRepositoryImplTest {
     private lateinit var database: CourtFlowDatabase
     private lateinit var api: NBAApi
     private lateinit var repository: TeamRepositoryImpl
+    private var now = 0L
 
     @Before
     fun setup() {
@@ -39,7 +42,7 @@ class TeamRepositoryImplTest {
                     CourtFlowDatabase::class.java,
                 ).build()
         api = mockk()
-        repository = TeamRepositoryImpl(api, database.teamDao())
+        repository = TeamRepositoryImpl(api, database.teamDao(), database.cacheMetadataDao(), nowMillis = { now })
     }
 
     @After
@@ -113,7 +116,8 @@ class TeamRepositoryImplTest {
 
             // No stubs on this mock: any network call would fail the test.
             val offlineApi = mockk<NBAApi>()
-            val freshRepository = TeamRepositoryImpl(offlineApi, database.teamDao())
+            val freshRepository =
+                TeamRepositoryImpl(offlineApi, database.teamDao(), database.cacheMetadataDao(), nowMillis = { now })
 
             freshRepository.getTeams().test {
                 assertEquals("Atlanta Hawks", awaitItem()[0].fullName)
@@ -144,6 +148,78 @@ class TeamRepositoryImplTest {
 
             repository.getTeams().test { awaitError() }
             repository.getTeams().test {
+                assertEquals("Atlanta Hawks", awaitItem()[0].fullName)
+                awaitComplete()
+            }
+
+            coVerify(exactly = 2) { api.nbaV1TeamsGet() }
+        }
+
+    @Test
+    fun `getTeams refetches once the cache is older than the TTL`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            repository.getTeams().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            now = CachePolicy.TTL.inWholeMilliseconds
+            repository.getTeams().test {
+                assertEquals("Atlanta Hawks", awaitItem()[0].fullName)
+                awaitComplete()
+            }
+
+            coVerify(exactly = 2) { api.nbaV1TeamsGet() }
+        }
+
+    @Test
+    fun `getTeams serves the cache without a network call while fresh`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            repository.getTeams().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            now = CachePolicy.TTL.inWholeMilliseconds - 1
+            repository.getTeams().test {
+                assertEquals("Atlanta Hawks", awaitItem()[0].fullName)
+                awaitComplete()
+            }
+
+            coVerify(exactly = 1) { api.nbaV1TeamsGet() }
+        }
+
+    @Test
+    fun `getTeams serves stale cache when a stale refresh fails`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns
+                NbaV1TeamsGet200Response(data = listOf(atlantaDto)) andThenThrows IOException("offline")
+            repository.getTeams().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            now = CachePolicy.TTL.inWholeMilliseconds
+            repository.getTeams().test {
+                assertEquals("Atlanta Hawks", awaitItem()[0].fullName)
+                awaitComplete()
+            }
+
+            coVerify(exactly = 2) { api.nbaV1TeamsGet() }
+        }
+
+    @Test
+    fun `forceRefresh refetches even when the cache is fresh`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            repository.getTeams().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            repository.getTeams(forceRefresh = true).test {
                 assertEquals("Atlanta Hawks", awaitItem()[0].fullName)
                 awaitComplete()
             }
