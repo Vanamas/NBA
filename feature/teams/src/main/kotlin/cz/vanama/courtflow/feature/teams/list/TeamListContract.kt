@@ -6,6 +6,7 @@ import cz.vanama.courtflow.domain.model.Team
 /** UI state of the team list screen. */
 data class TeamListState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val sections: List<TeamSection> = emptyList(),
     val error: DataErrorKind? = null,
     val isOffline: Boolean = false,
@@ -15,6 +16,9 @@ data class TeamListState(
 /** User actions of the team list screen; the initial load happens in the ViewModel's `init`. */
 sealed class TeamListIntent {
     data object Retry : TeamListIntent()
+
+    /** Pull-to-refresh: reloads the teams from the network, bypassing the cache TTL. */
+    data object Refresh : TeamListIntent()
 
     data class OnTeamClicked(
         val teamId: Int,

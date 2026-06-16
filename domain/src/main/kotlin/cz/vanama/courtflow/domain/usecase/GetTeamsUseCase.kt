@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 class GetTeamsUseCase(
     private val teamRepository: TeamRepository,
 ) {
-    /** Returns a cold [Flow] emitting the full team list from the remote API. */
-    operator fun invoke(): Flow<List<Team>> = teamRepository.getTeams()
+    /**
+     * Returns a cold [Flow] emitting the full team list. [forceRefresh] = `true`
+     * bypasses the cache TTL and reloads from the network.
+     */
+    operator fun invoke(forceRefresh: Boolean = false): Flow<List<Team>> = teamRepository.getTeams(forceRefresh)
 }

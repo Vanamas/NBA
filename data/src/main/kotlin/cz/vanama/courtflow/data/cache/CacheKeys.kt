@@ -7,4 +7,7 @@ package cz.vanama.courtflow.data.cache
 object CacheKeys {
     /** The unfiltered player list. */
     const val PLAYERS = "players"
+
+    /** The full NBA team list. */
+    const val TEAMS = "teams"
 }
