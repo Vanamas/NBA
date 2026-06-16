@@ -182,4 +182,20 @@ class TeamListContentTest {
 
         composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
     }
+
+    @Test
+    fun `pull to refresh container is shown with teams`() {
+        composeTestRule.setContent {
+            CourtFlowTheme {
+                TeamListContent(
+                    state = TeamListState(sections = listOf(TeamSection("West", "Pacific", listOf(team)))),
+                    onTeamClick = {},
+                    onRetry = {},
+                    onRefresh = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TEAM_LIST_PULL_TO_REFRESH_TEST_TAG).assertIsDisplayed()
+    }
 }

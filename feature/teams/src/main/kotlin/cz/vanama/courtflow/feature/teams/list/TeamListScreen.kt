@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +55,8 @@ private val TEAM_CARD_MIN_WIDTH = 300.dp
 
 private const val SKELETON_ITEM_COUNT = 8
 
+internal const val TEAM_LIST_PULL_TO_REFRESH_TEST_TAG = "team_list_pull_to_refresh"
+
 /**
  * Grid of all NBA teams grouped by conference and division — the column
  * count adapts to the window width; tapping a card navigates to the team
@@ -83,6 +86,7 @@ fun TeamListScreen(
         state = uiState,
         onTeamClick = { teamId -> viewModel.onIntent(TeamListIntent.OnTeamClicked(teamId)) },
         onRetry = { viewModel.onIntent(TeamListIntent.Retry) },
+        onRefresh = { viewModel.onIntent(TeamListIntent.Refresh) },
         modifier = modifier,
     )
 }
@@ -97,6 +101,7 @@ internal fun TeamListScreen(
     state: TeamListState,
     onTeamClick: (Int) -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     // Hides on scroll down and reappears immediately on scroll up, freeing
@@ -118,6 +123,7 @@ internal fun TeamListScreen(
             state = state,
             onTeamClick = onTeamClick,
             onRetry = onRetry,
+            onRefresh = onRefresh,
             modifier = Modifier.padding(padding),
         )
     }
@@ -134,6 +140,7 @@ internal fun TeamListContent(
     state: TeamListState,
     onTeamClick: (Int) -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -163,18 +170,37 @@ internal fun TeamListContent(
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
-                else -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        state.sections.forEach { section -> teamSection(section, onTeamClick) }
-                    }
-                }
+                else -> TeamGrid(state = state, onTeamClick = onTeamClick, onRefresh = onRefresh)
             }
+        }
+    }
+}
+
+/** The team grid wrapped in pull-to-refresh; the indicator shows while [TeamListState.isRefreshing]. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TeamGrid(
+    state: TeamListState,
+    onTeamClick: (Int) -> Unit,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    PullToRefreshBox(
+        isRefreshing = state.isRefreshing,
+        onRefresh = onRefresh,
+        modifier =
+            modifier
+                .fillMaxSize()
+                .testTag(TEAM_LIST_PULL_TO_REFRESH_TEST_TAG),
+    ) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = TEAM_CARD_MIN_WIDTH),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            state.sections.forEach { section -> teamSection(section, onTeamClick) }
         }
     }
 }
