@@ -54,6 +54,8 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
@@ -411,7 +413,11 @@ private fun PlayerLazyList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier.fillMaxSize(),
     ) {
-        items(count = players.itemCount) { index ->
+        items(
+            count = players.itemCount,
+            key = players.itemKey { it.id },
+            contentType = players.itemContentType { "player" },
+        ) { index ->
             val player = players[index]
             if (player != null) {
                 PlayerCard(
