@@ -14,7 +14,10 @@ import cz.vanama.courtflow.core.network.generated.model.NBAPlayer
 import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersGet200Response
 import cz.vanama.courtflow.core.network.generated.model.Pagination
+import cz.vanama.courtflow.data.cache.CacheKeys
+import cz.vanama.courtflow.data.cache.CachePolicy
 import cz.vanama.courtflow.data.local.CourtFlowDatabase
+import cz.vanama.courtflow.data.local.entity.CacheMetadataEntity
 import cz.vanama.courtflow.data.local.entity.PlayerEntity
 import cz.vanama.courtflow.data.local.entity.RemoteKeyEntity
 import cz.vanama.courtflow.data.mapper.toDomain
@@ -179,6 +182,91 @@ class PlayerRemoteMediatorTest {
             coVerify(exactly = 0) {
                 api.nbaV1PlayersGet(any(), any(), any(), any(), any(), any(), any())
             }
+        }
+
+    @Test
+    fun `initialize launches an initial refresh when the cache was never fetched`() =
+        runTest {
+            val mediator = PlayerRemoteMediator(api, database, nowMillis = { 0L })
+
+            assertEquals(
+                RemoteMediator.InitializeAction.LAUNCH_INITIAL_REFRESH,
+                mediator.initialize(),
+            )
+        }
+
+    @Test
+    fun `initialize skips the initial refresh while the cache is fresh`() =
+        runTest {
+            val now = CachePolicy.TTL.inWholeMilliseconds * 10
+            val fetchedAt = now - CachePolicy.TTL.inWholeMilliseconds + 1
+            database.cacheMetadataDao().upsert(
+                CacheMetadataEntity(resourceKey = CacheKeys.PLAYERS, lastFetchedAt = fetchedAt),
+            )
+            val mediator = PlayerRemoteMediator(api, database, nowMillis = { now })
+
+            assertEquals(
+                RemoteMediator.InitializeAction.SKIP_INITIAL_REFRESH,
+                mediator.initialize(),
+            )
+        }
+
+    @Test
+    fun `initialize launches a refresh once the cache is older than the ttl`() =
+        runTest {
+            database.cacheMetadataDao().upsert(
+                CacheMetadataEntity(resourceKey = CacheKeys.PLAYERS, lastFetchedAt = 0L),
+            )
+            val mediator =
+                PlayerRemoteMediator(api, database, nowMillis = { CachePolicy.TTL.inWholeMilliseconds })
+
+            assertEquals(
+                RemoteMediator.InitializeAction.LAUNCH_INITIAL_REFRESH,
+                mediator.initialize(),
+            )
+        }
+
+    @Test
+    fun `refresh records the fetch timestamp`() =
+        runTest {
+            val fetchedAt = 123_456L
+            val mediator = PlayerRemoteMediator(api, database, nowMillis = { fetchedAt })
+            coEvery { api.nbaV1PlayersGet(cursor = null, perPage = 35) } returns
+                NbaV1PlayersGet200Response(
+                    data = listOf(playerDto(id = 1)),
+                    meta = Pagination(nextCursor = 2),
+                )
+
+            mediator.load(LoadType.REFRESH, emptyState())
+
+            assertEquals(
+                fetchedAt,
+                database.cacheMetadataDao().get(CacheKeys.PLAYERS)?.lastFetchedAt,
+            )
+        }
+
+    @Test
+    fun `append does not update the cache timestamp`() =
+        runTest {
+            val originalFetchedAt = 1_000L
+            database.cacheMetadataDao().upsert(
+                CacheMetadataEntity(resourceKey = CacheKeys.PLAYERS, lastFetchedAt = originalFetchedAt),
+            )
+            database.remoteKeyDao().insert(RemoteKeyEntity(nextCursor = 2))
+            val mediator =
+                PlayerRemoteMediator(api, database, nowMillis = { originalFetchedAt + 999_999L })
+            coEvery { api.nbaV1PlayersGet(cursor = 2, perPage = 35) } returns
+                NbaV1PlayersGet200Response(
+                    data = listOf(playerDto(id = 36)),
+                    meta = Pagination(nextCursor = 3),
+                )
+
+            mediator.load(LoadType.APPEND, emptyState())
+
+            assertEquals(
+                originalFetchedAt,
+                database.cacheMetadataDao().get(CacheKeys.PLAYERS)?.lastFetchedAt,
+            )
         }
 
     private fun emptyState() =
