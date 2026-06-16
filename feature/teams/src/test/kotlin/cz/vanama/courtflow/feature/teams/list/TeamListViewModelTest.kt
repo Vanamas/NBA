@@ -272,6 +272,26 @@ class TeamListViewModelTest {
             assertEquals(false, viewModel.uiState.value.isLoading)
             assertEquals(listOf(TeamSection("West", "Pacific", listOf(lakers))), viewModel.uiState.value.sections)
         }
+
+    @Test
+    fun `a failed pull-to-refresh keeps the cached grid without an error`() =
+        runTest {
+            // The repository serves the stale cache (emits) instead of throwing on a
+            // failed refresh, so the grid must stay and no error must surface.
+            every { getTeamsUseCase(any()) } returns flowOf(listOf(lakers))
+            val viewModel = TeamListViewModel(getTeamsUseCase, connectivityObserver)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onIntent(TeamListIntent.Refresh)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(null, viewModel.uiState.value.error)
+            assertEquals(false, viewModel.uiState.value.isRefreshing)
+            assertEquals(
+                listOf(TeamSection("West", "Pacific", listOf(lakers))),
+                viewModel.uiState.value.sections,
+            )
+        }
 }
 
 private class FakeConnectivityObserver(
