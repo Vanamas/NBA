@@ -9,6 +9,7 @@ data class PlayerListState(
     val players: Flow<PagingData<Player>>,
     val searchQuery: String = "",
     val isOffline: Boolean = false,
+    val retryInSeconds: Int? = null,
 )
 
 /** User actions of the player list screen. */
@@ -20,6 +21,14 @@ sealed class PlayerListIntent {
     data class OnPlayerClicked(
         val playerId: Int,
     ) : PlayerListIntent()
+
+    /** A paged load (refresh or append) failed with HTTP 429; carries the reset epoch. */
+    data class OnRateLimited(
+        val resetEpochSeconds: Long?,
+    ) : PlayerListIntent()
+
+    /** The rate-limited load is no longer in an error state (retried, loading, or succeeded). */
+    data object OnRateLimitResolved : PlayerListIntent()
 }
 
 /** One-shot events emitted by [PlayerListViewModel]. */
@@ -27,4 +36,6 @@ sealed class PlayerListEffect {
     data class NavigateToPlayerDetail(
         val playerId: Int,
     ) : PlayerListEffect()
+
+    data object RetryPaging : PlayerListEffect()
 }

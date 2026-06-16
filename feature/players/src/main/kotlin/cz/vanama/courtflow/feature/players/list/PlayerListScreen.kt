@@ -49,12 +49,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import cz.vanama.courtflow.core.common.error.DataErrorKind
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.designsystem.component.CachedDataBanner
 import cz.vanama.courtflow.core.designsystem.component.ConnectivityBanner
 import cz.vanama.courtflow.core.designsystem.component.ErrorState
@@ -102,6 +105,7 @@ fun PlayerListScreen(
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     is PlayerListEffect.NavigateToPlayerDetail -> onNavigateToPlayerDetail(effect.playerId)
+                    is PlayerListEffect.RetryPaging -> players.retry()
                 }
             }
         }
@@ -113,15 +117,37 @@ fun PlayerListScreen(
         }
     }
 
+    val rateLimitError = players.loadState.rateLimitError()
+    LaunchedEffect(rateLimitError != null, rateLimitError?.rateLimitResetEpochSeconds) {
+        if (rateLimitError != null) {
+            viewModel.onIntent(PlayerListIntent.OnRateLimited(rateLimitError.rateLimitResetEpochSeconds))
+        } else {
+            viewModel.onIntent(PlayerListIntent.OnRateLimitResolved)
+        }
+    }
+
     PlayerListScreen(
         players = players,
         searchQuery = uiState.searchQuery,
         isOffline = uiState.isOffline,
+        retryInSeconds = uiState.retryInSeconds,
         onSearchQueryChanged = { query -> viewModel.onIntent(PlayerListIntent.OnSearchQueryChanged(query)) },
         onPlayerClick = { playerId -> viewModel.onIntent(PlayerListIntent.OnPlayerClicked(playerId)) },
         modifier = modifier,
     )
 }
+
+/**
+ * The rate-limited [DataException] from a failed refresh or append load, or
+ * null when neither failed with HTTP 429. Refresh takes precedence (full-screen
+ * error) over append (the inline next-page row).
+ */
+private fun CombinedLoadStates.rateLimitError(): DataException? =
+    listOf(refresh, append)
+        .filterIsInstance<LoadState.Error>()
+        .map { it.error }
+        .filterIsInstance<DataException>()
+        .firstOrNull { it.kind == DataErrorKind.RATE_LIMITED }
 
 /**
  * Stateless player list screen with the [Scaffold] and top bar; rendered by
@@ -135,6 +161,7 @@ internal fun PlayerListScreen(
     isOffline: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
+    retryInSeconds: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     // Hides on scroll down and reappears immediately on scroll up, freeing
@@ -158,6 +185,7 @@ internal fun PlayerListScreen(
             isOffline = isOffline,
             onSearchQueryChanged = onSearchQueryChanged,
             onPlayerClick = onPlayerClick,
+            retryInSeconds = retryInSeconds,
             modifier = Modifier.padding(padding),
         )
     }
@@ -179,6 +207,7 @@ internal fun PlayerListContent(
     isOffline: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onPlayerClick: (Int) -> Unit,
+    retryInSeconds: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -199,6 +228,7 @@ internal fun PlayerListContent(
             searchQuery = searchQuery,
             onClearSearch = { onSearchQueryChanged("") },
             onPlayerClick = onPlayerClick,
+            retryInSeconds = retryInSeconds,
         )
     }
 }
@@ -255,6 +285,7 @@ private fun PlayerListItems(
     searchQuery: String,
     onClearSearch: () -> Unit,
     onPlayerClick: (Int) -> Unit,
+    retryInSeconds: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     val refreshState = players.loadState.refresh
@@ -271,6 +302,7 @@ private fun PlayerListItems(
                 ErrorState(
                     message = stringResource(R.string.player_list_refresh_error, errorMessage(refreshState.error)),
                     onRetry = { players.retry() },
+                    retryInSeconds = retryInSeconds,
                     modifier =
                         Modifier
                             .align(Alignment.Center)
@@ -311,6 +343,7 @@ private fun PlayerListItems(
                     PlayerLazyList(
                         players = players,
                         onPlayerClick = onPlayerClick,
+                        retryInSeconds = retryInSeconds,
                     )
                 }
             }
@@ -371,6 +404,7 @@ private fun PlayerLazyList(
     players: LazyPagingItems<Player>,
     onPlayerClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    retryInSeconds: Int? = null,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = PLAYER_CARD_MIN_WIDTH),
@@ -406,6 +440,7 @@ private fun PlayerLazyList(
                     PagingAppendError(
                         message = stringResource(R.string.player_list_append_error, errorMessage(loadState.error)),
                         onRetry = { players.retry() },
+                        retryInSeconds = retryInSeconds,
                     )
                 }
             }

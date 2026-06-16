@@ -170,4 +170,15 @@ class PlayerDetailViewModelTest {
                 expectNoEvents()
             }
         }
+
+    @Test
+    fun `rate limit reset far in the future caps the countdown at 60s`() =
+        runTest {
+            coEvery { getPlayerDetailUseCase(1) } throws
+                DataException(DataErrorKind.RATE_LIMITED, rateLimitResetEpochSeconds = 4_000_000_000L) andThen player
+            val viewModel = PlayerDetailViewModel(1, getPlayerDetailUseCase)
+            runCurrent()
+
+            assertEquals(60, viewModel.uiState.value.retryInSeconds)
+        }
 }

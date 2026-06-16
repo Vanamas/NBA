@@ -27,6 +27,7 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.compose.collectAsLazyPagingItems
+import cz.vanama.courtflow.core.designsystem.R
 import cz.vanama.courtflow.core.designsystem.component.TestTags
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import cz.vanama.courtflow.domain.model.Player
@@ -37,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -520,6 +522,58 @@ class PlayerListContentTest {
         }
 
         composeTestRule.onNodeWithTag(TestTags.CONNECTIVITY_BANNER).assertIsDisplayed()
+    }
+
+    @Test
+    fun `refresh error shows the rate-limit countdown when retryInSeconds is set`() {
+        val errorStates =
+            LoadStates(
+                refresh = LoadState.Error(RuntimeException("rate limited")),
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.NotLoading(endOfPaginationReached = false),
+            )
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.empty<Player>(sourceLoadStates = errorStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                isOffline = false,
+                retryInSeconds = 7,
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        val expected = RuntimeEnvironment.getApplication().getString(R.string.retrying_in, 7)
+        composeTestRule.onNodeWithText(expected).assertIsDisplayed()
+    }
+
+    @Test
+    fun `append error shows the rate-limit countdown when retryInSeconds is set`() {
+        val appendErrorStates =
+            LoadStates(
+                refresh = LoadState.NotLoading(endOfPaginationReached = false),
+                prepend = LoadState.NotLoading(endOfPaginationReached = false),
+                append = LoadState.Error(RuntimeException("rate limited")),
+            )
+
+        composeTestRule.setContent {
+            PlayerListContent(
+                players =
+                    flowOf(PagingData.from(listOf(player), sourceLoadStates = appendErrorStates))
+                        .collectAsLazyPagingItems(),
+                searchQuery = "",
+                isOffline = false,
+                retryInSeconds = 9,
+                onSearchQueryChanged = {},
+                onPlayerClick = {},
+            )
+        }
+
+        val expected = RuntimeEnvironment.getApplication().getString(R.string.retrying_in, 9)
+        composeTestRule.onNodeWithText(expected).assertIsDisplayed()
     }
 }
 

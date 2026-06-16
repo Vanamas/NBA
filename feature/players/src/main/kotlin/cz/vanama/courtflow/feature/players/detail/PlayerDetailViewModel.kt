@@ -4,9 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.vanama.courtflow.core.common.error.DataErrorKind
 import cz.vanama.courtflow.core.common.error.DataException
-import cz.vanama.courtflow.core.common.time.countdownSeconds
+import cz.vanama.courtflow.core.common.time.RateLimitRetryController
 import cz.vanama.courtflow.domain.usecase.GetPlayerDetailUseCase
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -31,7 +30,7 @@ class PlayerDetailViewModel(
     val uiEffect: SharedFlow<PlayerDetailEffect>
         field = MutableSharedFlow<PlayerDetailEffect>()
 
-    private var rateLimitRetryJob: Job? = null
+    private val rateLimitRetry = RateLimitRetryController()
 
     init {
         loadPlayer()
@@ -46,7 +45,7 @@ class PlayerDetailViewModel(
     }
 
     private fun loadPlayer() {
-        rateLimitRetryJob?.cancel()
+        rateLimitRetry.cancel()
         viewModelScope.launch {
             uiState.update { it.copy(isLoading = true, error = null, retryInSeconds = null) }
             try {
@@ -54,19 +53,18 @@ class PlayerDetailViewModel(
                 uiState.update { it.copy(isLoading = false, player = player) }
             } catch (e: DataException) {
                 uiState.update { it.copy(isLoading = false, error = e.kind) }
-                if (e.kind == DataErrorKind.RATE_LIMITED) scheduleRateLimitRetry()
+                if (e.kind == DataErrorKind.RATE_LIMITED) scheduleRateLimitRetry(e.rateLimitResetEpochSeconds)
             }
         }
     }
 
-    private fun scheduleRateLimitRetry() {
-        rateLimitRetryJob =
-            viewModelScope.launch {
-                countdownSeconds(RATE_LIMIT_RETRY_SECONDS).collect { remaining ->
-                    uiState.update { it.copy(retryInSeconds = remaining.takeIf { s -> s > 0 }) }
-                    if (remaining == 0) loadPlayer()
-                }
-            }
+    private fun scheduleRateLimitRetry(resetEpochSeconds: Long?) {
+        rateLimitRetry.schedule(
+            resetEpochSeconds = resetEpochSeconds,
+            scope = viewModelScope,
+            onTick = { remaining -> uiState.update { it.copy(retryInSeconds = remaining) } },
+            onElapsed = ::loadPlayer,
+        )
     }
 
     private fun onTeamClicked(teamId: Int) {
@@ -80,10 +78,5 @@ class PlayerDetailViewModel(
         viewModelScope.launch {
             uiEffect.emit(PlayerDetailEffect.Share(player))
         }
-    }
-
-    private companion object {
-        /** balldontlie's free tier limits requests per minute; 15 s is a safe wait. */
-        const val RATE_LIMIT_RETRY_SECONDS = 15
     }
 }
