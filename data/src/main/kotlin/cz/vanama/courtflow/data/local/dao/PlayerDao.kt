@@ -21,6 +21,10 @@ interface PlayerDao {
     @Query("SELECT * FROM players ORDER BY id ASC")
     suspend fun getAll(): List<PlayerEntity>
 
+    /** The cached player with [id], or `null` if it is not cached. */
+    @Query("SELECT * FROM players WHERE id = :id")
+    suspend fun getById(id: Int): PlayerEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(players: List<PlayerEntity>)
 

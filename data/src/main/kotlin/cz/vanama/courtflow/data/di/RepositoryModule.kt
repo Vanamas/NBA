@@ -9,8 +9,6 @@ import cz.vanama.courtflow.domain.repository.GameRepository
 import cz.vanama.courtflow.domain.repository.PlayerRepository
 import cz.vanama.courtflow.domain.repository.TeamRepository
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.module.dsl.bind
-import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 /** Koin module binding the Room cache and repository implementations. */
@@ -30,7 +28,8 @@ val dataModule =
         // parameter is a defaulted clock lambda (`() -> Long`) that is not in the
         // graph, and the constructor DSL would try to resolve it and fail.
         single<GameRepository> { GameRepositoryImpl(get()) }
-        singleOf(::PlayerRepositoryImpl) { bind<PlayerRepository>() }
+        // Manual for the same reason as GameRepository/TeamRepository: defaulted `nowMillis` clock.
+        single<PlayerRepository> { PlayerRepositoryImpl(get(), get()) }
         // Manual for the same reason as GameRepository: defaulted `nowMillis` clock.
         single<TeamRepository> { TeamRepositoryImpl(get(), get(), get()) }
     }

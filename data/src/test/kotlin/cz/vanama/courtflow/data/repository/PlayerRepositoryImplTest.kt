@@ -12,17 +12,16 @@ import cz.vanama.courtflow.core.network.generated.model.NBATeam
 import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersGet200Response
 import cz.vanama.courtflow.core.network.generated.model.NbaV1PlayersIdGet200Response
 import cz.vanama.courtflow.core.network.generated.model.Pagination
+import cz.vanama.courtflow.data.cache.CachePolicy
 import cz.vanama.courtflow.data.local.CourtFlowDatabase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -47,6 +46,7 @@ class PlayerRepositoryImplTest {
     private lateinit var database: CourtFlowDatabase
     private lateinit var api: NBAApi
     private lateinit var repository: PlayerRepositoryImpl
+    private var now = 0L
 
     @Before
     fun setup() {
@@ -59,7 +59,7 @@ class PlayerRepositoryImplTest {
                 .allowMainThreadQueries()
                 .build()
         api = mockk()
-        repository = PlayerRepositoryImpl(api, database)
+        repository = PlayerRepositoryImpl(api, database, nowMillis = { now })
     }
 
     @After
@@ -198,45 +198,78 @@ class PlayerRepositoryImplTest {
         }
 
     @Test
-    fun `getPlayerById translates a missing player payload into UNKNOWN`() {
-        coEvery { api.nbaV1PlayersIdGet(19) } returns NbaV1PlayersIdGet200Response(data = null)
+    fun `getPlayerById translates a missing player payload into UNKNOWN`() =
+        runTest(testDispatcher) {
+            coEvery { api.nbaV1PlayersIdGet(19) } returns NbaV1PlayersIdGet200Response(data = null)
 
-        val e =
-            assertThrows(DataException::class.java) {
-                runBlocking { repository.getPlayerById(19) }
-            }
+            val e = runCatching { repository.getPlayerById(19) }.exceptionOrNull()
 
-        assertEquals(DataErrorKind.UNKNOWN, e.kind)
-    }
-
-    @Test
-    fun `getPlayerById translates HTTP 404 into NOT_FOUND`() {
-        expectGetPlayerByIdKind(httpException(404), DataErrorKind.NOT_FOUND)
-    }
+            assertTrue("expected DataException, was $e", e is DataException)
+            assertEquals(DataErrorKind.UNKNOWN, (e as DataException).kind)
+        }
 
     @Test
-    fun `getPlayerById translates HTTP 500 into SERVER`() {
-        expectGetPlayerByIdKind(httpException(500), DataErrorKind.SERVER)
-    }
+    fun `getPlayerById translates HTTP 404 into NOT_FOUND`() =
+        runTest(testDispatcher) { expectGetPlayerByIdKind(httpException(404), DataErrorKind.NOT_FOUND) }
 
     @Test
-    fun `getPlayerById translates IOException into NETWORK`() {
-        expectGetPlayerByIdKind(IOException("offline"), DataErrorKind.NETWORK)
-    }
+    fun `getPlayerById translates HTTP 500 into SERVER`() =
+        runTest(testDispatcher) { expectGetPlayerByIdKind(httpException(500), DataErrorKind.SERVER) }
 
-    private fun expectGetPlayerByIdKind(
+    @Test
+    fun `getPlayerById translates IOException into NETWORK`() =
+        runTest(testDispatcher) { expectGetPlayerByIdKind(IOException("offline"), DataErrorKind.NETWORK) }
+
+    private suspend fun expectGetPlayerByIdKind(
         thrown: Exception,
         expected: DataErrorKind,
     ) {
         coEvery { api.nbaV1PlayersIdGet(19) } throws thrown
 
-        val e =
-            assertThrows(DataException::class.java) {
-                runBlocking { repository.getPlayerById(19) }
-            }
+        val e = runCatching { repository.getPlayerById(19) }.exceptionOrNull()
 
-        assertEquals(expected, e.kind)
+        assertTrue("expected DataException, was $e", e is DataException)
+        assertEquals(expected, (e as DataException).kind)
     }
+
+    @Test
+    fun `getPlayerById serves the cached player without a network call while fresh`() =
+        runTest(testDispatcher) {
+            coEvery { api.nbaV1PlayersIdGet(19) } returns NbaV1PlayersIdGet200Response(data = curryDto)
+            repository.getPlayerById(19) // seeds the cache + stamp at now = 0
+
+            now = CachePolicy.TTL.inWholeMilliseconds - 1
+            val result = repository.getPlayerById(19)
+
+            assertEquals("Stephen", result.firstName)
+            coVerify(exactly = 1) { api.nbaV1PlayersIdGet(19) }
+        }
+
+    @Test
+    fun `getPlayerById refetches once the cached player is stale`() =
+        runTest(testDispatcher) {
+            coEvery { api.nbaV1PlayersIdGet(19) } returns NbaV1PlayersIdGet200Response(data = curryDto)
+            repository.getPlayerById(19)
+
+            now = CachePolicy.TTL.inWholeMilliseconds
+            repository.getPlayerById(19)
+
+            coVerify(exactly = 2) { api.nbaV1PlayersIdGet(19) }
+        }
+
+    @Test
+    fun `getPlayerById serves the cached player when a stale refresh fails`() =
+        runTest(testDispatcher) {
+            coEvery { api.nbaV1PlayersIdGet(19) } returns
+                NbaV1PlayersIdGet200Response(data = curryDto) andThenThrows IOException("offline")
+            repository.getPlayerById(19)
+
+            now = CachePolicy.TTL.inWholeMilliseconds
+            val result = repository.getPlayerById(19)
+
+            assertEquals("Stephen", result.firstName)
+            coVerify(exactly = 2) { api.nbaV1PlayersIdGet(19) }
+        }
 
     private fun httpException(code: Int): HttpException = HttpException(Response.error<Any>(code, "".toResponseBody()))
 

@@ -5,9 +5,14 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import cz.vanama.courtflow.core.common.error.DataException
 import cz.vanama.courtflow.core.network.generated.api.NBAApi
+import cz.vanama.courtflow.data.cache.CacheKeys
+import cz.vanama.courtflow.data.cache.CachePolicy
 import cz.vanama.courtflow.data.local.CourtFlowDatabase
+import cz.vanama.courtflow.data.local.entity.CacheMetadataEntity
 import cz.vanama.courtflow.data.mapper.toDomain
+import cz.vanama.courtflow.data.mapper.toEntity
 import cz.vanama.courtflow.data.paging.PlayerPagingSource
 import cz.vanama.courtflow.data.paging.PlayerRemoteMediator
 import cz.vanama.courtflow.domain.model.Player
@@ -23,11 +28,14 @@ import kotlinx.coroutines.flow.map
  * list works without a connection and survives process death. Search results
  * and team rosters stay network-only via [PlayerPagingSource] — caching
  * arbitrary query results would need per-query tables and remote keys for no
- * real offline value.
+ * real offline value. Player detail is a per-id read-through cache
+ * ([PlayerEntity] keyed by `player:{id}`), serving the cache while fresh and
+ * the stale cache on a failed refresh.
  */
 class PlayerRepositoryImpl(
     private val api: NBAApi,
     private val database: CourtFlowDatabase,
+    private val nowMillis: () -> Long = System::currentTimeMillis,
 ) : PlayerRepository {
     @OptIn(ExperimentalPagingApi::class)
     override fun getPlayers(query: String?): Flow<PagingData<Player>> =
@@ -59,8 +67,23 @@ class PlayerRepositoryImpl(
             enablePlaceholders = false,
         )
 
-    override suspend fun getPlayerById(id: Int): Player =
-        safeApiCall {
-            requireNotNull(api.nbaV1PlayersIdGet(id).data) { "Player $id missing in response" }.toDomain()
+    override suspend fun getPlayerById(id: Int): Player {
+        val cached = database.playerDao().getById(id)
+        val lastFetchedAt = database.cacheMetadataDao().get(CacheKeys.player(id))?.lastFetchedAt
+        if (cached != null && !CachePolicy.isStale(lastFetchedAt, nowMillis())) {
+            return cached.toDomain()
         }
+        return try {
+            val player =
+                safeApiCall {
+                    requireNotNull(api.nbaV1PlayersIdGet(id).data) { "Player $id missing in response" }.toDomain()
+                }
+            database.playerDao().insertAll(listOf(player.toEntity()))
+            database.cacheMetadataDao().upsert(CacheMetadataEntity(CacheKeys.player(id), nowMillis()))
+            player
+        } catch (e: DataException) {
+            // Offline-first: a cached player outlives a failed refresh.
+            cached?.toDomain() ?: throw e
+        }
+    }
 }

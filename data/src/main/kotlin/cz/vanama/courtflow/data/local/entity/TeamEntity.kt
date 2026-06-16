@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * Room row caching one NBA team. Populated only by the full team-list sync,
- * so a non-empty table always represents the complete (30-row) list.
+ * Room row caching one NBA team. Populated by the full team-list sync and by
+ * single-team detail fetches; the list's freshness is gated by the `teams`
+ * cache_metadata timestamp, not by row presence, so a partially filled table
+ * is never mistaken for a complete, fresh list.
  */
 @Entity(tableName = "teams")
 data class TeamEntity(

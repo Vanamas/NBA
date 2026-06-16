@@ -227,6 +227,56 @@ class TeamRepositoryImplTest {
             coVerify(exactly = 2) { api.nbaV1TeamsGet() }
         }
 
+    @Test
+    fun `getTeamById serves the cached team without a network call while the list is fresh`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            repository.getTeams().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            now = CachePolicy.TTL.inWholeMilliseconds - 1
+            val result = repository.getTeamById(1)
+
+            assertEquals("Atlanta Hawks", result.fullName)
+            coVerify(exactly = 0) { api.nbaV1TeamsIdGet(any()) }
+        }
+
+    @Test
+    fun `getTeamById refetches the team once the cache is stale`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            coEvery { api.nbaV1TeamsIdGet(1) } returns NbaV1TeamsIdGet200Response(atlantaDto)
+            repository.getTeams().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            now = CachePolicy.TTL.inWholeMilliseconds
+            val result = repository.getTeamById(1)
+
+            assertEquals("Atlanta Hawks", result.fullName)
+            coVerify(exactly = 1) { api.nbaV1TeamsIdGet(1) }
+        }
+
+    @Test
+    fun `getTeamById serves the cached team when a stale refresh fails`() =
+        runTest {
+            coEvery { api.nbaV1TeamsGet() } returns NbaV1TeamsGet200Response(data = listOf(atlantaDto))
+            coEvery { api.nbaV1TeamsIdGet(1) } throws IOException("offline")
+            repository.getTeams().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            now = CachePolicy.TTL.inWholeMilliseconds
+            val result = repository.getTeamById(1)
+
+            assertEquals("Atlanta Hawks", result.fullName)
+            coVerify(exactly = 1) { api.nbaV1TeamsIdGet(1) }
+        }
+
     private val atlantaDto =
         NBATeam(
             id = 1,
