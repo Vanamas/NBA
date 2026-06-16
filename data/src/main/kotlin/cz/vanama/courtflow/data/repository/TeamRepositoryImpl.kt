@@ -22,8 +22,12 @@ import kotlinx.coroutines.flow.flow
  * while the cached `teams` timestamp is within [CachePolicy.TTL]. Once stale
  * (or on an explicit `forceRefresh`) it is refetched and restamped; if that
  * refetch fails but a cache exists, the stale list is served instead of an
- * error. Only [getTeams] populates the table — caching single [getTeamById]
- * results would make a partially filled table masquerade as the complete list.
+ * error. [getTeamById] is a read-through that shares the `teams` freshness
+ * window: it serves the cached row while the list timestamp is fresh, otherwise
+ * refetches the single team and upserts its row (without restamping `teams`).
+ * The list ([getTeams]) is gated by the `teams` timestamp rather than by row
+ * presence, so a partially filled table from detail fetches is never mistaken
+ * for a complete, fresh list.
  * [nowMillis] is injectable for deterministic tests.
  */
 class TeamRepositoryImpl(
@@ -59,9 +63,22 @@ class TeamRepositoryImpl(
             }
         }
 
-    override suspend fun getTeamById(id: Int): Team =
-        teamDao.getById(id)?.toDomain()
-            ?: safeApiCall {
-                requireNotNull(api.nbaV1TeamsIdGet(id).data) { "Team $id missing in response" }.toDomain()
-            }
+    override suspend fun getTeamById(id: Int): Team {
+        val cached = teamDao.getById(id)
+        val lastFetchedAt = cacheMetadataDao.get(CacheKeys.TEAMS)?.lastFetchedAt
+        if (cached != null && !CachePolicy.isStale(lastFetchedAt, nowMillis())) {
+            return cached.toDomain()
+        }
+        return try {
+            val team =
+                safeApiCall {
+                    requireNotNull(api.nbaV1TeamsIdGet(id).data) { "Team $id missing in response" }.toDomain()
+                }
+            teamDao.insertAll(listOf(team.toEntity()))
+            team
+        } catch (e: DataException) {
+            // Offline-first: a cached team outlives a failed refresh.
+            cached?.toDomain() ?: throw e
+        }
+    }
 }
