@@ -74,6 +74,15 @@ class PlayerDaoTest {
             assertEquals(emptyList<PlayerEntity>(), dao.getAll())
         }
 
+    @Test
+    fun `getById returns the matching player or null`() =
+        runTest {
+            dao.insertAll(listOf(playerEntity(id = 1), playerEntity(id = 2)))
+
+            assertEquals(2, dao.getById(2)?.id)
+            assertEquals(null, dao.getById(404))
+        }
+
     private fun playerEntity(
         id: Int,
         firstName: String = "LeBron",

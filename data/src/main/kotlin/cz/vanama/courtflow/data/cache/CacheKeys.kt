@@ -10,4 +10,7 @@ object CacheKeys {
 
     /** The full NBA team list. */
     const val TEAMS = "teams"
+
+    /** A single player's detail, by id. */
+    fun player(id: Int): String = "player:$id"
 }
