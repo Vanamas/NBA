@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 android {
@@ -24,6 +25,15 @@ android {
             optimization {
                 enable = false
             }
+        }
+        // Release-representative build for Baseline Profile generation and
+        // benchmarking: non-debuggable (so ART honours the profile) but signed
+        // with the debug key so it installs without release signing setup.
+        create("benchmark") {
+            initWith(buildTypes.getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
         }
     }
     compileOptions {
@@ -79,6 +89,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.material)
     implementation(libs.timber)
+    // Installs the bundled Baseline Profile at first run so ART AOT-compiles
+    // the startup + scroll paths; without it the profile in the APK is ignored.
+    implementation(libs.androidx.profileinstaller)
+    baselineProfile(project(":baselineprofile"))
     testImplementation(libs.konsist)
     testImplementation(libs.koin.test)
     testImplementation(libs.androidx.core)
