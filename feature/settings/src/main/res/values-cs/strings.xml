@@ -24,4 +24,10 @@
 
     <!-- Feedback -->
     <string name="settings_write_error">Nastavení se nepodařilo uložit</string>
+
+    <!-- About -->
+    <string name="settings_about_section">O aplikaci</string>
+    <string name="settings_about_version">Verze</string>
+    <string name="settings_about_licenses">Open-source licence</string>
+    <string name="settings_about_licenses_summary">Knihovny, na kterých CourtFlow stojí</string>
 </resources>

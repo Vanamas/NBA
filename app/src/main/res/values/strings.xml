@@ -6,6 +6,10 @@
     <string name="nav_teams">Teams</string>
     <string name="nav_settings">Settings</string>
 
+    <!-- OSS licenses screen (in-app fallback for oss-licenses-plugin). -->
+    <string name="oss_licenses_title">Open-source licenses</string>
+    <string name="oss_licenses_back">Back</string>
+
     <!-- Static launcher shortcuts (res/xml/shortcuts.xml). Short labels: keep under ~10 characters. -->
     <string name="shortcut_teams_short">Teams</string>
     <string name="shortcut_teams_long">Browse NBA teams</string>

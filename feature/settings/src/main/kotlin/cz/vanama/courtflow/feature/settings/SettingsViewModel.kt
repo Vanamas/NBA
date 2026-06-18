@@ -20,6 +20,7 @@ import java.io.IOException
 class SettingsViewModel(
     private val store: ThemePreferencesStore,
     private val localeController: AppLocaleController,
+    private val appInfoProvider: AppInfoProvider,
 ) : ViewModel() {
     val uiState: StateFlow<SettingsState>
         field =
@@ -27,6 +28,7 @@ class SettingsViewModel(
             SettingsState(
                 currentLanguageTag = localeController.currentLanguageTag(),
                 languageTags = localeController.supportedLanguageTags(),
+                versionName = appInfoProvider.versionName,
             ),
         )
 
@@ -53,7 +55,12 @@ class SettingsViewModel(
             is SettingsIntent.OnThemeModeChanged -> persist { store.setThemeMode(intent.mode) }
             is SettingsIntent.OnTrueBlackChanged -> persist { store.setTrueBlack(intent.enabled) }
             is SettingsIntent.OnLanguageSelected -> selectLanguage(intent.tag)
+            is SettingsIntent.OnOssLicensesClicked -> openOssLicenses()
         }
+    }
+
+    private fun openOssLicenses() {
+        viewModelScope.launch { uiEffect.emit(SettingsEffect.OpenOssLicenses) }
     }
 
     private fun selectLanguage(tag: String) {

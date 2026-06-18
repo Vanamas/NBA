@@ -1,5 +1,6 @@
 package cz.vanama.courtflow.feature.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -7,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -26,6 +28,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import cz.vanama.courtflow.core.common.settings.ThemeMode
 import cz.vanama.courtflow.core.designsystem.theme.CourtFlowTheme
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.util.Locale
 
 /**
@@ -37,6 +40,7 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
     val viewModel: SettingsViewModel = koinViewModel()
+    val appInfoProvider: AppInfoProvider = koinInject()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val writeErrorMessage = stringResource(R.string.settings_write_error)
@@ -47,6 +51,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             viewModel.uiEffect.collect { effect ->
                 when (effect) {
                     SettingsEffect.PreferenceWriteFailed -> snackbarHostState.showSnackbar(writeErrorMessage)
+                    SettingsEffect.OpenOssLicenses -> appInfoProvider.openOssLicenses()
                 }
             }
         }
@@ -104,6 +109,10 @@ internal fun SettingsContent(
             selectedTag = state.currentLanguageTag,
             tags = state.languageTags,
             onSelect = { onIntent(SettingsIntent.OnLanguageSelected(it)) },
+        )
+        AboutSection(
+            versionName = state.versionName,
+            onOssLicensesClick = { onIntent(SettingsIntent.OnOssLicensesClicked) },
         )
     }
 }
@@ -165,6 +174,23 @@ private fun LanguageSection(
             RadioRow(languageLabel(tag), selectedTag == tag) { onSelect(tag) }
         }
     }
+}
+
+@Composable
+private fun AboutSection(
+    versionName: String,
+    onOssLicensesClick: () -> Unit,
+) {
+    SectionHeader(stringResource(R.string.settings_about_section))
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.settings_about_version)) },
+        trailingContent = { Text(versionName) },
+    )
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.settings_about_licenses)) },
+        supportingContent = { Text(stringResource(R.string.settings_about_licenses_summary)) },
+        modifier = Modifier.clickable(onClick = onOssLicensesClick),
+    )
 }
 
 private fun languageLabel(tag: String): String {
