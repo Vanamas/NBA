@@ -8,6 +8,15 @@
     <string name="player_list_empty_search">Pro „%1$s“ nebyli nalezeni žádní hráči</string>
     <string name="player_list_clear_search">Vymazat hledání</string>
     <string name="player_list_offline_banner">Nepodařilo se obnovit — zobrazena uložená data</string>
+    <string name="player_filter_open">Otevřít filtry</string>
+    <string name="player_filter_title">Filtry</string>
+    <string name="player_filter_clear">Zrušit filtry</string>
+    <string name="player_filter_position_label">Pozice</string>
+    <string name="player_filter_team">Tým</string>
+    <string name="player_filter_all_teams">Všechny týmy</string>
+    <string name="player_filter_position_guard">Rozehrávači</string>
+    <string name="player_filter_position_forward">Křídla</string>
+    <string name="player_filter_position_center">Pivoti</string>
 
     <string name="player_detail_title">Detail hráče</string>
     <string name="share_player">Sdílet hráče</string>
